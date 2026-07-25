@@ -1,0 +1,245 @@
+sources:
+  - slug: vllm
+    name: vLLM Releases
+    organization: vLLM Project
+    tool: vLLM
+    category: inference
+    default_primary_topic: inference-serving
+    source_type: official-release
+    default_event_types: [library-release]
+    source_kind: github_releases
+    feed_url: https://github.com/vllm-project/vllm/releases.atom
+    homepage_url: https://github.com/vllm-project/vllm/releases
+    credibility_weight: 1.0
+  - slug: langgraph
+    name: LangGraph Releases
+    organization: LangChain
+    tool: LangGraph
+    category: orchestration
+    default_primary_topic: agents-orchestration
+    source_type: official-release
+    default_event_types: [library-release]
+    source_kind: github_releases
+    feed_url: https://github.com/langchain-ai/langgraph/releases.atom
+    homepage_url: https://github.com/langchain-ai/langgraph/releases
+    credibility_weight: 1.0
+  - slug: transformers
+    name: Transformers Releases
+    organization: Hugging Face
+    tool: Transformers
+    category: models
+    default_primary_topic: models-apis
+    source_type: official-release
+    default_event_types: [library-release]
+    source_kind: github_releases
+    feed_url: https://github.com/huggingface/transformers/releases.atom
+    homepage_url: https://github.com/huggingface/transformers/releases
+    credibility_weight: 1.0
+  - slug: litellm
+    name: LiteLLM Releases
+    organization: BerriAI
+    tool: LiteLLM
+    category: gateways
+    default_primary_topic: models-apis
+    source_type: official-release
+    default_event_types: [library-release, api-change]
+    source_kind: github_releases
+    feed_url: https://github.com/BerriAI/litellm/releases.atom
+    homepage_url: https://github.com/BerriAI/litellm/releases
+    credibility_weight: 1.0
+  - slug: qdrant
+    name: Qdrant Releases
+    organization: Qdrant
+    tool: Qdrant
+    category: retrieval
+    default_primary_topic: retrieval-data
+    source_type: official-release
+    default_event_types: [library-release]
+    source_kind: github_releases
+    feed_url: https://github.com/qdrant/qdrant/releases.atom
+    homepage_url: https://github.com/qdrant/qdrant/releases
+    credibility_weight: 1.0
+  - slug: ollama
+    name: Ollama Releases
+    organization: Ollama
+    tool: Ollama
+    category: local-models
+    default_primary_topic: inference-serving
+    source_type: official-release
+    default_event_types: [product-release]
+    source_kind: github_releases
+    feed_url: https://github.com/ollama/ollama/releases.atom
+    homepage_url: https://github.com/ollama/ollama/releases
+    credibility_weight: 1.0
+  - slug: openai-news
+    name: OpenAI News
+    organization: OpenAI
+    tool: OpenAI
+    category: models-apis
+    default_primary_topic: models-apis
+    source_kind: rss
+    source_type: official-product-news
+    default_event_types: [product-release]
+    feed_url: https://openai.com/news/rss.xml
+    homepage_url: https://openai.com/news/
+    fetch_full_article: true
+    content_selector: article, main
+    minimum_full_article_characters: 500
+    credibility_weight: 1.0
+    include_terms: [api, codex, model, developer, gpt, agent, sdk, embedding, realtime]
+  - slug: google-developers
+    name: Google Developers Blog
+    organization: Google
+    tool: Google AI
+    category: developer-tools
+    default_primary_topic: developer-tools
+    source_kind: rss
+    source_type: official-engineering-blog
+    default_event_types: [engineering-analysis]
+    feed_url: https://developers.googleblog.com/feeds/posts/default?alt=rss
+    homepage_url: https://developers.googleblog.com/
+    fetch_full_article: true
+    content_selector: .blocks-container
+    minimum_full_article_characters: 500
+    credibility_weight: 1.0
+    include_terms: [ai, gemini, agent, model, machine learning, mcp]
+  - slug: github-changelog
+    name: GitHub Changelog
+    organization: GitHub
+    tool: GitHub Copilot
+    category: developer-tools
+    default_primary_topic: developer-tools
+    source_kind: rss
+    source_type: official-changelog
+    default_event_types: [product-release]
+    feed_url: https://github.blog/changelog/feed/
+    homepage_url: https://github.blog/changelog/
+    credibility_weight: 1.0
+    include_terms: [copilot, agent, model, mcp, ai]
+  - slug: huggingface-blog
+    name: Hugging Face Blog
+    organization: Hugging Face
+    tool: Hugging Face
+    category: models-apis
+    default_primary_topic: models-apis
+    source_kind: rss
+    source_type: official-engineering-blog
+    default_event_types: [engineering-analysis]
+    feed_url: https://huggingface.co/blog/feed.xml
+    homepage_url: https://huggingface.co/blog
+    fetch_full_article: true
+    content_selector: .blog-content
+    content_remove_selectors: [.not-prose]
+    minimum_full_article_characters: 500
+    credibility_weight: 0.95
+    include_terms: [model, inference, agent, transformer, embedding, training, fine-tuning, evaluation, rag]
+  - slug: pytorch-blog
+    name: PyTorch Blog
+    organization: PyTorch Foundation
+    tool: PyTorch
+    category: training-fine-tuning
+    default_primary_topic: training-fine-tuning
+    source_kind: rss
+    source_type: official-engineering-blog
+    default_event_types: [engineering-analysis]
+    feed_url: https://pytorch.org/blog/feed/
+    homepage_url: https://pytorch.org/blog/
+    credibility_weight: 1.0
+  - slug: nvidia-technical-blog
+    name: NVIDIA Technical Blog
+    organization: NVIDIA
+    tool: NVIDIA AI
+    category: infrastructure-hardware
+    default_primary_topic: infrastructure-hardware
+    source_kind: atom
+    source_type: official-engineering-blog
+    default_event_types: [engineering-analysis]
+    feed_url: https://developer.nvidia.com/blog/feed/
+    homepage_url: https://developer.nvidia.com/blog/
+    fetch_full_article: true
+    content_selector: .entry-content
+    minimum_full_article_characters: 500
+    credibility_weight: 1.0
+    include_terms: [ai, llm, inference, generative, model, cuda, tensorrt, gpu]
+  - slug: aws-machine-learning
+    name: AWS Machine Learning Blog
+    organization: Amazon Web Services
+    tool: AWS AI
+    category: infrastructure-hardware
+    default_primary_topic: infrastructure-hardware
+    source_kind: rss
+    source_type: official-engineering-blog
+    default_event_types: [engineering-analysis]
+    feed_url: https://aws.amazon.com/blogs/machine-learning/feed/
+    homepage_url: https://aws.amazon.com/blogs/machine-learning/
+    credibility_weight: 0.95
+    include_terms: [generative ai, bedrock, agent, llm, model, inference, rag, sagemaker]
+  - slug: anthropic-news
+    name: Anthropic Newsroom
+    organization: Anthropic
+    tool: Claude
+    category: models-apis
+    default_primary_topic: models-apis
+    source_kind: html_listing
+    source_type: official-product-news
+    default_event_types: [product-release]
+    feed_url: https://www.anthropic.com/news
+    homepage_url: https://www.anthropic.com/news
+    link_pattern: ^/(news|features)/[^/]+$
+    content_selector: main article article
+    credibility_weight: 1.0
+    quality_tier: primary
+    include_terms: [api, claude code, model, developer, agent, mcp, tool use, research, evaluation, safety, interpretability]
+  - slug: deepmind-blog
+    name: Google DeepMind Blog
+    organization: Google DeepMind
+    tool: Google DeepMind
+    category: models-apis
+    default_primary_topic: models-apis
+    source_kind: rss
+    source_type: official-engineering-blog
+    default_event_types: [research-result]
+    feed_url: https://deepmind.google/blog/rss.xml
+    homepage_url: https://deepmind.google/blog/
+    fetch_full_article: true
+    content_selector: main
+    credibility_weight: 1.0
+    quality_tier: primary
+    include_terms: [model, agent, research, machine learning, ai, safety, evaluation, inference, developer]
+  - slug: the-batch
+    name: The Batch
+    organization: DeepLearning.AI
+    tool: The Batch
+    category: developer-tools
+    default_primary_topic: developer-tools
+    source_kind: nested_html_listing
+    source_type: editorial-analysis
+    default_event_types: [engineering-analysis]
+    feed_url: https://www.deeplearning.ai/the-batch/
+    homepage_url: https://www.deeplearning.ai/the-batch/
+    link_pattern: ^/the-batch/issue-\d+$
+    allow_empty_link_text: true
+    sort_links_by_path_number: true
+    nested_entry_selector: main h1[id]
+    nested_entry_exclude_ids: [news]
+    nested_link_template: /the-batch/{id}
+    content_selector: .prose--styled
+    title_direct_text: true
+    credibility_weight: 0.9
+    quality_tier: curated
+  - slug: import-ai
+    name: Import AI
+    organization: Import AI
+    tool: Import AI
+    category: models-apis
+    default_primary_topic: models-apis
+    source_kind: rss
+    source_type: editorial-analysis
+    default_event_types: [engineering-analysis, research-result]
+    feed_url: https://jack-clark.net/feed/
+    homepage_url: https://jack-clark.net/
+    section_delimiter: "***"
+    section_title_selector: strong
+    section_exclude_title_prefixes: [Tech Tales]
+    credibility_weight: 0.9
+    quality_tier: curated

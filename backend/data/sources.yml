@@ -1,0 +1,31 @@
+sources:
+  - source_name: openai
+    source_type: docs
+    urls:
+      - https://platform.openai.com/docs/guides/text
+      - https://platform.openai.com/docs/guides/embeddings
+      - https://platform.openai.com/docs/guides/structured-outputs
+      - https://platform.openai.com/docs/guides/streaming-responses
+      - https://platform.openai.com/docs/guides/conversation-state
+      - https://platform.openai.com/docs/guides/responses-vs-chat-completions
+  - source_name: langgraph
+    source_type: docs
+    urls:
+      - https://docs.langchain.com/oss/python/concepts/memory
+      - https://docs.langchain.com/oss/python/langgraph/persistence
+      - https://docs.langchain.com/oss/python/langgraph/streaming
+      - https://docs.langchain.com/oss/python/langgraph/interrupts
+  - source_name: fastapi
+    source_type: docs
+    urls:
+      - https://fastapi.tiangolo.com/tutorial/path-params/
+      - https://fastapi.tiangolo.com/tutorial/query-params/
+      - https://fastapi.tiangolo.com/tutorial/body/
+      - https://fastapi.tiangolo.com/tutorial/dependencies/
+      - https://fastapi.tiangolo.com/tutorial/response-model/
+  - source_name: huggingface
+    source_type: docs
+    urls:
+      - https://huggingface.co/docs/transformers/en/pipeline_tutorial
+      - https://huggingface.co/docs/hub/en/model-cards
+      - https://huggingface.co/docs/tokenizers/en/index
