@@ -1,0 +1,194 @@
+import re
+import time
+
+import tiktoken
+from openai import OpenAI
+from sqlalchemy.orm import Session
+
+from app.core.settings import settings
+from app.schemas.ask import AnswerMetrics, AskRequest, AskResponse, Citation
+from app.schemas.search import SearchRequest
+from app.services.retriever import RetrieverService
+
+
+class AnswerService:
+    def __init__(self, db: Session) -> None:
+        self.db = db
+        if not settings.openai_api_key:
+            raise ValueError("OPENAI_API_KEY is required for answer generation.")
+        self.client = OpenAI(api_key=settings.openai_api_key)
+
+    def answer(self, request: AskRequest) -> AskResponse:
+        started = time.perf_counter()
+        retrieval = RetrieverService(self.db).search(
+            SearchRequest(
+                query=request.question,
+                top_k=request.top_k,
+                source_names=request.source_names,
+                tools=request.tools,
+                categories=request.categories,
+                event_types=request.event_types,
+                source_types=request.source_types,
+                maturities=request.maturities,
+                collection=request.collection,
+                published_after=request.published_after,
+                published_before=request.published_before,
+                search_mode=request.search_mode,
+                retrieval_strategy=request.retrieval_strategy,
+            )
+        )
+
+        warning = self._retrieval_warning(retrieval.results, request.min_similarity)
+        if warning:
+            return AskResponse(
+                answer=warning,
+                citations=[],
+                retrieved_chunks=retrieval.results,
+                metrics=AnswerMetrics(
+                    embedding_ms=retrieval.metrics.embedding_ms,
+                    retrieval_ms=retrieval.metrics.retrieval_ms,
+                    total_ms=self._elapsed_ms(started),
+                ),
+                retrieval_warning=warning,
+            )
+
+        context_chunks = self._context_chunks(
+            retrieval.results,
+            max_tokens=min(request.max_context_tokens, settings.max_context_tokens),
+        )
+        context = self._build_context(context_chunks)
+        llm_started = time.perf_counter()
+        response = self.client.chat.completions.create(
+            model=settings.chat_model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You analyze AI developer-tool documentation and dated product updates "
+                        "using only the provided context. Cite factual claims with bracketed "
+                        "citation IDs like [1]. Treat publication dates as part of the evidence. "
+                        "Never claim something is recent unless its date is present in context. "
+                        "For period summaries, output exactly three bullets with no introduction "
+                        "or conclusion. Each bullet must cover one distinct update in at most 30 "
+                        "words and end with its citation. If fewer than three updates are supported, "
+                        "return only the supported bullets and then state what evidence is missing."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"Question:\n{request.question}\n\nContext:\n{context}",
+                },
+            ],
+            temperature=0.2,
+            max_completion_tokens=min(request.max_completion_tokens, settings.max_completion_tokens),
+        )
+        llm_ms = self._elapsed_ms(llm_started)
+        answer = response.choices[0].message.content or ""
+
+        usage = response.usage
+        context_tokens = self._count_tokens(context)
+        completion_tokens = usage.completion_tokens if usage else self._count_tokens(answer)
+        prompt_tokens = usage.prompt_tokens if usage else context_tokens
+        citation_ids, citation_warnings = self._citation_ids(answer, len(context_chunks))
+
+        return AskResponse(
+            answer=answer,
+            citations=[
+                Citation(
+                    id=index,
+                    title=chunk.document_title,
+                    url=chunk.url,
+                    chunk_id=chunk.chunk_id,
+                )
+                for index, chunk in enumerate(context_chunks, start=1)
+                if index in citation_ids
+            ],
+            retrieved_chunks=retrieval.results,
+            metrics=AnswerMetrics(
+                embedding_ms=retrieval.metrics.embedding_ms,
+                retrieval_ms=retrieval.metrics.retrieval_ms,
+                llm_ms=llm_ms,
+                total_ms=self._elapsed_ms(started),
+                context_tokens=context_tokens,
+                completion_tokens=completion_tokens,
+                estimated_cost_usd=self._estimate_cost(prompt_tokens, completion_tokens),
+            ),
+            retrieval_warning=None,
+            citation_warnings=citation_warnings,
+        )
+
+    def _retrieval_warning(self, chunks, min_similarity: float) -> str | None:
+        if not chunks:
+            return (
+                "I could not retrieve any matching documentation chunks. "
+                "Try broadening the source filters or lowering the similarity threshold."
+            )
+
+        top_score = chunks[0].similarity
+        if top_score < min_similarity:
+            return (
+                "The retrieved documentation looks weak for this question. "
+                f"The top similarity score was {top_score:.3f}, below the configured "
+                f"threshold of {min_similarity:.3f}. Try lowering the threshold, increasing "
+                "top-k, changing filters, or adding more source documents."
+            )
+
+        return None
+
+    def _context_chunks(self, chunks, max_tokens: int):
+        selected = []
+        total_tokens = 0
+        for chunk in chunks:
+            block = self._context_block(chunk, len(selected) + 1)
+            if selected:
+                block = "\n\n---\n\n" + block
+            chunk_tokens = self._count_tokens(block)
+            if selected and total_tokens + chunk_tokens > max_tokens:
+                break
+            selected.append(chunk)
+            total_tokens += chunk_tokens
+        return selected
+
+    def _build_context(self, chunks) -> str:
+        parts = []
+        for index, chunk in enumerate(chunks, start=1):
+            parts.append(self._context_block(chunk, index))
+        return "\n\n---\n\n".join(parts)
+
+    def _context_block(self, chunk, index: int) -> str:
+        return "\n".join(
+            [
+                f"[{index}] {chunk.document_title}",
+                f"Source: {chunk.source_name}",
+                f"Published: {chunk.published_at.isoformat() if chunk.published_at else 'unknown'}",
+                f"Tool: {chunk.tool or 'unknown'}",
+                f"URL: {chunk.url}",
+                chunk.content,
+            ]
+        )
+
+    def _citation_ids(self, answer: str, context_count: int) -> tuple[set[int], list[str]]:
+        referenced = [int(value) for value in re.findall(r"\[(\d+)\]", answer)]
+        valid = {value for value in referenced if 1 <= value <= context_count}
+        invalid = sorted({value for value in referenced if value < 1 or value > context_count})
+        warnings = [f"Answer referenced unknown citation [{value}]." for value in invalid]
+        if answer.strip() and not valid:
+            warnings.append("Answer did not reference any retrieved evidence.")
+        return valid, warnings
+
+    def _count_tokens(self, text: str) -> int:
+        encoding = tiktoken.get_encoding("cl100k_base")
+        return len(encoding.encode(text))
+
+    def _estimate_cost(self, prompt_tokens: int, completion_tokens: int) -> float:
+        # Conservative placeholder for demo observability. Update when changing models.
+        input_cost_per_million = 0.40
+        output_cost_per_million = 1.60
+        return round(
+            (prompt_tokens / 1_000_000 * input_cost_per_million)
+            + (completion_tokens / 1_000_000 * output_cost_per_million),
+            6,
+        )
+
+    def _elapsed_ms(self, started: float) -> int:
+        return int((time.perf_counter() - started) * 1000)
