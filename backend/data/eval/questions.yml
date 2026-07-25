@@ -1,0 +1,120 @@
+questions:
+  - id: langgraph_memory_basic
+    question: How does LangGraph memory work?
+    expected_sources: [langgraph]
+    expected_title_terms: [memory]
+    expected_keywords: [short-term memory, long-term memory, thread]
+    difficulty: easy
+    notes: Should retrieve LangGraph memory and possibly persistence chunks.
+
+  - id: openai_responses_basic
+    question: What is the OpenAI Responses API used for?
+    expected_sources: [openai]
+    expected_title_terms: [responses]
+    expected_keywords: [responses api, conversation state, text generation]
+    difficulty: easy
+    notes: Should retrieve OpenAI text, Responses migration, or conversation state docs.
+
+  - id: fastapi_dependencies_basic
+    question: How do FastAPI dependencies work?
+    expected_sources: [fastapi]
+    expected_title_terms: [dependencies]
+    expected_keywords: [depends, dependency, parameters]
+    difficulty: easy
+    notes: Should retrieve FastAPI dependencies chunks.
+
+  - id: openai_structured_outputs_basic
+    question: What are OpenAI structured outputs?
+    expected_sources: [openai]
+    expected_title_terms: [structured]
+    expected_keywords: [json schema, structured outputs, schema]
+    difficulty: easy
+    notes: Should retrieve OpenAI structured outputs chunks.
+
+  - id: huggingface_model_cards_basic
+    question: What are Hugging Face model cards?
+    expected_sources: [huggingface]
+    expected_title_terms: [model cards]
+    expected_keywords: [model card, model description, intended uses]
+    difficulty: easy
+    notes: Should retrieve Hugging Face model card chunks.
+
+  - id: compare_persistence_conversation_state
+    question: Compare LangGraph persistence and OpenAI conversation state.
+    expected_sources: [langgraph, openai]
+    expected_title_terms: [persistence, conversation state]
+    expected_keywords: [persistence, checkpointer, conversation state, previous response]
+    difficulty: medium
+    notes: Good test of multi-source retrieval coverage.
+
+  - id: compare_streaming_langgraph_openai
+    question: How is streaming handled in LangGraph compared with OpenAI API responses?
+    expected_sources: [langgraph, openai]
+    expected_title_terms: [streaming]
+    expected_keywords: [streaming, event, response, stream]
+    difficulty: medium
+    notes: Should retrieve both LangGraph streaming and OpenAI streaming response chunks.
+
+  - id: fastapi_response_models
+    question: When should I use FastAPI response models?
+    expected_sources: [fastapi]
+    expected_title_terms: [response model]
+    expected_keywords: [response_model, response model, output data]
+    difficulty: medium
+    notes: Should retrieve response model chunks.
+
+  - id: embeddings_semantic_search
+    question: How do embeddings support semantic search?
+    expected_sources: [openai]
+    expected_title_terms: [embeddings]
+    expected_keywords: [embedding, vector, semantic search]
+    difficulty: medium
+    notes: Should retrieve OpenAI embeddings chunks.
+
+  - id: model_card_contents
+    question: What information should a model card include?
+    expected_sources: [huggingface]
+    expected_title_terms: [model cards]
+    expected_keywords: [model card, model description, intended uses, limitations]
+    difficulty: medium
+    notes: Should retrieve Hugging Face model card chunks.
+
+  - id: memory_persistence_conversation_state
+    question: Compare memory, persistence, and conversation state across LangGraph and OpenAI.
+    expected_sources: [langgraph, openai]
+    expected_title_terms: [memory, persistence, conversation state]
+    expected_keywords: [memory, persistence, conversation state, previous response]
+    difficulty: hard
+    notes: Tests whether top-k captures enough coverage for broad comparison questions.
+
+  - id: structured_outputs_tradeoffs
+    question: What are the tradeoffs between structured outputs and normal text generation?
+    expected_sources: [openai]
+    expected_title_terms: [structured, text generation]
+    expected_keywords: [structured outputs, text generation, json schema]
+    difficulty: hard
+    notes: Should retrieve OpenAI structured output and text generation context.
+
+  - id: rag_api_fastapi_embeddings
+    question: How would I build a RAG API with FastAPI and OpenAI embeddings?
+    expected_sources: [fastapi, openai]
+    expected_title_terms: [embeddings, dependencies, request body]
+    expected_keywords: [fastapi, embeddings, request body, vector]
+    difficulty: hard
+    notes: Tests cross-source retrieval for implementation plus embeddings context.
+
+  - id: streaming_exact_mention
+    question: Show all documents mentioning streaming responses.
+    expected_sources: [openai, langgraph]
+    expected_title_terms: [streaming]
+    expected_keywords: [streaming responses, streaming, stream]
+    difficulty: hard
+    notes: Vector-only search may struggle with exact mention/listing questions.
+
+  - id: best_long_term_memory
+    question: Which framework has the best support for long-term memory?
+    expected_sources: [langgraph]
+    expected_title_terms: [memory]
+    expected_keywords: [long-term memory, memory, store]
+    difficulty: hard
+    notes: The system should be cautious because the corpus is too small for a best-framework claim.

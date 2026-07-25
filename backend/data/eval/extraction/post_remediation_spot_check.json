@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-23T05:11:25.192338+00:00",
+  "purpose": "Final Phase 1 post-remediation spot check",
+  "instructions": "Compare extracted_text with url. Set human_label to complete, mostly_complete, incomplete, too_much_boilerplate, or wrong_content. Judge extraction only; record relevance separately in human_notes.",
+  "items": [
+    {
+      "document_id": "4fda0edd-d12c-4c3b-9b01-9e7ff9673c15",
+      "source_name": "google-developers",
+      "title": "Run Ray on TPU, Part 1: The foundations",
+      "url": "https://developers.googleblog.com/run-ray-on-tpu-part-1-the-foundations/",
+      "published_at": "2026-07-20T00:00:00",
+      "automated_status": "pass",
+      "warnings": [],
+      "human_label": "complete",
+      "human_notes": ""
+    },
+    {
+      "document_id": "1b0cfb8d-ebaf-49ec-b906-bccd3dbf5920",
+      "source_name": "huggingface-blog",
+      "title": "Native-speed vLLM transformers modeling backend",
+      "url": "https://huggingface.co/blog/native-speed-vllm-transformers-backend",
+      "published_at": "2026-07-08T12:41:55",
+      "automated_status": "pass",
+      "warnings": [],
+      "human_label": "complete",
+      "human_notes": ""
+    },
+    {
+      "document_id": "3f157a88-fbb4-4383-b49b-ae8407e0c7df",
+      "source_name": "nvidia-technical-blog",
+      "title": "Setting a World Record for MoE Pre-Training on NVIDIA GB300 NVL72",
+      "url": "https://developer.nvidia.com/blog/setting-a-world-record-for-moe-pre-training-on-nvidia-gb300-nvl72/",
+      "published_at": "2026-07-21T15:00:00",
+      "automated_status": "pass",
+      "warnings": [],
+      "human_label": "complete",
+      "human_notes": ""
+    },
+    {
+      "document_id": "6281be38-bd0f-428b-ac00-fad6d4f3c48b",
+      "source_name": "deepmind-blog",
+      "title": "Introducing Gemini 3.6 Flash, 3.5 Flash-Lite, and 3.5 Flash Cyber",
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-6-flash-3-5-flash-lite-3-5-flash-cyber/",
+      "published_at": "2026-07-21T00:00:00",
+      "automated_status": "pass",
+      "warnings": [],
+      "human_label": "complete",
+      "human_notes": ""
+    },
+    {
+      "document_id": "3ad14877-e141-4546-8a51-264297856575",
+      "source_name": "github-changelog",
+      "title": "Copilot users can now see AI credits used per billing cycle",
+      "url": "https://github.blog/changelog/2026-07-20-copilot-users-can-now-see-ai-credits-used-per-billing-cycle",
+      "published_at": "2026-07-20T16:00:14",
+      "automated_status": "pass",
+      "warnings": [],
+      "human_label": "complete",
+      "human_notes": ""
+    },
+    {
+      "document_id": "0de610a9-44fd-458b-8dd9-551ae31cd1bc",
+      "source_name": "ollama",
+      "title": "v0.32.1-rc0",
+      "url": "https://github.com/ollama/ollama/releases/tag/v0.32.1-rc0",
+      "published_at": "2026-07-15T19:10:28",
+      "automated_status": "pass",
+      "warnings": [],
+      "human_label": "complete",
+      "human_notes": ""
+    },
+    {
+      "document_id": "568a4d2b-c18c-4179-89e1-147a2bee3ac2",
+      "source_name": "aws-machine-learning",
+      "title": "Build specialized agent workflows for your business with Amazon Quick and NVIDIA NeMo Agent Toolkit",
+      "url": "https://aws.amazon.com/blogs/machine-learning/build-specialized-agent-workflows-for-your-business-with-amazon-quick-and-nvidia-nemo-agent-toolkit/",
+      "published_at": "2026-07-20T17:01:32",
+      "automated_status": "pass",
+      "warnings": [],
+      "human_label": "complete",
+      "human_notes": ""
+    },
+    {
+      "document_id": "305ec815-1f2f-4020-8e2c-0d13c74e16a1",
+      "source_name": "openai-news",
+      "title": "Why teens deserve access to safe AI",
+      "url": "https://openai.com/index/why-teens-deserve-access-safe-ai",
+      "published_at": "2026-07-16T16:00:00",
+      "automated_status": "warning",
+      "warnings": [
+        "suspected_excerpt",
+        "article_hydration_failed"
+      ],
+      "human_label": "incomplete",
+      "human_notes": "Extraction is incomplete because only the RSS preview was retained after full-article hydration was blocked."
+    }
+  ]
+}

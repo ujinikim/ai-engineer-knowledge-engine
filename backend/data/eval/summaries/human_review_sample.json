@@ -1,0 +1,583 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-24T18:40:39.933367+00:00",
+  "purpose": "Phase 2 human calibration of generated article summaries and taxonomy.",
+  "allowed_ratings": {
+    "faithfulness": [
+      "faithful",
+      "major_issue",
+      "minor_issue",
+      "not_reviewed"
+    ],
+    "coverage": [
+      "complete",
+      "misses_main_point",
+      "not_reviewed",
+      "partial"
+    ],
+    "usefulness": [
+      "not_reviewed",
+      "not_useful",
+      "somewhat_useful",
+      "useful"
+    ],
+    "headline_quality": [
+      "acceptable",
+      "good",
+      "not_reviewed",
+      "poor"
+    ],
+    "taxonomy_accuracy": [
+      "correct",
+      "incorrect",
+      "not_reviewed",
+      "partial"
+    ]
+  },
+  "instructions": "Compare source_text with generated_summary. Rate faithfulness, coverage, usefulness, headline_quality, and taxonomy_accuracy using allowed_ratings. Add concise evidence to human_notes. Ratings are preserved only when review_key is unchanged.",
+  "items": [
+    {
+      "document_id": "01220d2e-aff5-40d5-82ce-f8f93cf7070a",
+      "review_key": "bb6938fd262c82b1139da6bb4744e14aa409f37982d6b8ae9490e1c163bc8550",
+      "source_name": "the-batch",
+      "source_type": "editorial-analysis",
+      "title": "The Batch: Jun 05, 2026",
+      "url": "https://www.deeplearning.ai/the-batch/tag/jun-05-2026",
+      "generated_by": "gpt-4.1-mini:editorial-analysis",
+      "automated_status": "warning",
+      "warnings": [
+        "low_lexical_grounding"
+      ],
+      "generated_summary": {
+        "display_headline": "Fine-Tuning LLMs Can Cause Copyright Issues by Revealing Pretraining Texts",
+        "summary": "Fine-tuning large language models to expand plot summaries can lead to the models reproducing large portions of copyrighted books from their training data. This reveals potential copyright alignment problems in fine-tuning processes.",
+        "why_it_matters": "Understanding fine-tuning risks is crucial to maintaining copyright compliance and ethical AI deployment.",
+        "key_points": [
+          "Fine-tuning LLMs on expanding summaries causes regurgitation of pretraining book texts.",
+          "This behavior exposes copyright alignment vulnerabilities in fine-tuned models.",
+          "The issue is significant for AI applications aimed at creative writing assistance."
+        ],
+        "primary_topic": "developer-tools",
+        "topic_tags": [
+          "fine-tuning",
+          "copyright",
+          "large-language-models",
+          "ai-ethics"
+        ],
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "entity_tags": [
+          "deeplearning.ai"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 74,
+        "summary_word_count": 32,
+        "why_it_matters_word_count": 13,
+        "key_point_count": 3,
+        "grounding_overlap": 0.32,
+        "unsupported_numbers": []
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "b500abfb-a837-476c-bcee-88b7605f6438",
+      "review_key": "3df01866ea1b837b6d5fa03c6a08f6db8434fb56d43bf3dabf2daeb6e15dfc7a",
+      "source_name": "github-changelog",
+      "source_type": "official-changelog",
+      "title": "Upcoming GHES change impacting uploading support bundles",
+      "url": "https://github.blog/changelog/2026-07-22-upcoming-ghes-change-impacting-uploading-support-bundles",
+      "generated_by": "gpt-4.1-mini:official-changelog",
+      "automated_status": "pass",
+      "warnings": [],
+      "generated_summary": {
+        "display_headline": "GitHub to block support bundle uploads from outdated GHES versions after Aug 18, 2026",
+        "summary": "Starting August 18, 2026, GitHub Enterprise Server will reject support bundle uploads from GHES instances not updated with required security patches. Users must update to specified minimum patch versions to avoid disruptions.",
+        "why_it_matters": "Ensuring GHES instances are updated prevents upload failures and maintains secure support processes.",
+        "key_points": [
+          "Support bundle uploads via command line will be blocked from outdated GHES versions after Aug 18, 2026.",
+          "Minimum required patch versions include 3.21.3, 3.20.5, 3.19.9, 3.18.12, and 3.17.18.",
+          "Users on unsupported GHES versions are urged to upgrade to supported versions promptly.",
+          "Contact GitHub Support if unable to update before the deadline for assistance."
+        ],
+        "primary_topic": "developer-tools",
+        "topic_tags": [
+          "github-enterprise-server",
+          "security",
+          "support-bundles",
+          "patch-updates"
+        ],
+        "event_types": [
+          "security-issue"
+        ],
+        "entity_tags": [
+          "github",
+          "github-enterprise-server"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 85,
+        "summary_word_count": 32,
+        "why_it_matters_word_count": 13,
+        "key_point_count": 4,
+        "grounding_overlap": 0.4681,
+        "unsupported_numbers": []
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "1ad3dc0c-00fc-4317-8b1e-2102afc52b22",
+      "review_key": "6b4f09f4e6ebea2d09248eaa40be8df767364737ecfdc9c7e0c9e3bd33d83288",
+      "source_name": "aws-machine-learning",
+      "source_type": "official-engineering-blog",
+      "title": "AI Teammates: how monday.com runs production AI agents on Amazon Bedrock",
+      "url": "https://aws.amazon.com/blogs/machine-learning/ai-teammates-how-monday-com-runs-production-ai-agents-on-amazon-bedrock/",
+      "generated_by": "gpt-4.1-mini:official-engineering-blog",
+      "automated_status": "warning",
+      "warnings": [
+        "unsupported_number"
+      ],
+      "generated_summary": {
+        "display_headline": "monday.com runs production AI agents on Amazon Bedrock at scale",
+        "summary": "monday.com uses Amazon Bedrock and AWS services to run AI agents as teammates in production, boosting engineer PR throughput by over 50%. Their system integrates Slack, GitHub, and monday workflows with robust state management and automated review.",
+        "why_it_matters": "This architecture demonstrates scalable, accountable AI agent deployment in a complex, decade-old SaaS environment with real users and compliance needs.",
+        "key_points": [
+          "AI agents operate as teammates with stable identities across Slack, GitHub, and monday.",
+          "Architecture uses SNS, SQS, EKS, RDS, ElastiCache, EFS, S3, and Bedrock for event routing, state, and model calls.",
+          "State is split: live state in ElastiCache, session memory on EFS, durable records in S3 for performance and correctness.",
+          "Automated PR Guardrails enforce engineering standards, enabling 19 of 20 agent PRs to merge without human review."
+        ],
+        "primary_topic": "infrastructure-hardware",
+        "topic_tags": [
+          "aws",
+          "amazon-bedrock",
+          "ai-agents",
+          "saas",
+          "eks",
+          "elasticache",
+          "efs",
+          "s3"
+        ],
+        "event_types": [
+          "engineering-analysis",
+          "product-release"
+        ],
+        "entity_tags": [
+          "amazon-web-services",
+          "monday.com",
+          "amazon-bedrock",
+          "claude-agent-sdk",
+          "amazon-eks",
+          "amazon-sns",
+          "amazon-sqs",
+          "amazon-elasticache"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 63,
+        "summary_word_count": 37,
+        "why_it_matters_word_count": 20,
+        "key_point_count": 4,
+        "grounding_overlap": 0.7031,
+        "unsupported_numbers": [
+          "50%"
+        ]
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "1559e38f-57c2-46ec-a179-32e90824daed",
+      "review_key": "1ca1ebbc913631399f24debd87ea6c238ce25d6073cd5a63ee6199353d6eb6b0",
+      "source_name": "anthropic-news",
+      "source_type": "official-product-news",
+      "title": "Inviting hard questions",
+      "url": "https://www.anthropic.com/news/hard-questions",
+      "generated_by": "gpt-4.1-mini:official-product-news",
+      "automated_status": "warning",
+      "warnings": [
+        "unsupported_number"
+      ],
+      "generated_summary": {
+        "display_headline": "Anthropic invites public to ask hard questions about AI impact",
+        "summary": "Anthropic launched an initiative to gather public questions on AI's societal effects, aiming to transparently address concerns and advance its public benefit mission with Claude AI.",
+        "why_it_matters": "Engaging diverse public perspectives helps ensure AI development aligns with societal values and mitigates risks.",
+        "key_points": [
+          "Anthropic surveyed over 130,000 people globally to understand hopes and concerns about AI.",
+          "The company invests in AI safeguards, alignment research, and free AI access for scientists.",
+          "Anthropic publicly tracks progress on addressing hard questions about AI's impact on jobs, society, and science.",
+          "The initiative includes a dedicated website for submitting and viewing challenging AI questions."
+        ],
+        "primary_topic": "models-apis",
+        "topic_tags": [
+          "ai-ethics",
+          "public-engagement",
+          "ai-safety",
+          "ai-alignment"
+        ],
+        "event_types": [
+          "product-release",
+          "research-result",
+          "engineering-analysis"
+        ],
+        "entity_tags": [
+          "anthropic",
+          "claude"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 62,
+        "summary_word_count": 27,
+        "why_it_matters_word_count": 15,
+        "key_point_count": 4,
+        "grounding_overlap": 0.4643,
+        "unsupported_numbers": [
+          "130000"
+        ]
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "6ce601c5-3ba1-4dd3-9a55-5c1c5e11bd7c",
+      "review_key": "13c00cd466fd04aed567d897686632820b0286576a1ce9a25976d3c52ec10775",
+      "source_name": "ollama",
+      "source_type": "official-release",
+      "title": "v0.32.0-rc0",
+      "url": "https://github.com/ollama/ollama/releases/tag/v0.32.0-rc0",
+      "generated_by": "gpt-4.1-mini:official-release",
+      "automated_status": "warning",
+      "warnings": [
+        "low_lexical_grounding"
+      ],
+      "generated_summary": {
+        "display_headline": "Ollama Releases v0.32.0-rc0 with Agent UI Command",
+        "summary": "Ollama has released version 0.32.0-rc0, introducing the agent UI command to enhance user interaction.",
+        "why_it_matters": "This release improves the user interface for agents, streamlining inference-serving workflows.",
+        "key_points": [
+          "Version 0.32.0-rc0 is a release candidate from Ollama.",
+          "Introduces a new agent UI command (#17017).",
+          "Enhances user interaction with agent-based workflows."
+        ],
+        "primary_topic": "inference-serving",
+        "topic_tags": [
+          "inference-serving",
+          "agent-ui",
+          "release-candidate"
+        ],
+        "event_types": [
+          "product-release"
+        ],
+        "entity_tags": [
+          "ollama"
+        ],
+        "maturity": "release-candidate"
+      },
+      "automated_metrics": {
+        "headline_characters": 49,
+        "summary_word_count": 14,
+        "why_it_matters_word_count": 11,
+        "key_point_count": 3,
+        "grounding_overlap": 0.0833,
+        "unsupported_numbers": []
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "065776f4-2824-4a1f-a6dd-d514013028f1",
+      "review_key": "6bd59fb6a1e0697404f5bac7cca7b02a146a1e627a280c1ae61c91426c522eb5",
+      "source_name": "langgraph",
+      "source_type": "official-release",
+      "title": "langgraph==1.2.9",
+      "url": "https://github.com/langchain-ai/langgraph/releases/tag/1.2.9",
+      "generated_by": "gpt-4.1-mini:official-release",
+      "automated_status": "warning",
+      "warnings": [
+        "low_lexical_grounding"
+      ],
+      "generated_summary": {
+        "display_headline": "LangGraph 1.2.9 Released with Metadata and Counter Fixes",
+        "summary": "LangChain has released LangGraph version 1.2.9, addressing issues with updateState metadata and counters for the delta channel.",
+        "why_it_matters": "This update improves the reliability of state management in LangGraph's delta channel, enhancing agent orchestration workflows.",
+        "key_points": [
+          "LangGraph version 1.2.9 released.",
+          "Fixes updateState metadata and counters for delta channel.",
+          "Improves internal state handling for better orchestration."
+        ],
+        "primary_topic": "agents-orchestration",
+        "topic_tags": [
+          "langchain",
+          "langgraph",
+          "update",
+          "bugfix"
+        ],
+        "event_types": [
+          "library-release"
+        ],
+        "entity_tags": [
+          "langchain",
+          "langgraph"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 56,
+        "summary_word_count": 17,
+        "why_it_matters_word_count": 17,
+        "key_point_count": 3,
+        "grounding_overlap": 0.2143,
+        "unsupported_numbers": []
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "4dd3c68a-90e8-425d-8b33-0b3b33767456",
+      "review_key": "07fb29a26aa5a5d86d4a215384b382a04ed0b69389792f265009cd36d529f590",
+      "source_name": "vllm",
+      "source_type": "official-release",
+      "title": "v0.24.0rc2: Fix P/D with DP Supervisor (#46628)",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.24.0rc2",
+      "generated_by": "gpt-4.1-mini:official-release",
+      "automated_status": "warning",
+      "warnings": [
+        "low_lexical_grounding"
+      ],
+      "generated_summary": {
+        "display_headline": "vLLM v0.24.0rc2 Fixes P/D Issue with DP Supervisor",
+        "summary": "The vLLM project released version 0.24.0rc2, addressing problems with P/D in the DP Supervisor component.",
+        "why_it_matters": "This fix improves the stability and reliability of distributed processing in vLLM's inference-serving framework.",
+        "key_points": [
+          "Release version: v0.24.0rc2",
+          "Fix targets P/D issues with DP Supervisor",
+          "Commit c5e3c40 cherry-picked for this release",
+          "Signed off by Robert Shaw"
+        ],
+        "primary_topic": "inference-serving",
+        "topic_tags": [
+          "vllm",
+          "dp-supervisor",
+          "p-d-fix",
+          "release"
+        ],
+        "event_types": [
+          "product-release"
+        ],
+        "entity_tags": [
+          "vllm-project",
+          "robert-shaw"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 50,
+        "summary_word_count": 16,
+        "why_it_matters_word_count": 15,
+        "key_point_count": 4,
+        "grounding_overlap": 0.2222,
+        "unsupported_numbers": []
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "497be340-1abd-434b-bbf4-ab1a37134b2f",
+      "review_key": "d2967269e359cc846d946cc3aac0f2c09452b0266fd01aebd2a24b33d51335e9",
+      "source_name": "qdrant",
+      "source_type": "official-release",
+      "title": "v1.18.3",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.18.3",
+      "generated_by": "gpt-4.1-mini:official-release",
+      "automated_status": "warning",
+      "warnings": [
+        "low_lexical_grounding"
+      ],
+      "generated_summary": {
+        "display_headline": "Qdrant v1.18.3 Fixes Query Errors with Shard Keys During Resharding",
+        "summary": "Qdrant released version 1.18.3, addressing query errors encountered when using shard keys during the resharding process.",
+        "why_it_matters": "This fix improves the reliability and stability of Qdrant's data retrieval during shard resharding operations.",
+        "key_points": [
+          "Version 1.18.3 focuses on bug fixes.",
+          "Resolved query errors related to shard keys during resharding.",
+          "Enhances data retrieval consistency in distributed environments."
+        ],
+        "primary_topic": "retrieval-data",
+        "topic_tags": [
+          "bug-fix",
+          "sharding",
+          "query-errors"
+        ],
+        "event_types": [
+          "product-release"
+        ],
+        "entity_tags": [
+          "qdrant"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 67,
+        "summary_word_count": 16,
+        "why_it_matters_word_count": 16,
+        "key_point_count": 3,
+        "grounding_overlap": 0.2667,
+        "unsupported_numbers": []
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "64926637-8572-42c3-9c9c-fa6be14d760f",
+      "review_key": "a6946c05680b2db80bc3899486fc1a09c205f2c89f376647bae2e33fd92eb4e5",
+      "source_name": "transformers",
+      "source_type": "official-release",
+      "title": "Patch release v5.10.2",
+      "url": "https://github.com/huggingface/transformers/releases/tag/v5.10.2",
+      "generated_by": "gpt-4.1-mini:official-release",
+      "automated_status": "warning",
+      "warnings": [
+        "low_lexical_grounding"
+      ],
+      "generated_summary": {
+        "display_headline": "Transformers v5.10.2 Patch Fixes CLIP Model Conversion Bug",
+        "summary": "Hugging Face released Transformers v5.10.2 to fix a critical bug in the conversion of CLIP-related models such as sam3. Users are advised to update to this patch version.",
+        "why_it_matters": "The patch ensures correct model conversion for CLIP models, preventing potential errors in downstream applications.",
+        "key_points": [
+          "Patch v5.10.2 addresses a major bug in CLIP model conversion.",
+          "Models like sam3 were affected by the issue.",
+          "Update is recommended to avoid conversion errors.",
+          "Fix contributed by @zucchini-nlp in PR #46406."
+        ],
+        "primary_topic": "models-apis",
+        "topic_tags": [
+          "model-conversion",
+          "bug-fix",
+          "clip-models",
+          "transformers"
+        ],
+        "event_types": [
+          "library-release"
+        ],
+        "entity_tags": [
+          "hugging-face",
+          "transformers"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 58,
+        "summary_word_count": 28,
+        "why_it_matters_word_count": 15,
+        "key_point_count": 4,
+        "grounding_overlap": 0.2895,
+        "unsupported_numbers": []
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "4aa52297-18c8-4687-86cd-caa8a3acc9ca",
+      "review_key": "73d53b0d60609ca0a14ad79f39acd62d0d0991dd3fa3ebd9889852bac08bcd7f",
+      "source_name": "import-ai",
+      "source_type": "editorial-analysis",
+      "title": "Import AI 459: AI oversight is difficult; scaling laws for protein folding models; and pricing the extinction risk of AI systems",
+      "url": "https://jack-clark.net/2026/06/01/import-ai-459-ai-oversight-is-difficult-scaling-laws-for-protein-folding-models-and-pricing-the-extinction-risk-of-ai-systems/",
+      "generated_by": "gpt-4.1-mini:editorial-analysis",
+      "automated_status": "warning",
+      "warnings": [
+        "unsupported_number"
+      ],
+      "generated_summary": {
+        "display_headline": "US AI Economy Growing 2,600% Annually, Yet Largely Invisible in GDP Stats",
+        "summary": "A study by economists from the University of Virginia, Anthropic, and the Bank of Canada reveals the US AI economy is expanding at an unprecedented 2,600% yearly rate in quality-adjusted terms, reaching an estimated $250 billion in 2025, but this growth is not reflected in conventional GDP measurements.",
+        "why_it_matters": "Accurate measurement of AI's economic impact is crucial for policymakers to prepare for labor market shifts and design effective economic policies.",
+        "key_points": [
+          "AI compute spending in the US is projected to rise from $37B in 2023 to $219B in 2025.",
+          "AI computing capacity is growing over 200% annually due to chip efficiency improvements.",
+          "Quality-adjusted AI output grew roughly 2,290% in 2024 and 2,271% in 2025.",
+          "Conventional GDP stats understate AI's impact, risking unpreparedness for economic shifts."
+        ],
+        "primary_topic": "models-apis",
+        "topic_tags": [
+          "ai-economy",
+          "gdp-measurement",
+          "compute-spending",
+          "economic-growth"
+        ],
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "entity_tags": [
+          "university-of-virginia",
+          "anthropic",
+          "bank-of-canada"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 73,
+        "summary_word_count": 49,
+        "why_it_matters_word_count": 22,
+        "key_point_count": 4,
+        "grounding_overlap": 0.5714,
+        "unsupported_numbers": [
+          "200%",
+          "2271%",
+          "2290%",
+          "2600%"
+        ]
+      },
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
+    }
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-25T00:13:20.889035+00:00",
+  "allowed_human_labels": [
+    "complete",
+    "incomplete",
+    "mostly_complete",
+    "not_reviewed",
+    "too_much_boilerplate",
+    "wrong_content"
+  ],
+  "instructions": "Compare extracted_text with url, then set human_label and human_notes. Rerunning the evaluator preserves reviews for documents that remain in the sample.",
+  "items": [
+    {
+      "document_id": "0265fa3b-e6fb-41fa-899e-24b249318290",
+      "source_name": "anthropic-news",
+      "title": "UST is bringing Claude to physical AI",
+      "url": "https://www.anthropic.com/news/ust-claude",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete article body with related-content cards excluded."
+    },
+    {
+      "document_id": "129ee26b-90c0-4661-b4d2-3ca0c28da3e1",
+      "source_name": "aws-machine-learning",
+      "title": "Introducing Mobile Layout for Amazon Quick dashboards",
+      "url": "https://aws.amazon.com/blogs/machine-learning/introducing-mobile-layout-for-amazon-quick-dashboards/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete article including implementation details and source-native author biographies; no truncation found."
+    },
+    {
+      "document_id": "5510d99f-4f59-44a4-bd1c-bb9d57a04e9e",
+      "source_name": "deepmind-blog",
+      "title": "Investing in multi-agent AI safety research",
+      "url": "https://deepmind.google/blog/investing-in-multi-agent-ai-safety-research/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete announcement and participation details; minor share labels are harmless."
+    },
+    {
+      "document_id": "1482dead-9b32-4f1e-ae2b-0e413d2595c2",
+      "source_name": "github-changelog",
+      "title": "Gemini 3.6 Flash is now available in GitHub Copilot",
+      "url": "https://github.blog/changelog/2026-07-21-gemini-3-6-flash-is-now-available-in-github-copilot",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete AI-relevant changelog entry; relevance boundary matching is working."
+    },
+    {
+      "document_id": "036d0e63-7239-4a9f-a92b-43044f4e9a0a",
+      "source_name": "google-developers",
+      "title": "Build agentic full-stack apps with Genkit",
+      "url": "https://developers.googleblog.com/build-agentic-full-stack-apps-with-genkit/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete technical article through its documentation links and conclusion."
+    },
+    {
+      "document_id": "122848c5-cfca-4561-840a-ea2d2005a643",
+      "source_name": "huggingface-blog",
+      "title": "Featuring Every Eval Ever Results on Hugging Face Model Pages",
+      "url": "https://huggingface.co/blog/eee-community-evals",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete technical article; small source-native navigation labels are harmless."
+    },
+    {
+      "document_id": "0c1635ef-4e6d-4e80-a7bf-e5c3b22b0b66",
+      "source_name": "import-ai",
+      "title": "What real-world AI looks like: deep learning fuses with structured systems for inventory management in the Amazon of China",
+      "url": "https://jack-clark.net/2026/07/06/import-ai-464-fables-writes-gpu-kernels-ai-automation-and-analog-computation/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete single newsletter story with adjacent stories and Tech Tales excluded; parent newsletter URL is retained."
+    },
+    {
+      "document_id": "065776f4-2824-4a1f-a6dd-d514013028f1",
+      "source_name": "langgraph",
+      "title": "langgraph==1.2.9",
+      "url": "https://github.com/langchain-ai/langgraph/releases/tag/1.2.9",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete because the original release note is also short. Relevance: potentially low because it describes a narrow patch; information value should be handled by feed ranking rather than extraction quality."
+    },
+    {
+      "document_id": "158eec5b-ecb5-4c76-9c43-0e5d0ec65d41",
+      "source_name": "litellm",
+      "title": "v1.94.0-rc.1",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.94.0-rc.1",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete. Warning assessment: likely a false positive caused by repeated changelog structure. Follow-up: generate highlights or a summary because the original release notes are long."
+    },
+    {
+      "document_id": "16011f87-0a6d-4817-a800-66301363e907",
+      "source_name": "nvidia-technical-blog",
+      "title": "Lessons From the Leaderboard: What 5,000+ Kagglers Taught Us About Improving AI Reasoning",
+      "url": "https://developer.nvidia.com/blog/lessons-from-the-leaderboard-what-5000-kagglers-taught-us-about-improving-ai-reasoning/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete technical article through its closing resources and event information."
+    },
+    {
+      "document_id": "0de610a9-44fd-458b-8dd9-551ae31cd1bc",
+      "source_name": "ollama",
+      "title": "v0.32.1-rc0",
+      "url": "https://github.com/ollama/ollama/releases/tag/v0.32.1-rc0",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete because the original release note is also short. Relevance: low; its limited information value should be handled by feed ranking rather than extraction quality."
+    },
+    {
+      "document_id": "04330d06-99f4-45ff-a925-f1bfcd420525",
+      "source_name": "openai-news",
+      "title": "GPT-Red: Unlocking Self-Improvement for Robustness",
+      "url": "https://openai.com/index/unlocking-self-improvement-gpt-red",
+      "automated_status": "warning",
+      "warnings": [
+        "suspected_excerpt",
+        "article_hydration_failed"
+      ],
+      "failures": [],
+      "human_label": "incomplete",
+      "human_notes": "Extraction: incomplete feed preview because full-page hydration is blocked. Accepted as the documented OpenAI limitation; original URL is retained."
+    },
+    {
+      "document_id": "6bf6d272-c89c-43af-bbad-739654829e29",
+      "source_name": "pytorch-blog",
+      "title": "Understanding PyTorch\u2019s Test Infrastructure",
+      "url": "https://pytorch.org/blog/understanding-pytorchs-test-infrastructure/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete technical article through its references or implementation resources."
+    },
+    {
+      "document_id": "25236ae2-aeb8-41e7-bc6f-4b5df07e3c47",
+      "source_name": "qdrant",
+      "title": "v1.16.1",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.16.1",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete release changelog."
+    },
+    {
+      "document_id": "008cb317-bdd2-4bdd-ba77-ab51a3328385",
+      "source_name": "the-batch",
+      "title": "Fable\u2019s Return and Fallout",
+      "url": "https://www.deeplearning.ai/the-batch/fables-return-and-fallout",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete individual story under its canonical article URL; no date-tag catalog content remains."
+    },
+    {
+      "document_id": "116cb2de-3469-4d29-932d-483c1f3c6a2b",
+      "source_name": "transformers",
+      "title": "Release v5.10.1",
+      "url": "https://github.com/huggingface/transformers/releases/tag/v5.10.1",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete release changelog."
+    },
+    {
+      "document_id": "12b3e6df-51d5-4469-9c21-376814d0e9c9",
+      "source_name": "vllm",
+      "title": "v0.23.1rc0: [Bugfix][CI] Update Dockerfile dependency graph PNG (#45602)",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.23.1rc0",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete because the original release note is also short."
+    },
+    {
+      "document_id": "11387d03-5e7d-48ef-b2ef-8d4b1840767f",
+      "source_name": "openai-news",
+      "title": "How sales teams use ChatGPT Work",
+      "url": "https://openai.com/academy/codex-for-work/how-sales-teams-use-codex",
+      "automated_status": "warning",
+      "warnings": [
+        "suspected_excerpt",
+        "article_hydration_failed"
+      ],
+      "failures": [],
+      "human_label": "incomplete",
+      "human_notes": "Extraction: incomplete feed preview because full-page hydration is blocked. Accepted as the documented OpenAI limitation; original URL is retained."
+    },
+    {
+      "document_id": "6ce601c5-3ba1-4dd3-9a55-5c1c5e11bd7c",
+      "source_name": "ollama",
+      "title": "v0.32.0-rc0",
+      "url": "https://github.com/ollama/ollama/releases/tag/v0.32.0-rc0",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete because the original release note is also short."
+    },
+    {
+      "document_id": "f3b02b4a-c66a-4fd4-8e1a-addb03392bd7",
+      "source_name": "pytorch-blog",
+      "title": "Towards Free Normalization: Fusing Normalization into GEMM and Attention Kernels",
+      "url": "https://pytorch.org/blog/towards-free-normalization-fusing-normalization-into-gemm-and-attention-kernels/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete technical article through its references or implementation resources."
+    }
+  ]
+}

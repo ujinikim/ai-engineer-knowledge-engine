@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-22T16:13:09.639392+00:00",
+  "allowed_human_labels": [
+    "complete",
+    "incomplete",
+    "mostly_complete",
+    "not_reviewed",
+    "too_much_boilerplate",
+    "wrong_content"
+  ],
+  "instructions": "Compare extracted_text with url, then set human_label and human_notes. Rerunning the evaluator preserves reviews for documents that remain in the sample.",
+  "items": [
+    {
+      "document_id": "1559e38f-57c2-46ec-a179-32e90824daed",
+      "source_name": "anthropic-news",
+      "title": "Inviting hard questions",
+      "url": "https://www.anthropic.com/news/hard-questions",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete. Relevance: low; this is primarily an Anthropic public-engagement announcement rather than a developer-facing technical update."
+    },
+    {
+      "document_id": "568a4d2b-c18c-4179-89e1-147a2bee3ac2",
+      "source_name": "aws-machine-learning",
+      "title": "Build specialized agent workflows for your business with Amazon Quick and NVIDIA NeMo Agent Toolkit",
+      "url": "https://aws.amazon.com/blogs/machine-learning/build-specialized-agent-workflows-for-your-business-with-amazon-quick-and-nvidia-nemo-agent-toolkit/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete. Relevance: high; the article includes the solution architecture, implementation steps, and security considerations for Amazon Quick and NVIDIA NeMo Agent Toolkit workflows."
+    },
+    {
+      "document_id": "6281be38-bd0f-428b-ac00-fad6d4f3c48b",
+      "source_name": "deepmind-blog",
+      "title": "Introducing Gemini 3.6 Flash, 3.5 Flash-Lite, and 3.5 Flash Cyber",
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-6-flash-3-5-flash-lite-3-5-flash-cyber/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete. Relevance: high; the article covers the Gemini model releases, feature and performance changes, and their use in building AI agents at scale."
+    },
+    {
+      "document_id": "1f8e82f1-d756-401a-b46e-36e7e02c4441",
+      "source_name": "github-changelog",
+      "title": "AI credit pools for cost centers in the billing UI",
+      "url": "https://github.blog/changelog/2026-07-20-ai-credit-pools-for-cost-centers-in-the-billing-ui",
+      "automated_status": "warning",
+      "warnings": [
+        "high_duplicate_line_ratio"
+      ],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete. Warning assessment: false positive caused by the RSS footer repeating the title. Relevance: low because the update is narrowly focused on GitHub billing administration."
+    },
+    {
+      "document_id": "4fda0edd-d12c-4c3b-9b01-9e7ff9673c15",
+      "source_name": "google-developers",
+      "title": "Run Ray on TPU, Part 1: The foundations",
+      "url": "https://developers.googleblog.com/run-ray-on-tpu-part-1-the-foundations/",
+      "automated_status": "warning",
+      "warnings": [
+        "published_at_matches_collection_time"
+      ],
+      "failures": [],
+      "human_label": "incomplete",
+      "human_notes": "Extraction: incomplete; only the short RSS summary was captured, while the original article contains multiple sections and code examples. Date: the original publication date is 2026-07-20, but published_at fell back to the collection timestamp on 2026-07-22."
+    },
+    {
+      "document_id": "1b0cfb8d-ebaf-49ec-b906-bccd3dbf5920",
+      "source_name": "huggingface-blog",
+      "title": "Native-speed vLLM transformers modeling backend",
+      "url": "https://huggingface.co/blog/native-speed-vllm-transformers-backend",
+      "automated_status": "warning",
+      "warnings": [
+        "suspected_excerpt"
+      ],
+      "failures": [],
+      "human_label": "incomplete",
+      "human_notes": "Extraction: incomplete; only the article title was captured and the full body is missing."
+    },
+    {
+      "document_id": "181416c6-e807-4034-a6a4-7b6129964280",
+      "source_name": "import-ai",
+      "title": "Import AI 463: Self-improving robots; a 10k Chinese GPU cluster; and an elegiac essay for the human era",
+      "url": "https://jack-clark.net/2026/06/29/import-ai-463-self-improving-robots-a-10k-chinese-gpu-cluster-and-an-elegiac-essay-for-the-human-era/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete. Relevance: high. Follow-up: this is a multi-topic newsletter and should be split into individual stories before retrieval and summarization."
+    },
+    {
+      "document_id": "065776f4-2824-4a1f-a6dd-d514013028f1",
+      "source_name": "langgraph",
+      "title": "langgraph==1.2.9",
+      "url": "https://github.com/langchain-ai/langgraph/releases/tag/1.2.9",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete because the original release note is also short. Relevance: potentially low because it describes a narrow patch; information value should be handled by feed ranking rather than extraction quality."
+    },
+    {
+      "document_id": "158eec5b-ecb5-4c76-9c43-0e5d0ec65d41",
+      "source_name": "litellm",
+      "title": "v1.94.0-rc.1",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.94.0-rc.1",
+      "automated_status": "warning",
+      "warnings": [
+        "high_duplicate_line_ratio"
+      ],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete. Warning assessment: likely a false positive caused by repeated changelog structure. Follow-up: generate highlights or a summary because the original release notes are long."
+    },
+    {
+      "document_id": "3f157a88-fbb4-4383-b49b-ae8407e0c7df",
+      "source_name": "nvidia-technical-blog",
+      "title": "Setting a World Record for MoE Pre-Training on NVIDIA GB300 NVL72",
+      "url": "https://developer.nvidia.com/blog/setting-a-world-record-for-moe-pre-training-on-nvidia-gb300-nvl72/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "incomplete",
+      "human_notes": "Extraction: incomplete; only the short Atom feed preview was captured, while the original technical article contains multiple sections, benchmarks, figures, and implementation details."
+    },
+    {
+      "document_id": "0de610a9-44fd-458b-8dd9-551ae31cd1bc",
+      "source_name": "ollama",
+      "title": "v0.32.1-rc0",
+      "url": "https://github.com/ollama/ollama/releases/tag/v0.32.1-rc0",
+      "automated_status": "warning",
+      "warnings": [
+        "suspected_excerpt"
+      ],
+      "failures": [],
+      "human_label": "complete",
+      "human_notes": "Extraction: complete because the original release note is also short. Relevance: low; its limited information value should be handled by feed ranking rather than extraction quality."
+    },
+    {
+      "document_id": "305ec815-1f2f-4020-8e2c-0d13c74e16a1",
+      "source_name": "openai-news",
+      "title": "Why teens deserve access to safe AI",
+      "url": "https://openai.com/index/why-teens-deserve-access-safe-ai",
+      "automated_status": "warning",
+      "warnings": [
+        "suspected_excerpt"
+      ],
+      "failures": [],
+      "human_label": "incomplete",
+      "human_notes": "Extraction: incomplete; only the title and a one-sentence RSS description were captured, while the full article body is missing. Follow-up: keep the source but add full-page hydration."
+    },
+    {
+      "document_id": "cc7eac95-1c13-4893-aa71-99bede77edc0",
+      "source_name": "pytorch-blog",
+      "title": "PyTorch Conference North America Schedule Is Live",
+      "url": "https://pytorch.org/blog/pytorch-conference-north-america-schedule-is-live/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "497be340-1abd-434b-bbf4-ab1a37134b2f",
+      "source_name": "qdrant",
+      "title": "v1.18.3",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.18.3",
+      "automated_status": "warning",
+      "warnings": [
+        "suspected_excerpt"
+      ],
+      "failures": [],
+      "human_label": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "67336217-b5d1-4cc7-a3b3-860702af23a3",
+      "source_name": "the-batch",
+      "title": "The Batch: Jul 17, 2026",
+      "url": "https://www.deeplearning.ai/the-batch/tag/jul-17-2026",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "1563cee7-1e37-4b34-a72b-b855a5e306e6",
+      "source_name": "transformers",
+      "title": "Patch release v5.12.1",
+      "url": "https://github.com/huggingface/transformers/releases/tag/v5.12.1",
+      "automated_status": "warning",
+      "warnings": [
+        "high_duplicate_line_ratio"
+      ],
+      "failures": [],
+      "human_label": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "3ae65146-fede-41ab-93d8-2dfc17d5895d",
+      "source_name": "vllm",
+      "title": "v0.24.0",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.24.0",
+      "automated_status": "warning",
+      "warnings": [
+        "high_duplicate_line_ratio"
+      ],
+      "failures": [],
+      "human_label": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "748ad5e7-a518-4b7b-9922-e5d4f5b21ce7",
+      "source_name": "google-developers",
+      "title": "Evolving Spec-Driven Development: Conductor Now Supports Antigravity",
+      "url": "https://developers.googleblog.com/evolving-spec-driven-development-conductor-now-supports-antigravity/",
+      "automated_status": "warning",
+      "warnings": [
+        "published_at_matches_collection_time"
+      ],
+      "failures": [],
+      "human_label": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "aa525230-67bc-4bec-b04a-da3660cb6d25",
+      "source_name": "huggingface-blog",
+      "title": "Newer Models, Same Advantage",
+      "url": "https://huggingface.co/blog/Dharma-AI/newer-models-same-advantages",
+      "automated_status": "warning",
+      "warnings": [
+        "suspected_excerpt"
+      ],
+      "failures": [],
+      "human_label": "not_reviewed",
+      "human_notes": ""
+    },
+    {
+      "document_id": "f3b02b4a-c66a-4fd4-8e1a-addb03392bd7",
+      "source_name": "pytorch-blog",
+      "title": "Towards Free Normalization: Fusing Normalization into GEMM and Attention Kernels",
+      "url": "https://pytorch.org/blog/towards-free-normalization-fusing-normalization-into-gemm-and-attention-kernels/",
+      "automated_status": "pass",
+      "warnings": [],
+      "failures": [],
+      "human_label": "not_reviewed",
+      "human_notes": ""
+    }
+  ]
+}
