@@ -1,8 +1,12 @@
 # Retrieval Eval Runbook
 
-This is the first measurement loop for the RAG system.
+This is the legacy documentation-corpus smoke loop for the RAG system.
 
 It evaluates retrieval only. It does not grade final answer quality yet.
+
+It must remain green for backward compatibility, but its 15 documentation questions
+are not the update-focused Phase 3 benchmark. The versioned update benchmark is
+specified in `PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
 
 ## Files
 

@@ -26,4 +26,8 @@
 
 ## Next Evaluation Work
 
-Create a dated update question set after the first stable source snapshot. Store expected tools, categories, date ranges, release titles, and facts. Run deterministic retrieval checks first, then manually grade groundedness and completeness before adding an LLM judge.
+Phase 3 creates a dated update-corpus snapshot and a 30-question set with exact
+relevant-document judgments, filters, expected facts, and insufficient-evidence
+cases. Run deterministic retrieval checks first, then manually grade groundedness,
+completeness, and citations before considering an LLM judge. See
+`PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.

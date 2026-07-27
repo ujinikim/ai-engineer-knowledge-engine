@@ -53,26 +53,29 @@ Status on July 27, 2026: complete for MVP quality calibration.
 - Automatic production relevance classification and the optional LLM summary judge
   are explicitly deferred; neither blocks the next phase.
 
-## Phase 3: Deployment Foundation
-
-- Package the frontend, API, collector, and Postgres deployment reproducibly
-- Replace production schema initialization with versioned migrations
-- Add health/readiness endpoints and environment validation
-- Deploy staging, exercise scheduled collection, and run hosted smoke tests
-- Launch production with backups, monitoring, cost controls, and rollback procedures
-
-The detailed order, recommended Render topology, and acceptance criteria are in
-`DEPLOYMENT_PLAN.md`.
-
-## Phase 4: Retrieval Benchmark
+## Phase 3: Retrieval Benchmark
 
 - Versioned question and relevance judgments
 - Recall@K, Precision@K, MRR, filter correctness, and source coverage
 - Temporal, comparison, and insufficient-evidence questions
 - Baseline comparisons before retrieval changes
 
-Run the saved baseline against the hosted Phase 3 environment so latency and
-connection behavior represent the deployed application.
+Build and tune the benchmark locally against a frozen corpus snapshot. The detailed
+question design, evaluation matrix, tuning order, and acceptance targets are in
+`PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
+
+## Phase 4: Deployment Foundation
+
+- Package the frontend, API, collector, and Postgres deployment reproducibly
+- Replace production schema initialization with versioned migrations
+- Add health/readiness endpoints and environment validation
+- Deploy staging, exercise scheduled collection, and run hosted smoke tests
+- Rerun the frozen Phase 3 benchmark to detect deployment regressions and record
+  hosted latency
+- Launch production with backups, monitoring, cost controls, and rollback procedures
+
+The detailed order, recommended Render topology, and acceptance criteria are in
+`DEPLOYMENT_PLAN.md`.
 
 ## Phase 5: Content Structure
 

@@ -58,4 +58,5 @@ Last validated: July 27, 2026
 - Learned reranking and formal retrieval-quality evaluation sets
 
 See `ROADMAP.md` for the recommended order of follow-up work.
-Deployment is the next active phase; see `DEPLOYMENT_PLAN.md`.
+The update-focused RAG benchmark is the next active phase; see
+`PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`. Deployment follows as Phase 4.

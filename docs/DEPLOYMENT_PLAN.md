@@ -29,22 +29,21 @@ needs them.
 
 ## Placement in the Phase Plan
 
-Deployment becomes **Phase 3**, immediately after summary/taxonomy quality and before
-the retrieval benchmark.
+Deployment becomes **Phase 4**, immediately after the local retrieval benchmark.
 
 This ordering is intentional:
 
 1. Phase 2 establishes trustworthy content metadata.
-2. Phase 3 establishes the hosted runtime, database, scheduled collection, and
-   observable operating environment.
-3. Phase 4 measures retrieval quality and latency against that representative hosted
-   environment.
+2. Phase 3 establishes retrieval correctness against a frozen local corpus snapshot.
+3. Phase 4 establishes the hosted runtime, database, scheduled collection, and
+   observable operating environment, then reruns the frozen benchmark for regression
+   and hosted-latency measurements.
 4. Later content-structure and UI work can ship incrementally on the established
    deployment path.
 
 Production relevance automation remains deferred and is not a deployment blocker.
 
-## Phase 3A: Deployment Readiness
+## Phase 4A: Deployment Readiness
 
 ### Application packaging
 
@@ -91,7 +90,7 @@ Production relevance automation remains deferred and is not a deployment blocker
 - Treat one source failure as a reported partial run rather than discarding successful
   sources.
 
-## Phase 3B: Staging Deployment
+## Phase 4B: Staging Deployment
 
 1. Provision a non-production database.
 2. Deploy the API and run migrations.
@@ -99,19 +98,19 @@ Production relevance automation remains deferred and is not a deployment blocker
 4. Run a limited collection and verify document, chunk, and embedding counts.
 5. Exercise update windows, facets, sparse filtering, retrieval, asking, and citations.
 6. Run backend tests and the frontend production build in CI.
-7. Run the retrieval evaluator against staging and save latency separately from local
-   results.
+7. Rerun the frozen Phase 3 retrieval benchmark against staging. Require equivalent
+   correctness and save hosted latency separately from local results.
 8. Verify CORS allows only the intended frontend origin.
 9. Confirm redeploying the same revision does not duplicate documents or chunks.
 
-## Phase 3C: Production Launch
+## Phase 4C: Production Launch
 
 - Provision paid Postgres with backups and point-in-time recovery.
 - Keep API, cron job, and database in one region.
 - Attach production domains and TLS.
 - Apply migrations before API traffic moves to the new release.
 - Seed or migrate the reviewed corpus once, then let scheduled collection maintain it.
-- Run the Phase 3 smoke checklist.
+- Run the Phase 4 smoke checklist.
 - Enable external uptime monitoring for the frontend and API.
 - Configure alerts for API unavailability, collector failures, database capacity, and
   unexpected OpenAI spend.
@@ -149,7 +148,7 @@ external probes, and tested backups:
 - Use a paid database for production data; a disposable/free database is acceptable
   only for staging experiments.
 
-## Phase 3 Acceptance Criteria
+## Phase 4 Acceptance Criteria
 
 - A clean database reaches the current schema through migrations alone.
 - API readiness verifies database access and required schema/extensions.

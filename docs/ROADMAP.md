@@ -22,14 +22,16 @@
 
 ## Next
 
-1. Complete the deployment-readiness work in `DEPLOYMENT_PLAN.md`
-2. Deploy a staging frontend, API, collector cron job, and pgvector database
-3. Run the update-focused retrieval benchmark against staging
-4. Launch the initial production MVP with backups, monitoring, and rollback
-5. Add story clustering and cross-source deduplication
-6. Add contextual `Brief me` synthesis over the active feed
-7. Add streaming responses and first-token latency
-8. Add followed topics/tools and read, saved, and learning-queue state
+1. Build the frozen 240-document update snapshot and 30-question retrieval benchmark
+2. Save the unmodified retrieval baseline and review failures
+3. Tune only measured retrieval failures and save the Phase 3 closeout baseline
+4. Complete deployment readiness and deploy staging
+5. Rerun the frozen benchmark in staging and record hosted latency
+6. Launch the initial production MVP with backups, monitoring, and rollback
+7. Add story clustering and cross-source deduplication
+8. Add contextual `Brief me` synthesis over the active feed
+9. Add streaming responses and first-token latency
+10. Add followed topics/tools and read, saved, and learning-queue state
 
 ## Later
 
@@ -46,4 +48,6 @@ Agents, conversational memory, and autonomous browsing remain outside the planne
 
 The longer-term personal digest and learning-dashboard direction is captured in `PRODUCT_DIRECTION.md`.
 The ordered evaluation and product phases are captured in `QUALITY_IMPROVEMENT_PLAN.md`.
+Phase 3 question design, metrics, tuning order, and gates are captured in
+`PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
 Deployment topology, sequencing, and launch gates are captured in `DEPLOYMENT_PLAN.md`.
