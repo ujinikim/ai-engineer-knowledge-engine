@@ -153,7 +153,10 @@ class ExtractionQualityService:
             warnings.append("suspected_excerpt")
         if suspected_collection_page:
             warnings.append("suspected_collection_page")
-        if metadata.get("hydration_status") == "failed":
+        if (
+            metadata.get("extraction_status") in {"feed_excerpt_only", "title_only"}
+            or metadata.get("hydration_status") == "failed"
+        ):
             warnings.append("article_hydration_failed")
         if boilerplate_ratio > self.thresholds.high_boilerplate_ratio:
             warnings.append("high_boilerplate_ratio")

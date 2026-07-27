@@ -51,6 +51,31 @@ MATURITY_LEVELS = (
     "deprecated",
 )
 
+VERSIONED_LIBRARY_SOURCES = frozenset(
+    {
+        "langgraph",
+        "litellm",
+        "qdrant",
+        "transformers",
+        "vllm",
+    }
+)
+
+RELEASE_EVENT_TYPES = frozenset(
+    {
+        "model-launch",
+        "product-release",
+        "library-release",
+        "api-change",
+        "integration",
+    }
+)
+
+RC_VERSION_PATTERN = re.compile(
+    r"(?<![a-z0-9])v?\d+(?:\.\d+)+(?:[-_.]?rc(?:[.-]?\d+)?)(?![a-z0-9])",
+    re.IGNORECASE,
+)
+
 
 TOPIC_KEYWORDS = {
     "models-apis": (
@@ -163,11 +188,32 @@ def infer_event_types(text: str, default: list[str] | None = None) -> list[str]:
     return list(dict.fromkeys((default or []) + matches))[:5]
 
 
-def infer_maturity(title: str, text: str = "") -> str:
+def normalize_event_types(source_name: str, event_types: list[str]) -> list[str]:
+    """Apply source-level event invariants after model classification."""
+    normalized = list(dict.fromkeys(event_types))
+    if source_name not in VERSIONED_LIBRARY_SOURCES:
+        return normalized[:5]
+
+    normalized = [
+        event_type
+        for event_type in normalized
+        if event_type != "product-release"
+        and not (source_name == "transformers" and event_type == "model-launch")
+    ]
+    if "library-release" not in normalized:
+        normalized.insert(0, "library-release")
+    return normalized[:5]
+
+
+def infer_maturity(
+    title: str,
+    text: str = "",
+    event_types: list[str] | None = None,
+) -> str:
     value = f"{title} {text[:500]}".lower()
     if "deprecated" in value or "deprecation" in value or "sunset" in value:
         return "deprecated"
-    if re.search(r"(?:^|[.\-_])rc\d*(?:$|[^a-z0-9])", value):
+    if RC_VERSION_PATTERN.search(value):
         return "release-candidate"
     if "alpha" in value or "dev." in value or "development" in value:
         return "development"
@@ -177,6 +223,12 @@ def infer_maturity(title: str, text: str = "") -> str:
         return "preview"
     if "general availability" in value or re.search(r"\bga\b", value):
         return "general-availability"
+    events = set(event_types or [])
+    if (
+        events.intersection({"research-result", "benchmark-result"})
+        and not events.intersection(RELEASE_EVENT_TYPES)
+    ):
+        return "research"
     return "stable"
 
 

@@ -14,6 +14,7 @@ from app.services.taxonomy import (
     infer_event_types,
     infer_maturity,
 )
+from app.services.source_detail import classify_content_detail
 
 
 @dataclass(frozen=True)
@@ -70,29 +71,26 @@ class ArticleSummaryService:
         if not self.client:
             return fallback
 
+        detail_level = self._source_detail_level(title, raw_text)
         try:
             response = self.client.chat.completions.create(
                 model=settings.chat_model,
                 messages=[
                     {
                         "role": "system",
-                        "content": (
-                            "Turn one source article into a concise AI-engineering feed card. "
-                            "Use only supplied facts. Return JSON with display_headline, summary, "
-                            "why_it_matters, key_points, primary_topic, topic_tags, event_types, "
-                            "and entity_tags. The headline must be factual and under 90 characters. "
-                            "Summary must be 1-2 sentences under 70 words. Why_it_matters must be "
-                            "one sentence under 35 words. Return 2-4 short key_points. Choose "
-                            f"primary_topic from {list(PRIMARY_TOPICS)} and event_types from "
-                            f"{list(EVENT_TYPES)}. Never add claims absent from the source."
-                        ),
+                        "content": self._system_prompt(),
                     },
                     {
                         "role": "user",
-                        "content": (
-                            f"Organization: {organization}\nTool: {tool}\n"
-                            f"Source type: {source_type}\nDefault topic: {default_topic}\n"
-                            f"Title: {title}\n\nSource text:\n{raw_text[:12000]}"
+                        "content": self._user_prompt(
+                            title=title,
+                            raw_text=raw_text,
+                            organization=organization,
+                            tool=tool,
+                            source_type=source_type,
+                            default_topic=default_topic,
+                            default_event_types=default_event_types,
+                            detail_level=detail_level,
                         ),
                     },
                 ],
@@ -101,15 +99,99 @@ class ArticleSummaryService:
                 max_completion_tokens=450,
             )
             payload = json.loads(response.choices[0].message.content or "{}")
-            return self._validated(payload, fallback, source_type)
+            return self._validated(
+                payload,
+                fallback,
+                source_type,
+                title=title,
+                raw_text=raw_text,
+            )
         except Exception:
             return fallback
+
+    def _system_prompt(self) -> str:
+        return (
+            "Turn one source article into a concise AI-engineering feed card. "
+            "Return JSON with display_headline, summary, why_it_matters, key_points, "
+            "primary_topic, topic_tags, event_types, and entity_tags. "
+            "Use only facts stated in the supplied source. Do not infer benefits, outcomes, "
+            "motivations, severity, or broader effects. In particular, do not claim improved "
+            "reliability, stability, performance, security, usability, efficiency, scalability, "
+            "or productivity unless the source explicitly states that improvement. Do not add "
+            "recommendations such as \"users should update\" or guarantees such as \"users will "
+            "no longer experience errors\" unless the source states them. Preserve qualifications "
+            "and uncertainty. A plausible conclusion is still unsupported when the source does "
+            "not state it. "
+            "The headline must state the concrete update, avoid promotional language, and stay "
+            "under 90 characters. The summary must be 1-2 sentences under 70 words and describe "
+            "what changed, who or what is affected, and any stated conditions. Why_it_matters "
+            "must be one sentence under 35 words. Prefer the affected user, component, workflow, "
+            "compatibility condition, or required action over a general benefit. When no broader "
+            "impact is stated, describe only the affected scope. When even the affected scope is "
+            "unclear, use: \"The source does not provide enough detail to assess broader impact.\" "
+            "Return 2-4 short, distinct key_points supported by the source; do not pad the list "
+            "with inferred benefits. Treat the configured default topic and event types as strong "
+            "priors and override them only when the source clearly supports another value. Choose "
+            "only event types that are materially represented by the article; do not add a second "
+            "event merely because it is loosely related. Support for a model inside a library is "
+            "not a model launch. A security-related feature is not a security issue unless the "
+            "source describes a vulnerability, security defect, or disclosed threat. Availability "
+            "on several product surfaces is not an integration unless separate systems are "
+            "explicitly connected. "
+            f"primary_topic from {list(PRIMARY_TOPICS)} and event_types from {list(EVENT_TYPES)}."
+        )
+
+    def _user_prompt(
+        self,
+        *,
+        title: str,
+        raw_text: str,
+        organization: str,
+        tool: str,
+        source_type: str,
+        default_topic: str,
+        default_event_types: list[str],
+        detail_level: str,
+    ) -> str:
+        sparse_instructions = ""
+        if detail_level == "sparse":
+            sparse_instructions = (
+                "\nSparse-source instructions:\n"
+                "- Use near-extractive wording.\n"
+                "- Do not infer the purpose or effect of a fix from its component name.\n"
+                "- Do not expand abbreviations unless the source defines them.\n"
+                "- Do not add generic product benefits.\n"
+                "- Do not recommend an action or promise that a problem is fully resolved.\n"
+                "- For why_it_matters, prefer the neutral form: \"The change applies to users "
+                "of [the explicitly named component or workflow].\"\n"
+                "- It is acceptable for every field to be brief.\n"
+                "Example: for \"Fix query errors when using shard keys while resharding,\" "
+                "say the fix is relevant to users combining shard keys with resharding; do not "
+                "claim it improves general reliability or distributed consistency.\n"
+            )
+        return (
+            f"Organization: {organization}\n"
+            f"Tool: {tool}\n"
+            f"Source type: {source_type}\n"
+            f"Source detail level: {detail_level}\n"
+            f"Default topic: {default_topic}\n"
+            f"Default event types: {default_event_types}\n"
+            f"Title: {title}\n"
+            f"{sparse_instructions}\n"
+            f"Source text:\n{raw_text[:12000]}"
+        )
+
+    def _source_detail_level(self, title: str, raw_text: str) -> str:
+        return classify_content_detail(title, raw_text)
 
     def _validated(
         self,
         payload: dict,
         fallback: ArticleSummary,
         source_type: str,
+        *,
+        title: str,
+        raw_text: str,
     ) -> ArticleSummary:
         primary_topic = str(payload.get("primary_topic") or fallback.primary_topic).strip().lower()
         if primary_topic not in PRIMARY_TOPICS:
@@ -127,7 +209,7 @@ class ArticleSummaryService:
             topic_tags=clean_tags(payload.get("topic_tags")) or fallback.topic_tags,
             event_types=event_types,
             entity_tags=clean_tags(payload.get("entity_tags")) or fallback.entity_tags,
-            maturity=fallback.maturity,
+            maturity=infer_maturity(title, raw_text, event_types),
             generated_by=f"{settings.chat_model}:{source_type}",
         )
 
@@ -156,7 +238,7 @@ class ArticleSummaryService:
             topic_tags=secondary_topics,
             event_types=events or ["library-release"],
             entity_tags=clean_tags([organization, tool]),
-            maturity=infer_maturity(title, raw_text),
+            maturity=infer_maturity(title, raw_text, events),
             generated_by="deterministic-fallback",
         )
 

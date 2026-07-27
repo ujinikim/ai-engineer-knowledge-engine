@@ -115,6 +115,22 @@ def test_fallback_and_incomplete_source_are_visible() -> None:
     assert "source_content_incomplete" in result.warnings
 
 
+def test_successful_model_summary_can_still_use_incomplete_source_content() -> None:
+    document = make_document()
+    document.doc_metadata = {
+        **document.doc_metadata,
+        "summary_generated_by": "gpt-test:official-product-news",
+        "hydration_status": "failed",
+        "extraction_status": "feed_excerpt_only",
+        "summary_input_source": "feed_excerpt",
+    }
+
+    result = SummaryQualityService().evaluate(document)
+
+    assert "source_content_incomplete" in result.warnings
+    assert "deterministic_fallback_summary" not in result.warnings
+
+
 def test_review_key_changes_with_summary_content() -> None:
     service = SummaryQualityService()
     document = make_document()

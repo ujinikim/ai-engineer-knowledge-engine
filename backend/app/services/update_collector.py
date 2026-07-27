@@ -16,8 +16,10 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Chunk, Document, UpdateSource
 from app.services.article_summary import ArticleSummaryService
+from app.services.source_detail import classify_content_detail, sparse_visibility_metadata
 from app.services.chunking import ChunkingService
 from app.services.embedding import EmbeddingService
+from app.services.taxonomy import infer_maturity, normalize_event_types
 
 
 @dataclass(frozen=True)
@@ -71,22 +73,20 @@ class UpdateCollectorService:
                                     or not entry.get("content")
                                 ):
                                     raise
-                                entry = {
-                                    **entry,
-                                    "_hydration_status": "parent_section_fallback",
-                                    "_hydration_error": str(error)[:500],
-                                }
+                                entry = self._full_article_fallback_entry(
+                                    entry,
+                                    error,
+                                    extraction_status="parent_section_fallback",
+                                    summary_input_source="parent_section",
+                                    hydration_status="parent_section_fallback",
+                                )
                         if not self._matches_config(config, entry):
                             continue
                         if config.get("fetch_full_article") and config.get("source_kind") != "html_listing":
                             try:
                                 entry = await self._hydrate_html_entry(client, config, entry)
                             except (httpx.HTTPError, ValueError) as error:
-                                entry = {
-                                    **entry,
-                                    "_hydration_status": "failed",
-                                    "_hydration_error": str(error)[:500],
-                                }
+                                entry = self._full_article_fallback_entry(entry, error)
                         status = self._upsert_entry(source, config, entry)
                         counts[f"updates_{status}"] += 1
                         matched_items += 1
@@ -146,12 +146,32 @@ class UpdateCollectorService:
         body_html = self._entry_html(entry)
         body_text = self._clean_html(body_html)
         raw_text = f"{title}\n\n{body_text}".strip()
+        content_detail = classify_content_detail(title, raw_text)
         content_hash = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
         published_at = self._entry_datetime(entry)
         now = datetime.utcnow()
         default_topic = config.get("default_primary_topic", config["category"])
         source_type = config.get("source_type", "official-release")
         default_event_types = config.get("default_event_types", ["library-release"])
+        hydration_status = str(entry.get("_hydration_status") or "not_requested")
+        extraction_status = str(
+            entry.get("_extraction_status")
+            or {
+                "full_article": "full_article",
+                "failed": "feed_excerpt_only" if body_text else "title_only",
+                "parent_section_fallback": "parent_section_fallback",
+            }.get(hydration_status, "source_entry")
+        )
+        summary_input_source = str(
+            entry.get("_summary_input_source")
+            or {
+                "full_article": "full_article",
+                "feed_excerpt_only": "feed_excerpt",
+                "title_only": "title",
+                "parent_section_fallback": "parent_section",
+            }.get(extraction_status, "source_entry")
+        )
+        hydration_error = str(entry.get("_hydration_error") or "").strip()
         base_metadata = {
             "organization": config["organization"],
             "tool": config["tool"],
@@ -164,7 +184,22 @@ class UpdateCollectorService:
             "source_type": source_type,
             "credibility_weight": float(config.get("credibility_weight", 1.0)),
             "quality_tier": config.get("quality_tier", "primary"),
-            "hydration_status": str(entry.get("_hydration_status") or "not_requested"),
+            # Legacy hydration fields remain during the metadata migration.
+            "hydration_status": hydration_status,
+            "hydration_error": hydration_error or None,
+            "extraction_status": extraction_status,
+            "summary_input_source": summary_input_source,
+            "full_article_fetch_attempted_at": entry.get(
+                "_full_article_fetch_attempted_at"
+            ),
+            "full_article_fetch_http_status": entry.get(
+                "_full_article_fetch_http_status"
+            ),
+            "full_article_fetch_error_code": entry.get(
+                "_full_article_fetch_error_code"
+            ),
+            "extraction_metadata_version": "2026-07-26-v1",
+            "content_detail": content_detail,
         }
         if entry.get("_parent_url"):
             base_metadata["parent_url"] = str(entry["_parent_url"])
@@ -172,15 +207,28 @@ class UpdateCollectorService:
             base_metadata["parent_title"] = str(entry["_parent_title"])
         if entry.get("_section_index") is not None:
             base_metadata["section_index"] = int(entry["_section_index"])
-        hydration_error = str(entry.get("_hydration_error") or "").strip()
-        if hydration_error:
-            base_metadata["hydration_error"] = hydration_error
-
         document = self.db.scalar(select(Document).where(Document.url == url))
         if document and document.content_hash == content_hash:
             document.fetched_at = now
             document.published_at = published_at
-            document.doc_metadata = {**document.doc_metadata, **base_metadata}
+            merged_metadata = {**document.doc_metadata, **base_metadata}
+            normalized_events = normalize_event_types(
+                source.slug,
+                list(merged_metadata.get("event_types") or default_event_types),
+            )
+            merged_metadata = {
+                **merged_metadata,
+                "event_types": normalized_events,
+                "maturity": infer_maturity(title, raw_text, normalized_events),
+                "taxonomy_policy_version": "2026-07-26-v1",
+            }
+            document.doc_metadata = {
+                **merged_metadata,
+                **sparse_visibility_metadata(
+                    content_detail,
+                    list(merged_metadata.get("event_types") or default_event_types),
+                ),
+            }
             return "unchanged"
 
         article = self.summarizer.summarize(
@@ -193,6 +241,23 @@ class UpdateCollectorService:
             default_event_types=default_event_types,
         )
         metadata = {**base_metadata, **article.metadata()}
+        normalized_events = normalize_event_types(
+            source.slug,
+            list(metadata.get("event_types") or default_event_types),
+        )
+        metadata = {
+            **metadata,
+            "event_types": normalized_events,
+            "maturity": infer_maturity(title, raw_text, normalized_events),
+            "taxonomy_policy_version": "2026-07-26-v1",
+        }
+        metadata = {
+            **metadata,
+            **sparse_visibility_metadata(
+                content_detail,
+                list(metadata.get("event_types") or default_event_types),
+            ),
+        }
 
         status = "changed" if document else "created"
         if document:
@@ -505,6 +570,54 @@ class UpdateCollectorService:
             "updated_parsed": None if article_published else entry.get("updated_parsed"),
             "_hydration_status": "full_article",
             "_hydration_error": "",
+            "_extraction_status": "full_article",
+            "_summary_input_source": "full_article",
+            "_full_article_fetch_attempted_at": datetime.now(timezone.utc).isoformat(),
+            "_full_article_fetch_http_status": response.status_code,
+            "_full_article_fetch_error_code": None,
+        }
+
+    def _full_article_fallback_entry(
+        self,
+        entry: dict,
+        error: Exception,
+        *,
+        extraction_status: str | None = None,
+        summary_input_source: str | None = None,
+        hydration_status: str = "failed",
+    ) -> dict:
+        feed_text = self._clean_html(self._entry_html(entry)).strip()
+        if extraction_status is None:
+            extraction_status = "feed_excerpt_only" if feed_text else "title_only"
+        if summary_input_source is None:
+            summary_input_source = "feed_excerpt" if feed_text else "title"
+
+        http_status = None
+        if isinstance(error, httpx.HTTPStatusError):
+            http_status = error.response.status_code
+
+        if http_status == 403:
+            error_code = "http_forbidden"
+        elif http_status == 404:
+            error_code = "http_not_found"
+        elif http_status is not None:
+            error_code = "http_error"
+        elif isinstance(error, httpx.RequestError):
+            error_code = "network_error"
+        elif isinstance(error, ValueError):
+            error_code = "content_incomplete"
+        else:
+            error_code = "unknown_error"
+
+        return {
+            **entry,
+            "_hydration_status": hydration_status,
+            "_hydration_error": str(error)[:500],
+            "_extraction_status": extraction_status,
+            "_summary_input_source": summary_input_source,
+            "_full_article_fetch_attempted_at": datetime.now(timezone.utc).isoformat(),
+            "_full_article_fetch_http_status": http_status,
+            "_full_article_fetch_error_code": error_code,
         }
 
     def _matches_config(self, config: dict, entry) -> bool:

@@ -155,7 +155,10 @@ class SummaryQualityService:
             failures.append("invalid_maturity")
         if generated_by == "deterministic-fallback":
             warnings.append("deterministic_fallback_summary")
-        if metadata.get("hydration_status") == "failed":
+        if (
+            metadata.get("extraction_status") in {"feed_excerpt_only", "title_only"}
+            or metadata.get("hydration_status") == "failed"
+        ):
             warnings.append("source_content_incomplete")
 
         status = "fail" if failures else "warning" if warnings else "pass"

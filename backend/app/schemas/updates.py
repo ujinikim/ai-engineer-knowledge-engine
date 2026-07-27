@@ -34,6 +34,9 @@ class UpdateItem(BaseModel):
     entity_tags: list[str] = Field(default_factory=list)
     source_type: str
     maturity: str
+    content_detail: Literal["sparse", "detailed"]
+    default_feed_eligible: bool
+    default_feed_exclusion_reason: str | None = None
     version: str | None = None
     excerpt: str
     display_headline: str

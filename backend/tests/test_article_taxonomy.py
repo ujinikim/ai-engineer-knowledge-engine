@@ -4,7 +4,12 @@ import httpx
 import pytest
 
 from app.services.article_summary import ArticleSummaryService
-from app.services.taxonomy import classify_topic, infer_event_types, infer_maturity
+from app.services.taxonomy import (
+    classify_topic,
+    infer_event_types,
+    infer_maturity,
+    normalize_event_types,
+)
 from app.services.update_collector import UpdateCollectorService
 
 
@@ -22,7 +27,39 @@ def test_event_and_maturity_inference() -> None:
     assert "deprecation" in infer_event_types("This API endpoint is deprecated and will sunset.")
     assert infer_maturity("v2.0.0-rc.2") == "release-candidate"
     assert infer_maturity("v2.0.0-rc1: fix download handling") == "release-candidate"
+    assert infer_maturity("v0.26.0rc1") == "release-candidate"
+    assert infer_maturity("V1.2.0_RC.3") == "release-candidate"
     assert infer_maturity("Feature now in general availability") == "general-availability"
+
+
+def test_maturity_does_not_treat_rc_inside_words_as_release_candidate() -> None:
+    for title in ("Research update", "Architecture notes", "Source release", "PyTorch"):
+        assert infer_maturity(title) == "stable"
+
+
+def test_research_events_infer_research_maturity_without_release_event() -> None:
+    assert (
+        infer_maturity(
+            "Web retrieval study",
+            event_types=["research-result", "engineering-analysis"],
+        )
+        == "research"
+    )
+    assert (
+        infer_maturity(
+            "Benchmark library v1.0",
+            event_types=["library-release", "benchmark-result"],
+        )
+        == "stable"
+    )
+
+
+def test_versioned_library_event_normalization() -> None:
+    assert normalize_event_types(
+        "transformers",
+        ["product-release", "model-launch", "breaking-change"],
+    ) == ["library-release", "breaking-change"]
+    assert normalize_event_types("ollama", ["product-release"]) == ["product-release"]
 
 
 def test_deterministic_summary_keeps_source_facts() -> None:
@@ -43,6 +80,61 @@ def test_deterministic_summary_keeps_source_facts() -> None:
     assert article.display_headline == "vLLM adds prefill controls"
     assert "throttled prefill" in article.summary
     assert article.event_types[0] == "library-release"
+
+
+def test_sparse_source_prompt_prohibits_speculative_benefits() -> None:
+    service = ArticleSummaryService.__new__(ArticleSummaryService)
+    raw_text = "v1.18.3\n\nFix query errors when using shard keys while resharding."
+
+    detail_level = service._source_detail_level("v1.18.3", raw_text)
+    prompt = service._user_prompt(
+        title="v1.18.3",
+        raw_text=raw_text,
+        organization="Qdrant",
+        tool="Qdrant",
+        source_type="official-release",
+        default_topic="retrieval-data",
+        default_event_types=["library-release"],
+        detail_level=detail_level,
+    )
+
+    assert detail_level == "sparse"
+    assert "Use near-extractive wording" in prompt
+    assert "do not claim it improves general reliability" in prompt
+    assert "Do not recommend an action" in prompt
+    assert "The change applies to users" in prompt
+    assert "Default event types: ['library-release']" in prompt
+
+
+def test_detailed_source_does_not_receive_sparse_instructions() -> None:
+    service = ArticleSummaryService.__new__(ArticleSummaryService)
+    body = "\n".join(
+        [
+            "The release adds a new cache implementation for production inference workloads.",
+            "Production tests reduced median latency by 25 percent across three deployments.",
+            "Operators can enable the cache through the existing runtime configuration.",
+            "The source provides benchmark methodology and compatibility details for adopters.",
+            "Compatibility is documented for existing deployments using the prior cache configuration.",
+            "The release notes also identify rollout steps and the supported runtime versions.",
+        ]
+    )
+    raw_text = f"Runtime cache release\n\n{body}"
+
+    detail_level = service._source_detail_level("Runtime cache release", raw_text)
+    prompt = service._user_prompt(
+        title="Runtime cache release",
+        raw_text=raw_text,
+        organization="Example",
+        tool="Runtime",
+        source_type="official-engineering-blog",
+        default_topic="inference-serving",
+        default_event_types=["engineering-analysis"],
+        detail_level=detail_level,
+    )
+
+    assert detail_level == "detailed"
+    assert "Sparse-source instructions" not in prompt
+    assert "Production tests reduced median latency" in prompt
 
 
 def test_feed_filtering_uses_title_and_body() -> None:
@@ -254,8 +346,51 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
     assert hydrated["published"] == "2026-07-20"
     assert collector._entry_datetime(hydrated).isoformat() == "2026-07-20T00:00:00"
     assert hydrated["_hydration_status"] == "full_article"
+    assert hydrated["_extraction_status"] == "full_article"
+    assert hydrated["_summary_input_source"] == "full_article"
+    assert hydrated["_full_article_fetch_http_status"] == 200
+    assert hydrated["_full_article_fetch_error_code"] is None
+    assert hydrated["_full_article_fetch_attempted_at"]
     assert "Technical article body" in hydrated["content"][0]["value"]
     assert "Unrelated recommendation" not in hydrated["content"][0]["value"]
+
+
+def test_forbidden_article_fetch_becomes_structured_feed_excerpt_fallback() -> None:
+    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    request = httpx.Request("GET", "https://example.com/article")
+    response = httpx.Response(403, request=request)
+    with pytest.raises(httpx.HTTPStatusError) as caught:
+        response.raise_for_status()
+
+    result = collector._full_article_fallback_entry(
+        {
+            "title": "Feed title",
+            "link": str(request.url),
+            "summary": "A short but usable feed excerpt.",
+        },
+        caught.value,
+    )
+
+    assert result["_hydration_status"] == "failed"
+    assert result["_extraction_status"] == "feed_excerpt_only"
+    assert result["_summary_input_source"] == "feed_excerpt"
+    assert result["_full_article_fetch_http_status"] == 403
+    assert result["_full_article_fetch_error_code"] == "http_forbidden"
+    assert result["_full_article_fetch_attempted_at"]
+
+
+def test_incomplete_article_without_excerpt_becomes_title_only() -> None:
+    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+
+    result = collector._full_article_fallback_entry(
+        {"title": "Feed title", "link": "https://example.com/article"},
+        ValueError("Full article extraction produced only 20 characters"),
+    )
+
+    assert result["_extraction_status"] == "title_only"
+    assert result["_summary_input_source"] == "title"
+    assert result["_full_article_fetch_http_status"] is None
+    assert result["_full_article_fetch_error_code"] == "content_incomplete"
 
 
 def test_full_article_hydration_rejects_challenge_page() -> None:

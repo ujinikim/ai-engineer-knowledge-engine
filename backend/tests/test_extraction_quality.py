@@ -165,6 +165,25 @@ def test_hydration_failure_is_reported() -> None:
     assert "article_hydration_failed" in result.warnings
 
 
+def test_feed_excerpt_only_extraction_is_reported() -> None:
+    raw_text = "Example engineering update\n\n" + ("Feed preview. " * 80)
+    document = make_document(
+        raw_text,
+        metadata={
+            "source_type": "official-engineering-blog",
+            "source_kind": "rss",
+            "quality_tier": "primary",
+            "hydration_status": "failed",
+            "extraction_status": "feed_excerpt_only",
+            "summary_input_source": "feed_excerpt",
+        },
+    )
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+
+    assert "article_hydration_failed" in result.warnings
+
+
 def test_single_repeated_footer_does_not_trigger_duplicate_warning() -> None:
     repeated = "The post Example appeared first on The GitHub Blog. " * 6
     unique_a = "Detailed implementation information about billing controls. " * 6

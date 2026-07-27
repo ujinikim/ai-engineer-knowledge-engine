@@ -34,6 +34,9 @@ type UpdateItem = {
   entity_tags: string[];
   source_type: string;
   maturity: string;
+  content_detail: "sparse" | "detailed";
+  default_feed_eligible: boolean;
+  default_feed_exclusion_reason: string | null;
   version: string | null;
   excerpt: string;
   display_headline: string;

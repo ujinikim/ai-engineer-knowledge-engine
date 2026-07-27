@@ -35,6 +35,7 @@ def updates(
     event_types: list[str] | None = Query(default=None),
     source_types: list[str] | None = Query(default=None),
     maturities: list[str] | None = Query(default=None),
+    include_sparse: bool = False,
     start: datetime | None = None,
     end: datetime | None = None,
     db: Session = Depends(get_db),
@@ -49,6 +50,7 @@ def updates(
         event_types=event_types,
         source_types=source_types,
         maturities=maturities,
+        include_sparse=include_sparse,
         start=start,
         end=end,
     )

@@ -13,6 +13,7 @@ from app.schemas.updates import (
     UpdateListResponse,
     UpdateSourceItem,
 )
+from app.services.source_detail import classify_content_detail, sparse_visibility_metadata
 
 
 class UpdateService:
@@ -50,6 +51,7 @@ class UpdateService:
         event_types: list[str] | None = None,
         source_types: list[str] | None = None,
         maturities: list[str] | None = None,
+        include_sparse: bool = False,
         start: datetime | None = None,
         end: datetime | None = None,
     ) -> UpdateListResponse:
@@ -66,15 +68,23 @@ class UpdateService:
         if tools:
             stmt = stmt.where(Document.doc_metadata["tool"].astext.in_(tools))
         documents = list(self.db.scalars(stmt).all())
+        explicit_sparse_context = bool(source_names or tools)
         documents = [
             document
             for document in documents
-            if self._matches_taxonomy(
-                document,
-                categories=categories,
-                event_types=event_types,
-                source_types=source_types,
-                maturities=maturities,
+            if (
+                self._is_feed_visible(
+                    document,
+                    include_sparse=include_sparse,
+                    explicit_sparse_context=explicit_sparse_context,
+                )
+                and self._matches_taxonomy(
+                    document,
+                    categories=categories,
+                    event_types=event_types,
+                    source_types=source_types,
+                    maturities=maturities,
+                )
             )
         ]
         enabled_sources = list(
@@ -166,6 +176,7 @@ class UpdateService:
 
     def _to_item(self, document: Document, now: datetime) -> UpdateItem:
         metadata = document.doc_metadata
+        visibility = self._visibility(document)
         excerpt = metadata.get("excerpt") or document.raw_text[:420]
         return UpdateItem(
             id=str(document.id),
@@ -181,6 +192,9 @@ class UpdateService:
             entity_tags=list(metadata.get("entity_tags") or []),
             source_type=str(metadata.get("source_type") or "official-release"),
             maturity=str(metadata.get("maturity") or "stable"),
+            content_detail=str(visibility["content_detail"]),
+            default_feed_eligible=bool(visibility["default_feed_eligible"]),
+            default_feed_exclusion_reason=visibility["default_feed_exclusion_reason"],
             version=metadata.get("version"),
             excerpt=excerpt,
             display_headline=str(metadata.get("display_headline") or document.title),
@@ -190,6 +204,28 @@ class UpdateService:
             published_at=self._utc(document.published_at) or now,
             fetched_at=self._utc(document.fetched_at) or now,
             importance_score=self.importance_score(document, now),
+        )
+
+    def _is_feed_visible(
+        self,
+        document: Document,
+        *,
+        include_sparse: bool,
+        explicit_sparse_context: bool,
+    ) -> bool:
+        if include_sparse or explicit_sparse_context:
+            return True
+        return bool(self._visibility(document)["default_feed_eligible"])
+
+    def _visibility(self, document: Document) -> dict[str, str | bool | None]:
+        metadata = document.doc_metadata
+        content_detail = str(
+            metadata.get("content_detail")
+            or classify_content_detail(str(document.title or ""), str(document.raw_text or ""))
+        )
+        return sparse_visibility_metadata(
+            content_detail,
+            list(metadata.get("event_types") or []),
         )
 
     def _matches_taxonomy(
