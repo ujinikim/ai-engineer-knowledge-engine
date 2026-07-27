@@ -3,8 +3,10 @@ import json
 import re
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from app.services.source_detail import classify_content_detail
 from app.services.taxonomy import EVENT_TYPES, MATURITY_LEVELS, PRIMARY_TOPICS
 
 
@@ -42,6 +44,19 @@ STOPWORDS = {
     "would",
 }
 
+MORPHOLOGY_NORMALIZATIONS = {
+    "improve": "improve",
+    "improved": "improve",
+    "improvement": "improve",
+    "improvements": "improve",
+    "improves": "improve",
+    "improving": "improve",
+    "release": "release",
+    "released": "release",
+    "releases": "release",
+    "releasing": "release",
+}
+
 
 @dataclass(frozen=True)
 class SummaryThresholds:
@@ -51,7 +66,8 @@ class SummaryThresholds:
     key_points_minimum: int = 2
     key_points_maximum: int = 4
     key_point_max_words: int = 35
-    low_grounding_overlap: float = 0.35
+    low_grounding_overlap: float = 0.30
+    sparse_low_grounding_overlap: float = 0.40
 
 
 @dataclass(frozen=True)
@@ -72,6 +88,7 @@ class SummaryEvaluation:
     event_types: list[str]
     entity_tags: list[str]
     maturity: str
+    source_detail: str
     headline_characters: int
     summary_word_count: int
     why_it_matters_word_count: int
@@ -105,6 +122,9 @@ class SummaryQualityService:
         maturity = self._text(metadata.get("maturity"))
         generated_by = self._text(metadata.get("summary_generated_by")) or "unknown"
         source_type = self._text(metadata.get("source_type")) or "unknown"
+        source_detail = self._text(metadata.get("content_detail"))
+        if source_detail not in {"detailed", "sparse"}:
+            source_detail = classify_content_detail(str(document.title or ""), source_text)
 
         generated_text = " ".join(
             [display_headline, summary, why_it_matters, *key_points]
@@ -145,7 +165,12 @@ class SummaryQualityService:
             warnings.append("key_point_too_long")
         if unsupported_numbers:
             warnings.append("unsupported_number")
-        if generated_text and grounding_overlap < self.thresholds.low_grounding_overlap:
+        grounding_threshold = (
+            self.thresholds.sparse_low_grounding_overlap
+            if source_detail == "sparse"
+            else self.thresholds.low_grounding_overlap
+        )
+        if generated_text and grounding_overlap < grounding_threshold:
             warnings.append("low_lexical_grounding")
         if primary_topic and primary_topic not in PRIMARY_TOPICS:
             failures.append("invalid_primary_topic")
@@ -180,6 +205,7 @@ class SummaryQualityService:
             event_types=event_types,
             entity_tags=entity_tags,
             maturity=maturity,
+            source_detail=source_detail,
             headline_characters=len(display_headline),
             summary_word_count=summary_word_count,
             why_it_matters_word_count=why_word_count,
@@ -282,11 +308,22 @@ class SummaryQualityService:
         return sorted(generated - source)
 
     def _numbers(self, value: str) -> list[str]:
-        numbers = re.findall(r"(?<![\w])(?:\$)?v?\d[\d,]*(?:\.\d+)?%?", value, re.IGNORECASE)
-        return [
-            number.lower().replace(",", "").removeprefix("$").removeprefix("v")
-            for number in numbers
-        ]
+        pattern = re.compile(
+            r"(?<![\w])(?:\$)?v?(?P<number>\d[\d,]*(?:\.\d+)?)"
+            r"(?P<percent>%|\s+percent\b)?",
+            re.IGNORECASE,
+        )
+        numbers: list[str] = []
+        for match in pattern.finditer(value):
+            number = match.group("number").replace(",", "")
+            try:
+                number = format(Decimal(number).normalize(), "f")
+            except InvalidOperation:
+                pass
+            if match.group("percent"):
+                number = f"{number}%"
+            numbers.append(number.lower())
+        return numbers
 
     def _grounding_overlap(self, generated_text: str, source_text: str) -> float:
         generated = self._content_tokens(generated_text)
@@ -297,10 +334,14 @@ class SummaryQualityService:
 
     def _content_tokens(self, value: str) -> set[str]:
         return {
-            token
+            self._normalize_content_token(token)
             for token in re.findall(r"[a-zA-Z][a-zA-Z0-9+#.-]{3,}", value.lower())
-            if token not in STOPWORDS
+            if self._normalize_content_token(token) not in STOPWORDS
         }
+
+    def _normalize_content_token(self, token: str) -> str:
+        token = token.strip(".-")
+        return MORPHOLOGY_NORMALIZATIONS.get(token, token)
 
     def _word_count(self, value: str) -> int:
         return len(re.findall(r"\b[\w+#.-]+\b", value))

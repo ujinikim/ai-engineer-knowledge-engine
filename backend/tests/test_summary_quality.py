@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from uuid import uuid4
 
-from app.services.summary_quality import SummaryQualityService
+from app.services.summary_quality import SummaryQualityService, SummaryThresholds
 
 
 def make_document(
@@ -66,6 +66,53 @@ def test_unsupported_number_is_reported() -> None:
     assert "unsupported_number" in result.warnings
 
 
+def test_percent_wording_and_symbol_are_equivalent() -> None:
+    document = make_document(
+        raw_text=(
+            "Benchmark result\n\n"
+            "The system completed 90 percent of benchmark tasks successfully."
+        )
+    )
+    document.doc_metadata = {
+        **document.doc_metadata,
+        "summary": "The system completed 90% of benchmark tasks successfully.",
+    }
+
+    result = SummaryQualityService().evaluate(document)
+
+    assert not result.unsupported_numbers
+    assert "unsupported_number" not in result.warnings
+
+
+def test_numeric_trailing_zeroes_are_equivalent() -> None:
+    document = make_document(
+        raw_text="Generation result\n\nThe model emits 62.0 tokens per second."
+    )
+    document.doc_metadata = {
+        **document.doc_metadata,
+        "summary": "The model emits 62 tokens per second.",
+    }
+
+    result = SummaryQualityService().evaluate(document)
+
+    assert not result.unsupported_numbers
+
+
+def test_derived_half_to_percentage_remains_a_review_candidate() -> None:
+    document = make_document(
+        raw_text="Adoption result\n\nMore than half of developers use the tool each month."
+    )
+    document.doc_metadata = {
+        **document.doc_metadata,
+        "summary": "More than 50% of developers use the tool each month.",
+    }
+
+    result = SummaryQualityService().evaluate(document)
+
+    assert result.unsupported_numbers == ["50%"]
+    assert "unsupported_number" in result.warnings
+
+
 def test_version_number_with_leading_v_is_supported() -> None:
     document = make_document(
         raw_text="Runtime v1.18.3\n\nRuntime v1.18.3 fixes resharding query errors."
@@ -80,6 +127,31 @@ def test_version_number_with_leading_v_is_supported() -> None:
 
     assert not result.unsupported_numbers
     assert "unsupported_number" not in result.warnings
+
+
+def test_grounding_normalizes_basic_word_forms() -> None:
+    service = SummaryQualityService()
+
+    overlap = service._grounding_overlap(
+        "The runtime released improvements.",
+        "The runtime release will improve serving.",
+    )
+
+    assert overlap == 1.0
+
+
+def test_sparse_sources_use_a_stricter_grounding_threshold() -> None:
+    thresholds = SummaryThresholds(
+        low_grounding_overlap=0.0,
+        sparse_low_grounding_overlap=1.0,
+    )
+    document = make_document()
+    document.doc_metadata = {**document.doc_metadata, "content_detail": "sparse"}
+
+    result = SummaryQualityService(thresholds).evaluate(document)
+
+    assert result.source_detail == "sparse"
+    assert "low_lexical_grounding" in result.warnings
 
 
 def test_missing_fields_and_invalid_taxonomy_fail() -> None:

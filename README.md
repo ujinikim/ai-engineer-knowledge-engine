@@ -95,6 +95,7 @@ uv run python scripts/backfill_article_metadata.py --force
 - [Data sources](docs/DATA_SOURCES.md)
 - [Product direction](docs/PRODUCT_DIRECTION.md)
 - [Quality improvement plan](docs/QUALITY_IMPROVEMENT_PLAN.md)
+- [Deployment plan](docs/DEPLOYMENT_PLAN.md)
 - [Extraction evaluation runbook](docs/EXTRACTION_EVAL_RUNBOOK.md)
 - [Summary evaluation runbook](docs/SUMMARY_EVAL_RUNBOOK.md)
 - [Collection runbook](docs/COLLECTION_RUNBOOK.md)

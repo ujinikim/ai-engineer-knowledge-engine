@@ -110,6 +110,11 @@ filtering, API behavior, backfill tooling, and tests.
 
 ### 3. Correct taxonomy assignment
 
+**Implementation status (July 27, 2026):** completed. The controlled vocabulary was
+kept stable, the 43-item/129-axis regression passed, reviewed corrections were
+backfilled, and the refreshed ten-item summary sample is 10/10 `correct` after two
+follow-up decisions.
+
 **Finding:** Five of ten sampled cards received `partial` taxonomy ratings after a
 second review against the controlled definitions and configured source defaults.
 
@@ -161,6 +166,9 @@ must follow that plan rather than applying the example corrections below ad hoc.
 
 ### 4. Fix release-candidate maturity parsing
 
+**Implementation status (July 26, 2026):** completed in deterministic maturity
+inference, collector normalization, backfill policy, and unit tests.
+
 **Finding:** `v0.24.0rc2` was classified as `stable`. The current regular expression
 does not recognize `rc` when it directly follows a version number.
 
@@ -177,6 +185,10 @@ does not recognize `rc` when it directly follows a version number.
 ## P1: Improve Evaluator Precision
 
 ### 5. Normalize equivalent percentage formats
+
+**Implementation status (July 27, 2026):** completed. Percent words/symbols and
+numeric trailing-zero equivalents are normalized. Semantic conversions, rounding,
+and number words intentionally remain review candidates.
 
 **Finding:** Supported claims produced `unsupported_number` warnings:
 
@@ -199,6 +211,10 @@ does not recognize `rc` when it directly follows a version number.
 
 ### 6. Make lexical-grounding warnings source-length aware
 
+**Implementation status (July 27, 2026):** completed as a calibrated triage signal.
+Evaluation now records source detail, normalizes basic word forms and punctuation,
+uses separate detailed/sparse thresholds, and never controls product visibility.
+
 **Finding:** Exact token overlap correctly exposed speculation in sparse releases, but
 it also penalized valid paraphrases and morphological variants.
 
@@ -217,6 +233,10 @@ it also penalized valid paraphrases and morphological variants.
 - Before-and-after warning counts are saved in the regression report.
 
 ### 7. Treat preview-only source content explicitly
+
+**Implementation status (July 27, 2026):** completed for collection provenance,
+prompt behavior, evaluation, and sparse visibility. Existing preview-derived cards
+remain auditable; new generation is constrained by available source detail.
 
 **Finding:** The ChatGPT for Small Businesses card was generated from a one-sentence
 preview. Its core facts were supported, but its impact statement became promotional
@@ -238,6 +258,10 @@ and generic.
 
 ### 8. Separate summary usefulness from personal relevance
 
+**Implementation status (July 27, 2026):** completed in the review definitions and
+the separate feed-relevance policy. Usefulness measures open/skip value; relevance
+controls routing.
+
 **Finding:** A technically accurate card may be useful even when it applies to a narrow
 audience. The earlier GHES review mixed audience relevance with card quality.
 
@@ -253,6 +277,9 @@ audience. The earlier GHES review mixed audience relevance with card quality.
 - Narrow but actionable updates can still receive `useful`.
 
 ### 9. Preserve multi-story document boundaries
+
+**Implementation status (July 25, 2026):** completed for The Batch and Import AI,
+with deterministic splitting, parent provenance, and regression tests.
 
 **Finding:** The old sample exposed whole-catalog The Batch and whole-newsletter Import
 AI records. The refreshed sample confirms that the Phase 1 split corrections removed
@@ -272,6 +299,10 @@ those cases.
 
 ### 10. Tighten headline compliance
 
+**Implementation status (July 27, 2026):** completed. Model and fallback headlines
+are shortened on word boundaries to at most 90 characters, and three stored
+headlines were backfilled.
+
 **Finding:** The PyTorch 2.13 headline was clear but measured 91 characters against a
 90-character target.
 
@@ -287,6 +318,13 @@ those cases.
 - Shortening does not remove the release name or principal change.
 
 ## Regression Deliverables
+
+**Closeout status (July 27, 2026):** complete for the MVP. The preserved
+194-document baseline, sparse prompt regression, taxonomy regression, 240-document
+post-remediation report, completed human sample, and dated backfill reports provide
+the before/after evidence. Full forced LLM regeneration is intentionally skipped
+because the affected legacy summaries are sparse/preview records already handled by
+visibility policy.
 
 After implementing P0 and P1:
 

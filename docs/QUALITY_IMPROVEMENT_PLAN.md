@@ -32,33 +32,55 @@ Status on July 24, 2026: complete with one documented source limitation.
 
 - Human-labeled faithfulness, coverage, usefulness, and headline-quality sample
 - Taxonomy accuracy checks
-- LLM judge calibrated against human labels
+- Optional LLM judge calibrated against human labels before use
 - Prompt regression report by source type
 
-Status on July 24, 2026: paused at the project owner's request; Phase 1 no longer blocks it.
+Status on July 27, 2026: complete for MVP quality calibration.
 
-- A read-only evaluator checks structure, taxonomy validity, unsupported numbers, lexical grounding, fallback generation, and incomplete source content.
-- The initial baseline evaluated 187 summaries: 144 pass, 43 warning, and 0 fail.
-- Warnings include 28 low-lexical-grounding, 9 incomplete-source, 8 unsupported-number, and 1 headline-length finding.
-- A ten-item sample is stratified across source types, generators, and sources. Known-incomplete OpenAI News previews are excluded from the normal sample.
-- Human labels are still required before changing prompts or trusting an LLM judge.
-- The procedure and rating definitions are documented in `SUMMARY_EVAL_RUNBOOK.md`.
-- The earlier summary sample and baseline were generated before source-boundary remediation and must be regenerated after Phase 1 closes.
+- The current baseline evaluates 240 summaries: 196 pass, 44 warning, and 0 fail.
+- Remaining warnings are review signals: 29 low lexical grounding, 19 known
+  preview-only sources, and 4 derived or rounded number expressions.
+- Percentage symbols/words and numerically equivalent trailing-zero forms are
+  normalized.
+- Lexical grounding records source detail, normalizes basic word forms, and applies a
+  stricter threshold to sparse sources than detailed sources.
+- Generated and fallback headlines are capped at 90 characters; three stored
+  headlines were backfilled.
+- The refreshed ten-item human sample has no unreviewed fields. All ten taxonomy
+  assignments are correct after two follow-up corrections.
+- Sparse prompt regression, taxonomy regression, extraction provenance, sparse
+  visibility, and feed-relevance calibration are complete.
+- Automatic production relevance classification and the optional LLM summary judge
+  are explicitly deferred; neither blocks the next phase.
 
-## Phase 3: Retrieval Benchmark
+## Phase 3: Deployment Foundation
+
+- Package the frontend, API, collector, and Postgres deployment reproducibly
+- Replace production schema initialization with versioned migrations
+- Add health/readiness endpoints and environment validation
+- Deploy staging, exercise scheduled collection, and run hosted smoke tests
+- Launch production with backups, monitoring, cost controls, and rollback procedures
+
+The detailed order, recommended Render topology, and acceptance criteria are in
+`DEPLOYMENT_PLAN.md`.
+
+## Phase 4: Retrieval Benchmark
 
 - Versioned question and relevance judgments
 - Recall@K, Precision@K, MRR, filter correctness, and source coverage
 - Temporal, comparison, and insufficient-evidence questions
 - Baseline comparisons before retrieval changes
 
-## Phase 4: Content Structure
+Run the saved baseline against the hosted Phase 3 environment so latency and
+connection behavior represent the deployed application.
+
+## Phase 5: Content Structure
 
 - Generalize and evaluate multi-story splitting beyond the source-specific The Batch and Import AI adapters
 - Cluster cross-source coverage of the same event
 - Evaluate story boundaries and pairwise cluster precision and recall
 
-## Phase 5: Product-Focused UI
+## Phase 6: Product-Focused UI
 
 - Contextual cited brief
 - Today, week, month, and since-last-visit views

@@ -22,15 +22,14 @@
 
 ## Next
 
-1. Resume Phase 2 when ready and regenerate its summary baseline and review sample
-2. Apply measured summary-prompt fixes and save a regression report
-3. Calibrate an optional LLM summary judge against the human labels
-4. Build an update-focused retrieval benchmark
+1. Complete the deployment-readiness work in `DEPLOYMENT_PLAN.md`
+2. Deploy a staging frontend, API, collector cron job, and pgvector database
+3. Run the update-focused retrieval benchmark against staging
+4. Launch the initial production MVP with backups, monitoring, and rollback
 5. Add story clustering and cross-source deduplication
 6. Add contextual `Brief me` synthesis over the active feed
 7. Add streaming responses and first-token latency
-8. Separate backend, frontend, and collector containers
-9. Add scheduled hosted deployment and collection monitoring
+8. Add followed topics/tools and read, saved, and learning-queue state
 
 ## Later
 
@@ -40,8 +39,11 @@
 4. Alerts and saved filters
 5. Local embedding and answer models
 6. Code and research-paper collections
+7. Optional LLM relevance classification after calibration warrants the added runtime
+8. Optional LLM summary judge after a measured need for ongoing automated grading
 
 Agents, conversational memory, and autonomous browsing remain outside the planned product unless a measured workflow requires them.
 
 The longer-term personal digest and learning-dashboard direction is captured in `PRODUCT_DIRECTION.md`.
 The ordered evaluation and product phases are captured in `QUALITY_IMPROVEMENT_PLAN.md`.
+Deployment topology, sequencing, and launch gates are captured in `DEPLOYMENT_PLAN.md`.

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-27T06:11:22.674011+00:00",
+  "mode": "committed",
+  "documents_inspected": 240,
+  "headline_limit": 90,
+  "documents_changed": 3,
+  "changes": [
+    {
+      "document_id": "e0523017-4cdf-4b3d-92df-a5a81951faff",
+      "source_name": "nvidia-technical-blog",
+      "title": "Advancing Semiconductor Innovation Across Materials Engineering and Manufacturing",
+      "before": "NVIDIA and Applied Materials Accelerate Semiconductor Innovation with GPU-Driven Digital Model",
+      "after": "NVIDIA and Applied Materials Accelerate Semiconductor Innovation with GPU-Driven...",
+      "before_characters": 94,
+      "after_characters": 83
+    },
+    {
+      "document_id": "c086bd9f-d93d-48dd-bae2-5af03cf7b6f0",
+      "source_name": "openai-news",
+      "title": "Australian Payments Plus moves faster with ChatGPT and Codex",
+      "before": "Australian Payments Plus uses ChatGPT Enterprise and Codex to accelerate payments processes",
+      "after": "Australian Payments Plus uses ChatGPT Enterprise and Codex to accelerate payments...",
+      "before_characters": 91,
+      "after_characters": 84
+    },
+    {
+      "document_id": "db9732e1-faab-4996-87ce-a8eb839819ad",
+      "source_name": "pytorch-blog",
+      "title": "PyTorch 2.13 Release Blog",
+      "before": "PyTorch 2.13 boosts training with FlexAttention on Apple Silicon and new torchcomms backend",
+      "after": "PyTorch 2.13 boosts training with FlexAttention on Apple Silicon and new torchcomms...",
+      "before_characters": 91,
+      "after_characters": 86
+    }
+  ]
+}

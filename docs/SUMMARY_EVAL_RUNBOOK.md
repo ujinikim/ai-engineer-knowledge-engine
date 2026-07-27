@@ -50,8 +50,13 @@ The report checks:
 
 These checks find candidates for review; they are not a semantic quality judgment.
 
-- `unsupported_number` compares normalized numeric forms. Equivalent wording such as `half` and `50%`, derived totals, or ordinal words can produce a warning. Review the underlying claim.
-- `low_lexical_grounding` detects summaries with little vocabulary overlap. It can identify unsupported generic claims, but valid paraphrases can also warn.
+- `unsupported_number` normalizes `N percent`/`N%` and numerically equivalent
+  trailing-zero forms. Semantic conversions such as `half`/`50%`, number words,
+  derived totals, and rounding remain review candidates.
+- `low_lexical_grounding` detects summaries with little vocabulary overlap. It
+  records `source_detail`, normalizes a small set of basic word forms, and applies a
+  stricter threshold to sparse sources. It remains a triage signal, not a visibility
+  rule or semantic judgment.
 - `source_content_incomplete` means the collector retained a preview after full-page extraction failed. These records remain visible and link to the original article, but they are excluded from the normal human sample.
 
 ## Human Review
@@ -105,6 +110,37 @@ The July 24, 2026 baseline evaluated 187 stored summaries:
 
 The ten-item review sample is stratified across source types, summary generators, and sources. It intentionally includes warnings and clean cases. OpenAI News preview-only records are excluded because their source content is known to be incomplete.
 
+## July 27 Closeout Baseline
+
+The post-remediation baseline evaluates 240 stored summaries:
+
+- 196 pass
+- 44 warning
+- 0 fail
+- Average lexical grounding: 0.6329
+- 29 low-lexical-grounding warnings
+- 19 known incomplete-source warnings
+- 4 unsupported-number review candidates
+- 0 headline-length warnings after a three-record backfill
+
+Twenty-eight of the 29 low-grounding warnings are sparse records; the remaining item
+is a narrow LangGraph CLI release. The four numeric candidates are deliberate review
+cases involving a word-to-number conversion, a derived percentage, or rounding—not
+confirmed fabrication.
+
+The refreshed ten-item sample has no `not_reviewed` fields. All ten taxonomy ratings
+are `correct` after applying two follow-up decisions:
+
+- Cloudflare crawler controls: `retrieval-data` primary topic
+- monday.com production-agent architecture: `engineering-analysis` without
+  `product-release`
+
+The remaining `minor_issue` faithfulness ratings belong to already-stored sparse or
+preview-derived summaries. The revised prompt prevents the identified speculative
+benefits for newly generated summaries, and sparse visibility keeps low-detail cards
+out of the default feed. A forced full-corpus LLM regeneration is not required for
+Phase 2 closure.
+
 ## Completion Criteria
 
 Phase 2 is complete when:
@@ -112,6 +148,8 @@ Phase 2 is complete when:
 1. The review sample has no `not_reviewed` ratings.
 2. Human findings are summarized by source type and failure mode.
 3. Any prompt or fallback changes have a before-and-after regression report.
-4. An optional LLM judge is tested against human labels before its scores are trusted.
+4. If an optional LLM judge is introduced, it is tested against human labels before
+   its scores are trusted.
 
-The LLM judge is deliberately deferred until human labels exist. Otherwise, there is no independent calibration target.
+Phase 2 satisfies these criteria as of July 27, 2026. The optional LLM judge remains
+deferred.

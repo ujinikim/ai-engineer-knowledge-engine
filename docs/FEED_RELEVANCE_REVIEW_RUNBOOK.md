@@ -8,17 +8,23 @@ Review:
 backend/data/eval/summaries/feed_relevance_review_sample.json
 ```
 
-The file contains:
+The completed calibration contains:
 
 - 50 full review items
 - All 17 configured sources
-- 31 proposed `core` controls
-- 10 proposed `contextual` records
-- 9 proposed `excluded` records
-- A lightweight recommendation index for all 239 collected documents
+- 33 reviewed `core` records
+- 12 reviewed `contextual` records
+- 5 reviewed `excluded` records
+- A lightweight recommendation index for all 240 collected documents
 
-The recommendations are proposals only. They have not been applied to stored
-metadata or the UI.
+All 50 decisions are recorded in:
+
+```text
+backend/data/eval/summaries/feed_relevance_review_decisions_2026-07-27.json
+```
+
+The calibration is complete, but the decisions have not yet been applied to stored
+document metadata, API filtering, or the UI.
 
 ## Tier Meanings
 
@@ -68,12 +74,12 @@ When using `change_required`, for example:
 }
 ```
 
-## Recommended Review Order
+## Review Order Used
 
-1. Review all nine `excluded` recommendations first. These carry the greatest risk
+1. Review all `excluded` recommendations first. These carry the greatest risk
    because the content would disappear from normal product views.
-2. Review the ten `contextual` recommendations.
-3. Spot-check the 31 `core` controls for peripheral material that escaped the
+2. Review the `contextual` recommendations.
+3. Spot-check the `core` controls for peripheral material that escaped the
    candidate rules.
 
 Pay particular attention to:
@@ -91,7 +97,8 @@ low_source_detail`.
 
 ## After Review
 
-Run the relevance validator and create a before-change baseline. Then implement:
+The calibration and validator are complete. Production rollout is intentionally
+deferred. The future rollout consists of:
 
 1. Relevance metadata at collection time
 2. A reviewed-record backfill
@@ -99,5 +106,7 @@ Run the relevance validator and create a before-change baseline. Then implement:
 4. The **Industry context** UI control
 5. Diagnostic-only access to `excluded` records
 
-No automatic exclusion should be enabled until every proposed `excluded` item has
-been reviewed.
+Every proposed `excluded` item has now been reviewed. Application rollout still
+requires the metadata backfill, API behavior, UI control, and regression tests.
+The planned LLM classification flow and its safe fallback behavior are recorded in
+`FEED_RELEVANCE_POLICY_PROPOSAL.md`.

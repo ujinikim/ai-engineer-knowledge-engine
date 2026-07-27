@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-27T04:22:45.606770+00:00",
-  "policy_status": "proposal_for_human_calibration",
+  "generated_at": "2026-07-27T05:33:35.089961+00:00",
+  "policy_status": "calibration_complete_not_applied",
+  "decisions_file": "/Users/jinkim/Documents/2026_Summer/ai-engineer-knowledge-engine/backend/data/eval/summaries/feed_relevance_review_decisions_2026-07-27.json",
   "instructions": {
     "core": "Show in the default AI-engineering feed.",
     "contextual": "Retain and search, but show only through an Industry context filter.",
@@ -25,17 +26,20 @@
   "corpus_summary": {
     "documents": 240,
     "recommended_tier_counts": {
-      "core": 220,
-      "contextual": 15,
+      "core": 221,
+      "contextual": 14,
       "excluded": 5
     }
   },
   "sample_summary": {
     "items": 50,
     "recommended_tier_counts": {
-      "contextual": 13,
-      "excluded": 5,
-      "core": 32
+      "contextual": 12,
+      "core": 33,
+      "excluded": 5
+    },
+    "review_status_counts": {
+      "correct": 50
     },
     "sources_covered": 17
   },
@@ -82,10 +86,10 @@
           "Global scope with a focus on actionable, early-shared research to guide policy and firm-level decisions."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the contextual routing tier based on the extracted source and the following material reason: funding_or_research_program."
     },
     {
       "document_id": "8c069ff1-0965-4aa8-bee0-a4fafe706d45",
@@ -129,10 +133,10 @@
           "The Genesis Mission focuses on tackling complex scientific challenges in energy, security, and materials discovery using frontier AI."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the contextual routing tier based on the extracted source and the following material reason: funding_or_research_program."
     },
     {
       "document_id": "a60a1b72-3bbf-4112-968e-cc1e692faead",
@@ -175,10 +179,10 @@
           "The ruling could set a precedent for increased legal accountability of AI-generated content in Europe."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the contextual routing tier based on the extracted source and the following material reason: policy_or_legal_context."
     },
     {
       "document_id": "4cfaf3ef-ab74-448f-a483-bb0b8a2f7153",
@@ -222,10 +226,10 @@
           "Canada ranks eighth globally in Claude usage, with high per-capita adoption driven by professional and technical sectors."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the contextual routing tier based on the extracted source and the following material reason: funding_or_research_program."
     },
     {
       "document_id": "1559e38f-57c2-46ec-a179-32e90824daed",
@@ -269,10 +273,149 @@
           "The initiative encourages public engagement to shape AI's future responsibly."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the contextual routing tier based on the extracted source and the following material reason: public_or_community_initiative."
+    },
+    {
+      "document_id": "eb7bd945-34ce-4846-a45b-d313e9450553",
+      "review_key": "b1aa5dbd20a75a097f8bb86dfe78a680ceefd6c2d108f43dc30ca6079300df70",
+      "source_name": "nvidia-technical-blog",
+      "source_type": "official-engineering-blog",
+      "title": "NVIDIA Nemotron 3 Ultra Leads Open Models on Accuracy and Efficiency in Agentic RTL Coding",
+      "url": "https://developer.nvidia.com/blog/nvidia-nemotron-3-ultra-leads-open-models-on-accuracy-and-efficiency-in-agentic-rtl-coding/",
+      "published_at": "2026-07-27T00:45:00",
+      "recommended_tier": "core",
+      "recommended_reasons": [
+        "research_or_benchmark"
+      ],
+      "recommendation_confidence": 0.92,
+      "current_visibility": {
+        "content_detail": "detailed",
+        "default_feed_eligible": true,
+        "default_feed_exclusion_reason": null,
+        "extraction_status": "full_article",
+        "summary_input_source": "full_article",
+        "full_article_fetch_http_status": 200,
+        "full_article_fetch_error_code": null,
+        "hydration_status": "full_article"
+      },
+      "taxonomy": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "maturity": "development"
+      },
+      "generated_card": {
+        "display_headline": "NVIDIA Nemotron 3 Ultra Excels in Agentic RTL Coding Accuracy and Efficiency",
+        "summary": "NVIDIA Nemotron 3 Ultra, combined with the ACE-RTL agent, achieves leading accuracy and efficiency on the CVDP benchmark for agentic RTL coding tasks, delivering a 97.1% average pass rate with significantly lower token usage than comparable models.",
+        "why_it_matters": "Nemotron 3 Ultra\u2019s efficiency and accuracy enable practical long-context iterative RTL workflows critical for hardware engineers using AI-assisted design and debugging.",
+        "key_points": [
+          "Nemotron 3 Ultra achieves a 97.1% average pass rate on CVDP RTL tasks using the ACE-RTL agent, outperforming GLM 5.2 and Kimi K2.6.",
+          "The model uses 28% fewer tokens than GLM 5.2 and 71% fewer than Kimi K2.6 per iteration, reducing inference overhead.",
+          "Nemotron 3 Ultra is a 550B parameter Mixture-of-Experts model with a 1M-token context length, optimized for long-running agentic reasoning.",
+          "Training includes diverse synthetic RTL data for generation, editing, and debugging, reflecting real hardware engineering workflows."
+        ]
+      },
+      "relevance_review": "correct",
+      "reviewed_tier": null,
+      "reviewed_reasons": [],
+      "relevance_notes": "The article's principal evidence is a measured CVDP benchmark result, so research_or_benchmark is more precise than generic engineering analysis."
+    },
+    {
+      "document_id": "35c47f41-d540-42c2-a31a-3126cbbe79cf",
+      "review_key": "8d67bc366004748adc645e5492532e2c14fda47e6751b2eda40f452206f6a715",
+      "source_name": "aws-machine-learning",
+      "source_type": "official-engineering-blog",
+      "title": "Get started with OpenAI GPT-5.6 Sol, Terra, and Luna on Amazon Bedrock",
+      "url": "https://aws.amazon.com/blogs/machine-learning/get-started-with-openai-gpt-5-6-sol-terra-and-luna-on-amazon-bedrock/",
+      "published_at": "2026-07-24T15:40:08",
+      "recommended_tier": "core",
+      "recommended_reasons": [
+        "technical_release_or_change"
+      ],
+      "recommendation_confidence": 0.95,
+      "current_visibility": {
+        "content_detail": "detailed",
+        "default_feed_eligible": true,
+        "default_feed_exclusion_reason": null,
+        "extraction_status": "source_entry",
+        "summary_input_source": "source_entry",
+        "full_article_fetch_http_status": null,
+        "full_article_fetch_error_code": null,
+        "hydration_status": "not_requested"
+      },
+      "taxonomy": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "generated_card": {
+        "display_headline": "OpenAI GPT-5.6 Sol, Terra, and Luna now available on Amazon Bedrock",
+        "summary": "Amazon Bedrock now offers OpenAI GPT-5.6 models Sol, Terra, and Luna via the bedrock-mantle endpoint, supporting text and image inputs with a 272K-token context window and multiple reasoning effort levels. These models serve workloads from autonomous coding to latency-sensitive inference in select AWS regions.",
+        "why_it_matters": "Developers can access frontier OpenAI models on AWS infrastructure with integrated security, regional data processing, and cost controls through familiar APIs.",
+        "key_points": [
+          "GPT-5.6 models Sol, Terra, and Luna cover autonomous coding, general-purpose production, and high-volume inference workloads respectively.",
+          "Models are accessed via the OpenAI Responses API at the bedrock-mantle endpoint in supported AWS regions (US East and US West).",
+          "All models support text and image inputs, a 272K-token context window, and reasoning effort levels from none to max.",
+          "Prompt caching is supported to reduce costs by reusing processed context, with implicit caching enabled by default and explicit caching available."
+        ]
+      },
+      "relevance_review": "correct",
+      "reviewed_tier": null,
+      "reviewed_reasons": [],
+      "relevance_notes": "General availability of GPT-5.6 models on Amazon Bedrock is the principal event, making technical_release_or_change the primary relevance reason."
+    },
+    {
+      "document_id": "22ced16c-ce30-4651-af1f-ac407b520fe5",
+      "review_key": "a70643c995c5b455b0bcda4d58ddb191ed8a4a13193a2c960323f69b5e7f0070",
+      "source_name": "nvidia-technical-blog",
+      "source_type": "official-engineering-blog",
+      "title": "Make Long-Running NVIDIA TensorRT Engine Builds Observable and Cancelable in Python or C++",
+      "url": "https://developer.nvidia.com/blog/make-long-running-nvidia-tensorrt-engine-builds-observable-and-cancelable-in-python-or-c/",
+      "published_at": "2026-07-22T16:35:04",
+      "recommended_tier": "core",
+      "recommended_reasons": [
+        "technical_tutorial"
+      ],
+      "recommendation_confidence": 0.92,
+      "current_visibility": {
+        "content_detail": "detailed",
+        "default_feed_eligible": true,
+        "default_feed_exclusion_reason": null,
+        "extraction_status": "full_article",
+        "summary_input_source": "full_article",
+        "full_article_fetch_http_status": 200,
+        "full_article_fetch_error_code": null,
+        "hydration_status": "full_article"
+      },
+      "taxonomy": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "tutorial",
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "generated_card": {
+        "display_headline": "NVIDIA TensorRT Engine Builds Now Observable and Cancelable in Python and C++",
+        "summary": "NVIDIA introduces IProgressMonitor API for TensorRT engine builds, enabling live progress tracking and cancellation in Python and C++. This improves developer experience by preventing frozen terminals and wasted GPU time during long builds.",
+        "why_it_matters": "Making TensorRT builds observable and cancelable saves GPU resources and improves workflow responsiveness for developers and AI agents.",
+        "key_points": [
+          "IProgressMonitor API provides callbacks for build phase start, step completion, and phase finish with cancellation support.",
+          "Python and C++ implementations use thread-safe progress tracking and render nested progress bars with ANSI escapes.",
+          "Cancellation can be triggered via Ctrl-C, IDE stop buttons, HTTP cancel webhooks, or agent timeouts.",
+          "The API integrates with terminals, IDEs, HTTP services, and agent runtimes to surface build progress and handle cancellations."
+        ]
+      },
+      "relevance_review": "correct",
+      "reviewed_tier": null,
+      "reviewed_reasons": [],
+      "relevance_notes": "The article teaches readers how to use the existing TensorRT IProgressMonitor API, so technical_tutorial is the principal relevance reason rather than a new library release."
     },
     {
       "document_id": "a00ef4de-86ce-402c-95f4-b59e8995e7fc",
@@ -365,6 +508,52 @@
       "reviewed_tier": null,
       "reviewed_reasons": [],
       "relevance_notes": "The conference announcement is not a release, but its detailed program contains relevant engineering sessions."
+    },
+    {
+      "document_id": "305ec815-1f2f-4020-8e2c-0d13c74e16a1",
+      "review_key": "e421547dd82c4e8b098934139711303ae7453c42acacce3ff3a8e016ff947dcf",
+      "source_name": "openai-news",
+      "source_type": "official-product-news",
+      "title": "Why teens deserve access to safe AI",
+      "url": "https://openai.com/index/why-teens-deserve-access-safe-ai",
+      "published_at": "2026-07-16T16:00:00",
+      "recommended_tier": "core",
+      "recommended_reasons": [
+        "technical_release_or_change"
+      ],
+      "recommendation_confidence": 0.88,
+      "current_visibility": {
+        "content_detail": "sparse",
+        "default_feed_eligible": false,
+        "default_feed_exclusion_reason": "low_source_detail",
+        "extraction_status": "feed_excerpt_only",
+        "summary_input_source": "feed_excerpt",
+        "full_article_fetch_http_status": 403,
+        "full_article_fetch_error_code": "http_forbidden",
+        "hydration_status": "failed"
+      },
+      "taxonomy": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "generated_card": {
+        "display_headline": "OpenAI Enhances ChatGPT Safety Features for Teens",
+        "summary": "OpenAI is improving ChatGPT with age-appropriate protections, learning tools, parental controls, and expert partnerships to ensure a safer AI experience for teens.",
+        "why_it_matters": "Providing safe AI access empowers teens to benefit from technology while minimizing risks.",
+        "key_points": [
+          "ChatGPT now includes age-appropriate safety measures for teens.",
+          "New learning tools support teen education and engagement.",
+          "Parental controls help guardians manage teen AI interactions.",
+          "OpenAI collaborates with experts to enhance teen safety."
+        ]
+      },
+      "relevance_review": "correct",
+      "reviewed_tier": null,
+      "reviewed_reasons": [],
+      "relevance_notes": "The excerpt identifies concrete ChatGPT safety capabilities, including age-appropriate protections, learning tools, and parental controls. It remains hidden separately because only a sparse feed excerpt was extracted."
     },
     {
       "document_id": "339b61eb-6ccc-4834-84db-883b2ccb1c35",
@@ -724,10 +913,10 @@
           "Access to OpenAI's Codex is part of the initiative."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the contextual routing tier based on the extracted source and the following material reason: public_or_community_initiative."
     },
     {
       "document_id": "73e73164-2043-403a-aa06-1967aceb00cb",
@@ -769,56 +958,10 @@
           "Utilizes ChatGPT Work to support business growth."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
-    },
-    {
-      "document_id": "305ec815-1f2f-4020-8e2c-0d13c74e16a1",
-      "review_key": "d44bd3c1d6c32164df4b9d818d55da3f8d91eddbafd363c9b73982cfcd477add",
-      "source_name": "openai-news",
-      "source_type": "official-product-news",
-      "title": "Why teens deserve access to safe AI",
-      "url": "https://openai.com/index/why-teens-deserve-access-safe-ai",
-      "published_at": "2026-07-16T16:00:00",
-      "recommended_tier": "contextual",
-      "recommended_reasons": [
-        "general_strategy_or_societal_context"
-      ],
-      "recommendation_confidence": 0.88,
-      "current_visibility": {
-        "content_detail": "sparse",
-        "default_feed_eligible": false,
-        "default_feed_exclusion_reason": "low_source_detail",
-        "extraction_status": "feed_excerpt_only",
-        "summary_input_source": "feed_excerpt",
-        "full_article_fetch_http_status": 403,
-        "full_article_fetch_error_code": "http_forbidden",
-        "hydration_status": "failed"
-      },
-      "taxonomy": {
-        "primary_topic": "models-apis",
-        "event_types": [
-          "product-release"
-        ],
-        "maturity": "stable"
-      },
-      "generated_card": {
-        "display_headline": "OpenAI Enhances ChatGPT Safety Features for Teens",
-        "summary": "OpenAI is improving ChatGPT with age-appropriate protections, learning tools, parental controls, and expert partnerships to ensure a safer AI experience for teens.",
-        "why_it_matters": "Providing safe AI access empowers teens to benefit from technology while minimizing risks.",
-        "key_points": [
-          "ChatGPT now includes age-appropriate safety measures for teens.",
-          "New learning tools support teen education and engagement.",
-          "Parental controls help guardians manage teen AI interactions.",
-          "OpenAI collaborates with experts to enhance teen safety."
-        ]
-      },
-      "relevance_review": "not_reviewed",
-      "reviewed_tier": null,
-      "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the contextual routing tier based on the extracted source and the following material reason: business_or_partnership_context."
     },
     {
       "document_id": "40311506-3890-4316-b50f-246859ea3e8e",
@@ -860,10 +1003,10 @@
           "Scale high-value workflows to maximize impact."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the contextual routing tier based on the extracted source and the following material reason: general_strategy_or_societal_context."
     },
     {
       "document_id": "c9775d46-7d38-446f-9a8a-f20492d1917c",
@@ -907,10 +1050,10 @@
           "The initiative aims to evolve technical outputs and creative milestones over time."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the contextual routing tier based on the extracted source and the following material reason: business_or_partnership_context."
     },
     {
       "document_id": "6cbb2781-2e14-4b10-a5f4-3d930bd2478d",
@@ -954,10 +1097,10 @@
           "The model demonstrates stronger visual output capabilities and advanced agentic behaviors, including self-verification and iterative problem-solving."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "6406e980-a5de-42cc-bc8e-6a752d3bc984",
@@ -1001,10 +1144,10 @@
           "Accessible via Amazon Bedrock console, AWS CLI, AWS SDK, and Anthropic SDK with example code provided for integration."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "d24d03cb-7a76-484c-a3b5-1b023ca7b9d6",
@@ -1048,10 +1191,10 @@
           "Access requires enabling the Claude Opus 5 policy for Business and Enterprise plans."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "47b79508-af63-4fe0-a677-ce12b3c8280a",
@@ -1094,10 +1237,10 @@
           "Official rayproject/ray:*-tpu Docker images include JAX/TPU stack and profiling tools; Ray Dashboard now shows TPU utilization metrics."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: engineering_analysis."
     },
     {
       "document_id": "765c2ff8-9985-4ec5-8e6c-04796429b770",
@@ -1141,10 +1284,10 @@
           "The diffuse-compressor toolkit allows users to quantize and publish their own models in the Nunchaku Lite format."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "12f8f52d-7500-471f-a60c-dba8d6c8704b",
@@ -1188,10 +1331,10 @@
           "Weights and a research paper on Kimi K3 will be released in the coming weeks."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "f73d02cf-bd1b-417d-8dd5-8bfdaa76bbec",
@@ -1234,10 +1377,10 @@
           "Updates JavaScript examples and monorepo dependencies."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "05725de1-5720-4928-a220-82bb4f3c04e5",
@@ -1281,10 +1424,10 @@
           "UI components were refactored to use shadcn and react-hook-form with zod for organization settings."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "e0523017-4cdf-4b3d-92df-a5a81951faff",
@@ -1327,10 +1470,10 @@
           "NVIDIA Omniverse is used to create photorealistic digital twins of semiconductor fabs for layout optimization and operational validation before deployment."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: engineering_analysis."
     },
     {
       "document_id": "54fb60d3-5a27-4b32-a6e9-758b64c1e9c1",
@@ -1372,10 +1515,10 @@
           "Change referenced as #17397"
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "164252c0-b620-494a-8e87-7dcdfd5ebcb8",
@@ -1418,10 +1561,10 @@
           "Deployed with leading enterprises and OpenAI\u2019s own support, resolving 75% of issues without human help."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "6e1dc0d1-e8a3-4cf6-b8d3-9c56b08d4996",
@@ -1464,10 +1607,10 @@
           "Benchmarks show Helion outperforms TorchTPU eager and torch.compile (XLA) with geometric average speed-ups of 1.55x and 1.12x respectively across various kernels."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: engineering_analysis."
     },
     {
       "document_id": "497be340-1abd-434b-bbf4-ab1a37134b2f",
@@ -1509,10 +1652,10 @@
           "Enhances data retrieval consistency in distributed environments."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "6f6cd373-030a-4c00-aab1-a23fc16367b6",
@@ -1556,10 +1699,10 @@
           "Improving indexing, source ranking, and multilingual query handling can boost retrieval performance."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: research_or_benchmark."
     },
     {
       "document_id": "910b7e90-93dc-41a3-9aeb-9d2c6d966893",
@@ -1601,10 +1744,10 @@
           "Updates FP8 kernel versions and fixes deepgemm on multiple devices."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "a9e39208-9bdb-4881-9d1d-a8ea199b7553",
@@ -1647,10 +1790,10 @@
           "Rust frontend added multimodal video and audio support, Seed-OSS tool parser, and native vllm-bench port."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "3f157a88-fbb4-4383-b49b-ae8407e0c7df",
@@ -1694,10 +1837,10 @@
           "Scaling from 256 to 1,024 GPUs maintains over 97% per-GPU throughput, ensuring efficient large-scale training."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: research_or_benchmark."
     },
     {
       "document_id": "f32f6ea6-66aa-4df0-9818-8db5b9642863",
@@ -1741,10 +1884,10 @@
           "Cache dispatch logic simplified with explicit layer-type mappings, improving stability on Apple Silicon."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: security_or_operational_event."
     },
     {
       "document_id": "45ad611e-376c-42e3-9507-adee7257c5b0",
@@ -1789,10 +1932,10 @@
           "The model integrates agentic behaviors like task delegation and context management directly into its training."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "7beaf556-d388-4d67-8e8f-81fd48607a3d",
@@ -1835,103 +1978,10 @@
           "Findings provide valuable lessons for improving AI security defenses."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
-    },
-    {
-      "document_id": "22ced16c-ce30-4651-af1f-ac407b520fe5",
-      "review_key": "d301e9b0c19fab5bd15954f75423f7cf37b3ce05b1fa42473556fa5391b295d5",
-      "source_name": "nvidia-technical-blog",
-      "source_type": "official-engineering-blog",
-      "title": "Make Long-Running NVIDIA TensorRT Engine Builds Observable and Cancelable in Python or C++",
-      "url": "https://developer.nvidia.com/blog/make-long-running-nvidia-tensorrt-engine-builds-observable-and-cancelable-in-python-or-c/",
-      "published_at": "2026-07-22T16:35:04",
-      "recommended_tier": "core",
-      "recommended_reasons": [
-        "technical_release_or_change"
-      ],
-      "recommendation_confidence": 0.9,
-      "current_visibility": {
-        "content_detail": "detailed",
-        "default_feed_eligible": true,
-        "default_feed_exclusion_reason": null,
-        "extraction_status": "full_article",
-        "summary_input_source": "full_article",
-        "full_article_fetch_http_status": 200,
-        "full_article_fetch_error_code": null,
-        "hydration_status": "full_article"
-      },
-      "taxonomy": {
-        "primary_topic": "infrastructure-hardware",
-        "event_types": [
-          "tutorial",
-          "library-release"
-        ],
-        "maturity": "stable"
-      },
-      "generated_card": {
-        "display_headline": "NVIDIA TensorRT Engine Builds Now Observable and Cancelable in Python and C++",
-        "summary": "NVIDIA introduces IProgressMonitor API for TensorRT engine builds, enabling live progress tracking and cancellation in Python and C++. This improves developer experience by preventing frozen terminals and wasted GPU time during long builds.",
-        "why_it_matters": "Making TensorRT builds observable and cancelable saves GPU resources and improves workflow responsiveness for developers and AI agents.",
-        "key_points": [
-          "IProgressMonitor API provides callbacks for build phase start, step completion, and phase finish with cancellation support.",
-          "Python and C++ implementations use thread-safe progress tracking and render nested progress bars with ANSI escapes.",
-          "Cancellation can be triggered via Ctrl-C, IDE stop buttons, HTTP cancel webhooks, or agent timeouts.",
-          "The API integrates with terminals, IDEs, HTTP services, and agent runtimes to surface build progress and handle cancellations."
-        ]
-      },
-      "relevance_review": "not_reviewed",
-      "reviewed_tier": null,
-      "reviewed_reasons": [],
-      "relevance_notes": ""
-    },
-    {
-      "document_id": "eb7bd945-34ce-4846-a45b-d313e9450553",
-      "review_key": "f0b4e68c5f19d57e5fe967b08ff4e7987fb66cd115564a6f13886d96caed12b2",
-      "source_name": "nvidia-technical-blog",
-      "source_type": "official-engineering-blog",
-      "title": "NVIDIA Nemotron 3 Ultra Leads Open Models on Accuracy and Efficiency in Agentic RTL Coding",
-      "url": "https://developer.nvidia.com/blog/nvidia-nemotron-3-ultra-leads-open-models-on-accuracy-and-efficiency-in-agentic-rtl-coding/",
-      "published_at": "2026-07-27T00:45:00",
-      "recommended_tier": "core",
-      "recommended_reasons": [
-        "engineering_analysis"
-      ],
-      "recommendation_confidence": 0.85,
-      "current_visibility": {
-        "content_detail": "detailed",
-        "default_feed_eligible": true,
-        "default_feed_exclusion_reason": null,
-        "extraction_status": "full_article",
-        "summary_input_source": "full_article",
-        "full_article_fetch_http_status": 200,
-        "full_article_fetch_error_code": null,
-        "hydration_status": "full_article"
-      },
-      "taxonomy": {
-        "primary_topic": "infrastructure-hardware",
-        "event_types": [
-          "engineering-analysis"
-        ],
-        "maturity": "development"
-      },
-      "generated_card": {
-        "display_headline": "NVIDIA Nemotron 3 Ultra Excels in Agentic RTL Coding Accuracy and Efficiency",
-        "summary": "NVIDIA Nemotron 3 Ultra, combined with the ACE-RTL agent, achieves leading accuracy and efficiency on the CVDP benchmark for agentic RTL coding tasks, delivering a 97.1% average pass rate with significantly lower token usage than comparable models.",
-        "why_it_matters": "Nemotron 3 Ultra\u2019s efficiency and accuracy enable practical long-context iterative RTL workflows critical for hardware engineers using AI-assisted design and debugging.",
-        "key_points": [
-          "Nemotron 3 Ultra achieves a 97.1% average pass rate on CVDP RTL tasks using the ACE-RTL agent, outperforming GLM 5.2 and Kimi K2.6.",
-          "The model uses 28% fewer tokens than GLM 5.2 and 71% fewer than Kimi K2.6 per iteration, reducing inference overhead.",
-          "Nemotron 3 Ultra is a 550B parameter Mixture-of-Experts model with a 1M-token context length, optimized for long-running agentic reasoning.",
-          "Training includes diverse synthetic RTL data for generation, editing, and debugging, reflecting real hardware engineering workflows."
-        ]
-      },
-      "relevance_review": "not_reviewed",
-      "reviewed_tier": null,
-      "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: security_or_operational_event."
     },
     {
       "document_id": "895c8c84-5a20-4763-9a82-95f68ed5f703",
@@ -1974,10 +2024,10 @@
           "Improved packed gate/up projection speed by approximately 4\u20139% on M5 Max."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "9f4250c9-f6fc-4430-b994-3584fdf9e3a8",
@@ -2020,10 +2070,10 @@
           "Keeps Laguna weights resident on Metal GPU to avoid paging large expert buffers and removes obsolete prefill chunking."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "b27945a0-ae05-4f34-8c8f-972c5d426731",
@@ -2066,10 +2116,10 @@
           "MX supports optimized memory registration strategies to reduce overhead during RDMA transfers and automatically selects the fastest available transfer path with safe fallbacks."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: engineering_analysis."
     },
     {
       "document_id": "824c2b5b-eaca-4ad8-b7d6-0eefccc02b0f",
@@ -2112,56 +2162,10 @@
           "PyTorch is chosen for dynamic computation graphs and native SageMaker integration; GRU layers capture temporal patterns in product adoption sequences."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
-    },
-    {
-      "document_id": "35c47f41-d540-42c2-a31a-3126cbbe79cf",
-      "review_key": "7cf686130de382ec944d99d1418a63855bf9736ca840fe57f79678fbe37a3436",
-      "source_name": "aws-machine-learning",
-      "source_type": "official-engineering-blog",
-      "title": "Get started with OpenAI GPT-5.6 Sol, Terra, and Luna on Amazon Bedrock",
-      "url": "https://aws.amazon.com/blogs/machine-learning/get-started-with-openai-gpt-5-6-sol-terra-and-luna-on-amazon-bedrock/",
-      "published_at": "2026-07-24T15:40:08",
-      "recommended_tier": "core",
-      "recommended_reasons": [
-        "engineering_analysis"
-      ],
-      "recommendation_confidence": 0.85,
-      "current_visibility": {
-        "content_detail": "detailed",
-        "default_feed_eligible": true,
-        "default_feed_exclusion_reason": null,
-        "extraction_status": "source_entry",
-        "summary_input_source": "source_entry",
-        "full_article_fetch_http_status": null,
-        "full_article_fetch_error_code": null,
-        "hydration_status": "not_requested"
-      },
-      "taxonomy": {
-        "primary_topic": "infrastructure-hardware",
-        "event_types": [
-          "engineering-analysis"
-        ],
-        "maturity": "stable"
-      },
-      "generated_card": {
-        "display_headline": "OpenAI GPT-5.6 Sol, Terra, and Luna now available on Amazon Bedrock",
-        "summary": "Amazon Bedrock now offers OpenAI GPT-5.6 models Sol, Terra, and Luna via the bedrock-mantle endpoint, supporting text and image inputs with a 272K-token context window and multiple reasoning effort levels. These models serve workloads from autonomous coding to latency-sensitive inference in select AWS regions.",
-        "why_it_matters": "Developers can access frontier OpenAI models on AWS infrastructure with integrated security, regional data processing, and cost controls through familiar APIs.",
-        "key_points": [
-          "GPT-5.6 models Sol, Terra, and Luna cover autonomous coding, general-purpose production, and high-volume inference workloads respectively.",
-          "Models are accessed via the OpenAI Responses API at the bedrock-mantle endpoint in supported AWS regions (US East and US West).",
-          "All models support text and image inputs, a 272K-token context window, and reasoning effort levels from none to max.",
-          "Prompt caching is supported to reduce costs by reusing processed context, with implicit caching enabled by default and explicit caching available."
-        ]
-      },
-      "relevance_review": "not_reviewed",
-      "reviewed_tier": null,
-      "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: engineering_analysis."
     },
     {
       "document_id": "49f5612a-6eed-4153-8224-664b84314cb5",
@@ -2205,10 +2209,10 @@
           "Over 57% of web traffic is automated, prompting publishers to seek more control over AI data usage."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "7cb5d46f-f5bd-414d-b660-8a5a91320320",
@@ -2252,10 +2256,10 @@
           "Attention Residuals allow selective layer information flow, improving training efficiency by 20%."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     },
     {
       "document_id": "27565c23-0b60-4a4c-b260-66ef61be5c66",
@@ -2298,10 +2302,10 @@
           "Best practice is to shift from continuous inline scanning to selective validation at strategic checkpoints, analogous to a pre-commit hook in Git workflows."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: engineering_analysis."
     },
     {
       "document_id": "9f45917a-d998-480e-b625-c898fe6ace2c",
@@ -2345,10 +2349,10 @@
           "Available with Copilot Pro, Pro+, Business, and Enterprise plans; requires GitHub and Linear admin permissions."
         ]
       },
-      "relevance_review": "not_reviewed",
+      "relevance_review": "correct",
       "reviewed_tier": null,
       "reviewed_reasons": [],
-      "relevance_notes": ""
+      "relevance_notes": "Codex-assisted corpus review accepted the core routing tier based on the extracted source and the following material reason: technical_release_or_change."
     }
   ],
   "corpus_assignment_index": [
@@ -2368,7 +2372,7 @@
       "title": "NVIDIA Nemotron 3 Ultra Leads Open Models on Accuracy and Efficiency in Agentic RTL Coding",
       "recommended_tier": "core",
       "recommended_reasons": [
-        "engineering_analysis"
+        "research_or_benchmark"
       ],
       "sampled_for_review": true
     },
@@ -2468,7 +2472,7 @@
       "title": "Get started with OpenAI GPT-5.6 Sol, Terra, and Luna on Amazon Bedrock",
       "recommended_tier": "core",
       "recommended_reasons": [
-        "engineering_analysis"
+        "technical_release_or_change"
       ],
       "sampled_for_review": true
     },
@@ -2718,7 +2722,7 @@
       "title": "Make Long-Running NVIDIA TensorRT Engine Builds Observable and Cancelable in Python or C++",
       "recommended_tier": "core",
       "recommended_reasons": [
-        "technical_release_or_change"
+        "technical_tutorial"
       ],
       "sampled_for_review": true
     },
@@ -3416,9 +3420,9 @@
       "document_id": "305ec815-1f2f-4020-8e2c-0d13c74e16a1",
       "source_name": "openai-news",
       "title": "Why teens deserve access to safe AI",
-      "recommended_tier": "contextual",
+      "recommended_tier": "core",
       "recommended_reasons": [
-        "general_strategy_or_societal_context"
+        "technical_release_or_change"
       ],
       "sampled_for_review": true
     },

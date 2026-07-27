@@ -1,0 +1,23 @@
+{
+  "policy_basis": "Recommended definitions in docs/TAXONOMY_REMEDIATION_PLAN.md",
+  "reviewed_at": "2026-07-27",
+  "reviewed_by": "codex-assisted-review",
+  "decisions": {
+    "49f5612a-6eed-4153-8224-664b84314cb5": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "change_required",
+      "proposed_primary_topic": "retrieval-data",
+      "taxonomy_notes": "The material engineering concern is control and monetization of crawler access to web data. Developer-tools would imply a developer-facing tool that the article does not describe."
+    },
+    "1ad3dc0c-00fc-4317-8b1e-2102afc52b22": {
+      "event_types_review": "change_required",
+      "proposed_event_types": [
+        "engineering-analysis"
+      ],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The article explains monday.com's existing production agent architecture and operating practices; it does not clearly announce a product launch."
+    }
+  }
+}

@@ -17,6 +17,18 @@ from app.services.taxonomy import (
 from app.services.source_detail import classify_content_detail
 
 
+def shorten_at_word_boundary(value: str, limit: int) -> str:
+    if len(value) <= limit:
+        return value
+    available = limit - 3
+    candidate = value[:available].rstrip()
+    if " " in candidate:
+        word_boundary = candidate.rfind(" ")
+        if word_boundary >= max(available // 2, 1):
+            candidate = candidate[:word_boundary].rstrip()
+    return candidate + "..."
+
+
 @dataclass(frozen=True)
 class ArticleSummary:
     display_headline: str
@@ -201,7 +213,7 @@ class ArticleSummaryService:
             event_types = fallback.event_types
 
         return ArticleSummary(
-            display_headline=self._text(payload.get("display_headline"), fallback.display_headline, 120),
+            display_headline=self._text(payload.get("display_headline"), fallback.display_headline, 90),
             summary=self._text(payload.get("summary"), fallback.summary, 600),
             why_it_matters=self._text(payload.get("why_it_matters"), fallback.why_it_matters, 320),
             key_points=self._text_list(payload.get("key_points"), fallback.key_points, 4, 180),
@@ -230,7 +242,7 @@ class ArticleSummaryService:
         primary_topic, secondary_topics = classify_topic(raw_text, default_topic)
         events = infer_event_types(raw_text, default_event_types)
         return ArticleSummary(
-            display_headline=title[:120],
+            display_headline=self._truncate(title, 90),
             summary=self._truncate(summary, 500),
             why_it_matters="Review the source for implementation details and compatibility impact.",
             key_points=[self._truncate(sentence, 160) for sentence in sentences[:3] if sentence][:3],
@@ -253,6 +265,4 @@ class ArticleSummaryService:
         return items[:count] or fallback
 
     def _truncate(self, value: str, limit: int) -> str:
-        if len(value) <= limit:
-            return value
-        return value[: limit - 1].rstrip() + "..."
+        return shorten_at_word_boundary(value, limit)

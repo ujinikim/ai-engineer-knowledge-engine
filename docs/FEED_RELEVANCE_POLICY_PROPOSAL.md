@@ -60,7 +60,7 @@ Store:
 ```json
 {
   "feed_relevance_tier": "core",
-  "feed_relevance_reasons": ["concrete_library_release"],
+  "feed_relevance_reasons": ["technical_release_or_change"],
   "feed_relevance_confidence": 0.96,
   "feed_relevance_policy_version": "2026-07-26-v1",
   "feed_relevance_review_status": "unreviewed"
@@ -90,8 +90,10 @@ Initial controlled reasons include:
 
 ## Decision Order
 
-1. Reject extraction failures and clearly unrelated content as `excluded`.
-2. Apply existing sparse-source visibility rules.
+1. Reject clearly unrelated content as `excluded`.
+2. Record extraction completeness separately and apply existing sparse-source
+   visibility rules. Incomplete extraction does not make a relevant article
+   irrelevant.
 3. Detect concrete technical events or artifacts; classify these as `core`.
 4. Classify business, funding, public-engagement, and legal/policy records without a
    concrete technical event as `contextual`.
@@ -113,6 +115,59 @@ Use a hybrid classifier:
 Do not use a single keyword list or a raw relevance score as the final decision.
 Keywords such as “research,” “security,” and “model” occur in both core engineering
 work and peripheral announcements.
+
+## Deferred Production Automation
+
+**Status (July 27, 2026):** design recorded for later; not implemented.
+
+The completed human review is a calibration and regression dataset. Its decision
+file preserves judgments for the exact reviewed records, but it must not be treated
+as a classifier for newly collected articles.
+
+When production automation is implemented, each new article should follow this
+flow:
+
+1. Extract the available source content.
+2. Generate the summary and taxonomy metadata.
+3. Ask an LLM for one structured relevance tier, zero or more controlled reason
+   tags, a confidence score, and short source-grounded evidence.
+4. Validate the response in application code and apply fixed precedence rules.
+5. Store the relevance decision separately from extraction completeness.
+6. Calculate product visibility from both relevance and source-detail metadata.
+
+The expected structured result is:
+
+```json
+{
+  "feed_relevance_tier": "core",
+  "feed_relevance_reasons": [
+    "technical_release_or_change",
+    "business_or_partnership_context"
+  ],
+  "feed_relevance_confidence": 0.91,
+  "feed_relevance_evidence": [
+    "The article introduces a new API endpoint."
+  ],
+  "feed_relevance_review_required": false,
+  "feed_relevance_policy_version": "future-v1"
+}
+```
+
+Application code retains final control:
+
+- A substantive technical, security, or operational event takes precedence and
+  makes a mixed article `core`.
+- Business, policy, funding, or ecosystem context without a concrete technical
+  change is `contextual`.
+- Only clearly irrelevant or non-useful material is automatically `excluded`.
+- A failed or invalid model response falls back to `contextual` with
+  `feed_relevance_review_required: true`; it must never silently exclude a record.
+- Incomplete extraction is not evidence of irrelevance. A `core` article may still
+  be hidden from the default feed by the separate sparse-source visibility policy.
+
+Before enabling this in production, evaluate the classifier against the completed
+50-record human calibration and require the acceptance targets below. Until then,
+new records do not receive automatic relevance-tier metadata.
 
 ## Rollout
 

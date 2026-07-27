@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-27T06:13:10.213570+00:00",
+  "mode": "committed",
+  "policy_version": "2026-07-26-v1",
+  "decisions_file": "/Users/jinkim/Documents/2026_Summer/ai-engineer-knowledge-engine/backend/data/eval/summaries/taxonomy_review_decisions_2026-07-27_followup.json",
+  "documents_inspected": 240,
+  "reviewed_decisions": 2,
+  "missing_reviewed_document_ids": [],
+  "documents_with_taxonomy_changes": 2,
+  "field_changes": {
+    "event_types": 1,
+    "primary_topic": 1
+  },
+  "reason_counts": {
+    "reviewed_event_types": 1,
+    "reviewed_primary_topic": 1
+  },
+  "changes": [
+    {
+      "document_id": "1ad3dc0c-00fc-4317-8b1e-2102afc52b22",
+      "source_name": "aws-machine-learning",
+      "title": "AI Teammates: how monday.com runs production AI agents on Amazon Bedrock",
+      "url": "https://aws.amazon.com/blogs/machine-learning/ai-teammates-how-monday-com-runs-production-ai-agents-on-amazon-bedrock/",
+      "before": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "engineering-analysis",
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "The article explains monday.com's existing production agent architecture and operating practices; it does not clearly announce a product launch."
+    },
+    {
+      "document_id": "49f5612a-6eed-4153-8224-664b84314cb5",
+      "source_name": "the-batch",
+      "title": "Cloudflare\u2019s Web Crawler Flare-Up",
+      "url": "https://www.deeplearning.ai/the-batch/cloudflares-web-crawler-flare-up",
+      "before": {
+        "primary_topic": "developer-tools",
+        "event_types": [
+          "product-release",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "product-release",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_primary_topic"
+      ],
+      "review_notes": "The material engineering concern is control and monetization of crawler access to web data. Developer-tools would imply a developer-facing tool that the article does not describe."
+    }
+  ],
+  "change_history": [
+    {
+      "date": "2026-07-26",
+      "change": "Applied reviewed change_required decisions, versioned-library event invariants, attached-RC maturity parsing, research maturity inference, and refreshed sparse visibility.",
+      "uncertain_decisions_applied": false
+    }
+  ]
+}

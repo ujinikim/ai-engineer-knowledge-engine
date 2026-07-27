@@ -23,6 +23,13 @@ DEFAULT_OUTPUT = (
     / "summaries"
     / "feed_relevance_review_sample.json"
 )
+DEFAULT_DECISIONS = (
+    ROOT
+    / "data"
+    / "eval"
+    / "summaries"
+    / "feed_relevance_review_decisions_2026-07-27.json"
+)
 TIERS = ("core", "contextual", "excluded")
 REVIEW_VALUES = ("not_reviewed", "correct", "change_required", "uncertain")
 IMPORTANT_EVENTS = {"security-issue", "incident", "breaking-change", "deprecation"}
@@ -95,6 +102,28 @@ INITIAL_REVIEW_DECISIONS = {
         "Sparse promotional customer story without architecture, implementation "
         "detail, or concrete technical evidence.",
     ),
+    "305ec815-1f2f-4020-8e2c-0d13c74e16a1": (
+        "core",
+        "The excerpt identifies concrete ChatGPT safety capabilities, including "
+        "age-appropriate protections, learning tools, and parental controls. It "
+        "remains hidden separately because only a sparse feed excerpt was extracted.",
+    ),
+    "22ced16c-ce30-4651-af1f-ac407b520fe5": (
+        "core",
+        "The article teaches readers how to use the existing TensorRT "
+        "IProgressMonitor API, so technical_tutorial is the principal relevance "
+        "reason rather than a new library release.",
+    ),
+    "eb7bd945-34ce-4846-a45b-d313e9450553": (
+        "core",
+        "The article's principal evidence is a measured CVDP benchmark result, so "
+        "research_or_benchmark is more precise than generic engineering analysis.",
+    ),
+    "35c47f41-d540-42c2-a31a-3126cbbe79cf": (
+        "core",
+        "General availability of GPT-5.6 models on Amazon Bedrock is the principal "
+        "event, making technical_release_or_change the primary relevance reason.",
+    ),
 }
 
 TITLE_OVERRIDES = {
@@ -124,8 +153,8 @@ TITLE_OVERRIDES = {
         0.90,
     ),
     "why teens deserve access to safe ai": (
-        "contextual",
-        ["general_strategy_or_societal_context"],
+        "core",
+        ["technical_release_or_change"],
         0.88,
     ),
     "chatgpt is now a partner for your most ambitious work": (
@@ -167,6 +196,21 @@ TITLE_OVERRIDES = {
         "contextual",
         ["business_or_partnership_context"],
         0.85,
+    ),
+    "make long-running nvidia tensorrt engine builds observable and cancelable in python or c++": (
+        "core",
+        ["technical_tutorial"],
+        0.92,
+    ),
+    "nvidia nemotron 3 ultra leads open models on accuracy and efficiency in agentic rtl coding": (
+        "core",
+        ["research_or_benchmark"],
+        0.92,
+    ),
+    "get started with openai gpt-5.6 sol, terra, and luna on amazon bedrock": (
+        "core",
+        ["technical_release_or_change"],
+        0.95,
     ),
 }
 
@@ -236,6 +280,20 @@ def existing_reviews(path: Path) -> dict[str, dict]:
     return {
         str(item["review_key"]): item
         for item in payload.get("items", [])
+        if item.get("review_key")
+    }
+
+
+def recorded_decisions(path: Path) -> dict[str, dict]:
+    if not path.exists():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    return {
+        str(item["review_key"]): item
+        for item in payload.get("decisions", [])
         if item.get("review_key")
     }
 
@@ -313,11 +371,13 @@ def main() -> None:
     )
     parser.add_argument("--sample-size", type=int, default=50)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--decisions", type=Path, default=DEFAULT_DECISIONS)
     arguments = parser.parse_args()
 
     output = arguments.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     prior_reviews = existing_reviews(output)
+    prior_reviews.update(recorded_decisions(arguments.decisions.resolve()))
 
     with SessionLocal() as db:
         documents = list(
@@ -411,10 +471,19 @@ def main() -> None:
     sampled_items = select_sample(all_items, max(0, arguments.sample_size))
     sample_counts = Counter(item["recommended_tier"] for item in sampled_items)
     sampled_ids = {item["document_id"] for item in sampled_items}
+    calibration_complete = all(
+        item["relevance_review"] not in {"not_reviewed", "uncertain"}
+        for item in sampled_items
+    )
     payload = {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "policy_status": "proposal_for_human_calibration",
+        "policy_status": (
+            "calibration_complete_not_applied"
+            if calibration_complete
+            else "proposal_for_human_calibration"
+        ),
+        "decisions_file": str(arguments.decisions.resolve()),
         "instructions": {
             "core": "Show in the default AI-engineering feed.",
             "contextual": (
@@ -437,6 +506,9 @@ def main() -> None:
         "sample_summary": {
             "items": len(sampled_items),
             "recommended_tier_counts": dict(sample_counts),
+            "review_status_counts": dict(
+                Counter(item["relevance_review"] for item in sampled_items)
+            ),
             "sources_covered": len(
                 {item["source_name"] for item in sampled_items}
             ),

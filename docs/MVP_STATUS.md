@@ -1,6 +1,6 @@
 # MVP Status
 
-Last validated: July 24, 2026
+Last validated: July 27, 2026
 
 ## Complete
 
@@ -19,13 +19,13 @@ Last validated: July 24, 2026
 ## Current Data
 
 - 15 RSS or Atom sources and 2 configured HTML-listing sources
-- 194 stored and summarized story or release records across 17 sources
+- 240 stored and summarized story or release records across 17 sources
 - 0 collector source errors in the latest run
 - Targeted source-boundary recollection completed for The Batch, Import AI, Anthropic, and GitHub Changelog
 
 ## Validation
 
-- Backend tests: 48 passed
+- Backend tests: 77 passed
 - Backend lint: Ruff passed
 - Frontend TypeScript and production build: passed
 - Desktop layout: validated at 1440 x 900 with no horizontal overflow
@@ -36,17 +36,26 @@ Last validated: July 24, 2026
 - Post-remediation extraction baseline: 177 pass, 10 warning, and 0 fail across 187 update documents
 - Remaining extraction warnings are isolated to OpenAI News feed previews blocked from full-page hydration
 - Initial summary baseline: 144 pass, 43 warning, and 0 fail across 187 generated summaries
+- Phase 2 closeout summary baseline: 196 pass, 44 warning, and 0 fail across 240
+  generated summaries
+- Closeout warning composition: 29 lexical-grounding review signals, 19 known
+  preview-only sources, 4 derived/rounded number candidates, and 0 overlong headlines
+- Refreshed ten-item human summary sample: no unreviewed fields and 10/10 correct
+  taxonomy ratings after two follow-up corrections
+- Taxonomy regression: 43/43 reviewed items and 129/129 axes passed
+- Feed-relevance calibration: 50/50 reviewed decisions completed; production
+  classification remains deferred
 - Source-boundary remediation baseline: 184 pass, 10 warning, and 0 fail across 194 documents
 - Refreshed extraction review: 18 complete and 2 incomplete OpenAI previews across 20 sampled documents
-- Summary evaluation remains paused by product decision, not by an extraction blocker
+- Phase 2 summary/taxonomy calibration is complete for the MVP
 
 ## Deliberately Deferred
 
 - Dated research-discovery and community-signal snapshots
 - Cross-source story clustering and duplicate-event merging
-- Scheduled production worker deployment and failure alerting
 - User accounts, saved views, and personalization
 - Streaming answer transport
 - Learned reranking and formal retrieval-quality evaluation sets
 
 See `ROADMAP.md` for the recommended order of follow-up work.
+Deployment is the next active phase; see `DEPLOYMENT_PLAN.md`.

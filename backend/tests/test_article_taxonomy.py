@@ -82,6 +82,34 @@ def test_deterministic_summary_keeps_source_facts() -> None:
     assert article.event_types[0] == "library-release"
 
 
+def test_generated_and_fallback_headlines_are_capped_at_90_characters() -> None:
+    service = ArticleSummaryService.__new__(ArticleSummaryService)
+    long_title = (
+        "PyTorch 2.13 adds FlexAttention on Apple Silicon and introduces a new "
+        "distributed communications backend"
+    )
+    fallback = service._fallback(
+        title=long_title,
+        raw_text=f"{long_title}\n\nThe release adds two documented runtime capabilities.",
+        organization="PyTorch",
+        tool="PyTorch",
+        default_topic="training-fine-tuning",
+        default_event_types=["library-release"],
+    )
+    validated = service._validated(
+        {"display_headline": long_title},
+        fallback,
+        "official-release",
+        title=long_title,
+        raw_text=f"{long_title}\n\nThe release adds two documented runtime capabilities.",
+    )
+
+    assert len(fallback.display_headline) <= 90
+    assert len(validated.display_headline) <= 90
+    assert fallback.display_headline.endswith("...")
+    assert validated.display_headline.endswith("...")
+
+
 def test_sparse_source_prompt_prohibits_speculative_benefits() -> None:
     service = ArticleSummaryService.__new__(ArticleSummaryService)
     raw_text = "v1.18.3\n\nFix query errors when using shard keys while resharding."

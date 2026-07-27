@@ -241,3 +241,23 @@ Phase 2 taxonomy work can be considered calibrated when:
 - Unresolved peripheral records are excluded from the default engineering feed or
   documented as accepted exceptions.
 - Before-and-after distributions and all changed document IDs are saved.
+
+## July 27 Follow-Up and Closure
+
+The closure targets are satisfied:
+
+- The 43-item regression passes all 129 independently reviewed axes.
+- RC parsing, versioned-library invariants, research maturity, and material event
+  selection are implemented and tested.
+- Peripheral content is handled through the separate relevance policy rather than
+  expanding the engineering taxonomy.
+- Ollama remains the documented `product-release` exception.
+- A refreshed ten-item summary sample identified and applied two additional decisions:
+  Cloudflare crawler controls moved from `developer-tools` to `retrieval-data`, and
+  the monday.com production-agent architecture dropped `product-release` while
+  retaining `engineering-analysis`.
+- The refreshed sample is now 10/10 `correct` for taxonomy with no unreviewed fields.
+
+The controlled taxonomy remains at 9 primary topics, 14 event types, 7 source types,
+and 8 maturity values. Future individual edge cases may receive reviewed overrides;
+the vocabulary should not expand without recurring evidence of a missing concept.

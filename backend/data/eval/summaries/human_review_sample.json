@@ -1,12 +1,42 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-25T04:23:11.728189+00:00",
+  "generated_at": "2026-07-27T06:13:15.761942+00:00",
   "purpose": "Phase 2 human calibration of generated article summaries and taxonomy.",
   "change_history": [
     {
       "generated_at": "2026-07-25T04:23:11.728189+00:00",
       "change_note": "Regenerated from the post-Phase-1 194-document collection after The Batch and Import AI boundary remediation. The ten-item sample was fully human-rated, taxonomy judgments were rechecked against configured source defaults, and user observations about sparse patch notes and generic announcements were retained. These stored summaries predate the sparse-source prompt change.",
       "documents_evaluated": 194,
+      "sample_size": 10,
+      "filters": {
+        "source": null,
+        "status": null
+      }
+    },
+    {
+      "generated_at": "2026-07-27T06:09:39.768481+00:00",
+      "change_note": "Regenerated after percentage normalization, source-detail-aware lexical grounding, morphology normalization, and 90-character headline validation. Human ratings are preserved only for unchanged review keys.",
+      "documents_evaluated": 240,
+      "sample_size": 10,
+      "filters": {
+        "source": null,
+        "status": null
+      }
+    },
+    {
+      "generated_at": "2026-07-27T06:11:23.240656+00:00",
+      "change_note": "Regenerated after applying percentage and numeric-format normalization, source-detail-aware lexical grounding, morphology normalization, and the stored 90-character headline backfill.",
+      "documents_evaluated": 240,
+      "sample_size": 10,
+      "filters": {
+        "source": null,
+        "status": null
+      }
+    },
+    {
+      "generated_at": "2026-07-27T06:13:15.761942+00:00",
+      "change_note": "Regenerated after two Codex-reviewed taxonomy follow-up corrections: Cloudflare crawler controls to retrieval-data and monday.com architecture to engineering-analysis without product-release.",
+      "documents_evaluated": 240,
       "sample_size": 10,
       "filters": {
         "source": null,
@@ -49,64 +79,64 @@
   "instructions": "Compare source_text with generated_summary. Rate faithfulness, coverage, usefulness, headline_quality, and taxonomy_accuracy using allowed_ratings. Add concise evidence to human_notes. Ratings are preserved only when review_key is unchanged.",
   "items": [
     {
-      "document_id": "6f6cd373-030a-4c00-aab1-a23fc16367b6",
-      "review_key": "09c465dc0899f39677a82f973b81bd5ac607f20f3799c9a9ee259eeb4b782c10",
+      "document_id": "49f5612a-6eed-4153-8224-664b84314cb5",
+      "review_key": "f12e9dd03ee3b2e2c331b63b22c88087b906f76f8770ea2f72d945d8470552f6",
       "source_name": "the-batch",
       "source_type": "editorial-analysis",
-      "title": "Web Retrieval Flusters LLMs",
-      "url": "https://www.deeplearning.ai/the-batch/web-retrieval-flusters-llms",
+      "title": "Cloudflare\u2019s Web Crawler Flare-Up",
+      "url": "https://www.deeplearning.ai/the-batch/cloudflares-web-crawler-flare-up",
       "generated_by": "gpt-4.1-mini:editorial-analysis",
       "automated_status": "warning",
       "warnings": [
         "unsupported_number"
       ],
       "generated_summary": {
-        "display_headline": "LLMs Struggle with Web Retrieval, Hindering Accurate News Answers",
-        "summary": "A Stanford and Together AI study tested six LLMs with web search tools on daily news questions, finding retrieval errors as the main cause of inaccuracies, especially in non-English languages like Hindi.",
-        "why_it_matters": "Improving document retrieval quality is crucial for enhancing LLM accuracy on timely factual queries beyond just scaling model size.",
+        "display_headline": "Cloudflare Enables Granular AI Bot Controls and Monetization for Web Publishers",
+        "summary": "Cloudflare introduces AI traffic controls allowing web publishers to block AI training and agent bots while permitting search indexing crawlers, plus a monetization tool to charge bots for access. These features start rolling out September 15.",
+        "why_it_matters": "This new framework balances AI data needs with publisher control, impacting AI model training costs and access, especially for smaller developers.",
         "key_points": [
-          "Top models scored over 90% accuracy on English multiple-choice news questions but dropped significantly in Hindi.",
-          "Most errors stemmed from retrieving irrelevant or misleading documents rather than model comprehension.",
-          "Models struggled with questions containing false premises, with Grok 4 outperforming others in this scenario.",
-          "Improving indexing, source ranking, and multilingual query handling can boost retrieval performance."
+          "AI traffic controls let publishers block training and agent bots but allow search indexing bots by default.",
+          "BotBase database classifies bots by behavior and verifies trusted operators with a 'Verified' label.",
+          "Monetization tool enables charging AI agents per request for accessing protected web content or APIs.",
+          "Over 57% of web traffic is automated, prompting publishers to seek more control over AI data usage."
         ],
-        "primary_topic": "developer-tools",
+        "primary_topic": "retrieval-data",
         "topic_tags": [
-          "llms",
-          "web-retrieval",
-          "multilingual",
-          "news-accuracy",
-          "information-retrieval"
+          "ai-bots",
+          "web-crawling",
+          "bot-management",
+          "monetization",
+          "cloudflare"
         ],
         "event_types": [
-          "research-result",
+          "product-release",
           "engineering-analysis"
         ],
         "entity_tags": [
-          "stanford-university",
-          "together-ai",
-          "google-gemini",
-          "anthropic-claude",
-          "openai-gpt"
+          "cloudflare",
+          "google",
+          "apple",
+          "bing",
+          "openai"
         ],
         "maturity": "stable"
       },
       "automated_metrics": {
-        "headline_characters": 65,
-        "summary_word_count": 32,
-        "why_it_matters_word_count": 19,
+        "headline_characters": 79,
+        "summary_word_count": 36,
+        "why_it_matters_word_count": 21,
         "key_point_count": 4,
-        "grounding_overlap": 0.5735,
+        "grounding_overlap": 0.7,
         "unsupported_numbers": [
-          "90%"
+          "57%"
         ]
       },
       "faithfulness": "faithful",
       "coverage": "complete",
       "usefulness": "useful",
       "headline_quality": "good",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The summary accurately captures the study design, retrieval failures, multilingual weakness, false-premise results, and recommended improvements. The 90% warning is a false positive because the source says \"exceeded 90 percent.\" Taxonomy is partial: retrieval-data or evaluation-observability would be a better primary topic than developer-tools, and research is a better maturity signal than stable."
+      "taxonomy_accuracy": "correct",
+      "human_notes": "The card accurately covers Cloudflare's crawler controls, BotBase, monetization plan, rollout date, and publisher/developer implications. The source reports 57.5 percent automated traffic, so \"over 57%\" is a supported rounding but remains visible as a numeric review candidate. Retrieval-data is the best controlled primary topic because crawler access governs web-data availability; product-release and engineering-analysis are both materially represented."
     },
     {
       "document_id": "1f8e82f1-d756-401a-b46e-36e7e02c4441",
@@ -149,7 +179,7 @@
         "summary_word_count": 27,
         "why_it_matters_word_count": 20,
         "key_point_count": 4,
-        "grounding_overlap": 0.4815,
+        "grounding_overlap": 0.5385,
         "unsupported_numbers": []
       },
       "faithfulness": "faithful",
@@ -161,7 +191,7 @@
     },
     {
       "document_id": "1ad3dc0c-00fc-4317-8b1e-2102afc52b22",
-      "review_key": "6b4f09f4e6ebea2d09248eaa40be8df767364737ecfdc9c7e0c9e3bd33d83288",
+      "review_key": "960e7c23211581bf05abb10c83824d56cf1118489ab1cadc38e98d619d385f0d",
       "source_name": "aws-machine-learning",
       "source_type": "official-engineering-blog",
       "title": "AI Teammates: how monday.com runs production AI agents on Amazon Bedrock",
@@ -193,8 +223,7 @@
           "s3"
         ],
         "event_types": [
-          "engineering-analysis",
-          "product-release"
+          "engineering-analysis"
         ],
         "entity_tags": [
           "amazon-web-services",
@@ -213,7 +242,7 @@
         "summary_word_count": 37,
         "why_it_matters_word_count": 20,
         "key_point_count": 4,
-        "grounding_overlap": 0.7031,
+        "grounding_overlap": 0.746,
         "unsupported_numbers": [
           "50%"
         ]
@@ -222,8 +251,8 @@
       "coverage": "complete",
       "usefulness": "useful",
       "headline_quality": "good",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The card summarizes monday.com's production agent architecture and operational controls very well, preserving the earlier positive review. The 50% warning is a false positive because the source says PR throughput increased by \"more than half.\" Infrastructure-hardware is defensible for this architecture-focused AWS article, with agents-orchestration as a strong secondary topic. The taxonomy is partial because product-release implies a launch that the article does not clearly announce; engineering-analysis is the supported event type."
+      "taxonomy_accuracy": "correct",
+      "human_notes": "The architecture, production controls, AWS components, and measured deployment results are grounded in the source. The source says throughput increased by more than half; rendering that as over 50% is a derived equivalence, so the evaluator intentionally leaves it for review rather than treating it as fabrication. Infrastructure-hardware is defensible for the deployment architecture, and engineering-analysis is the supported event; product-release was removed because no launch is announced."
     },
     {
       "document_id": "73e73164-2043-403a-aa06-1967aceb00cb",
@@ -265,7 +294,7 @@
         "summary_word_count": 23,
         "why_it_matters_word_count": 18,
         "key_point_count": 3,
-        "grounding_overlap": 0.3939,
+        "grounding_overlap": 0.4,
         "unsupported_numbers": []
       },
       "faithfulness": "minor_issue",
@@ -274,6 +303,54 @@
       "headline_quality": "good",
       "taxonomy_accuracy": "correct",
       "human_notes": "The card captures every concrete fact available in the one-sentence source preview, but \"democratizing access to advanced AI tools\" is promotional impact language not supported by that preview. Consistent with the earlier review, this is a generic announcement and only somewhat useful. Models-apis is the closest available controlled topic for a ChatGPT program because the current taxonomy has no end-user application or AI-adoption category; developer-tools would incorrectly imply a developer-focused product."
+    },
+    {
+      "document_id": "da1b27dc-0db9-42b5-9dfa-9be2291bdbab",
+      "review_key": "839cd31174e338590f7bd2f788110c128710baef7b1674f06f2e3a29e9cf0f01",
+      "source_name": "vllm",
+      "source_type": "official-release",
+      "title": "v0.26.0rc1",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.26.0rc1",
+      "generated_by": "gpt-4.1-mini:official-release",
+      "automated_status": "warning",
+      "warnings": [
+        "low_lexical_grounding"
+      ],
+      "generated_summary": {
+        "display_headline": "vLLM releases v0.26.0rc1 library version",
+        "summary": "vLLM Project announced the release candidate v0.26.0rc1 of the vLLM library. The release version is identified as v0.26.0rc1 with no additional details provided.",
+        "why_it_matters": "The change applies to users of the vLLM inference-serving library.",
+        "key_points": [
+          "Release candidate version v0.26.0rc1 is available.",
+          "No further details on features or fixes are provided."
+        ],
+        "primary_topic": "inference-serving",
+        "topic_tags": [
+          "library-release"
+        ],
+        "event_types": [
+          "library-release"
+        ],
+        "entity_tags": [
+          "vllm-project",
+          "vllm"
+        ],
+        "maturity": "release-candidate"
+      },
+      "automated_metrics": {
+        "headline_characters": 40,
+        "summary_word_count": 23,
+        "why_it_matters_word_count": 10,
+        "key_point_count": 2,
+        "grounding_overlap": 0.05,
+        "unsupported_numbers": []
+      },
+      "faithfulness": "faithful",
+      "coverage": "complete",
+      "usefulness": "not_useful",
+      "headline_quality": "good",
+      "taxonomy_accuracy": "correct",
+      "human_notes": "The card stays within the only available fact: v0.26.0rc1 exists, with no feature or fix details supplied. It is faithful and correctly classified as an inference-serving library release candidate, but the source is too sparse to support a useful standalone feed card. The low-grounding warning is expected and the separate sparse-source policy suppresses it from the default feed."
     },
     {
       "document_id": "6ce601c5-3ba1-4dd3-9a55-5c1c5e11bd7c",
@@ -315,7 +392,7 @@
         "summary_word_count": 14,
         "why_it_matters_word_count": 11,
         "key_point_count": 3,
-        "grounding_overlap": 0.0833,
+        "grounding_overlap": 0.1,
         "unsupported_numbers": []
       },
       "faithfulness": "minor_issue",
@@ -326,32 +403,31 @@
       "human_notes": "The source only states \"cmd: agent UI (#17017).\" Claims about enhancing interaction and streamlining workflows are unsupported extrapolations. This preserves the earlier judgment that such a sparse repository release is not useful as a standalone feed card. Inference-serving remains appropriate for Ollama as a runtime, product-release matches the configured source policy, and release-candidate is correctly inferred; the sparse text does not justify overriding those defaults."
     },
     {
-      "document_id": "065776f4-2824-4a1f-a6dd-d514013028f1",
-      "review_key": "6bd59fb6a1e0697404f5bac7cca7b02a146a1e627a280c1ae61c91426c522eb5",
+      "document_id": "c33c2d8e-b546-448e-81d2-358f7300f564",
+      "review_key": "1b1d3ee15798d32d3b13280f8a990c9c628ae63ea67e85f69fba524de01a6831",
       "source_name": "langgraph",
       "source_type": "official-release",
-      "title": "langgraph==1.2.9",
-      "url": "https://github.com/langchain-ai/langgraph/releases/tag/1.2.9",
+      "title": "langgraph-cli==0.4.29",
+      "url": "https://github.com/langchain-ai/langgraph/releases/tag/cli%3D%3D0.4.29",
       "generated_by": "gpt-4.1-mini:official-release",
       "automated_status": "warning",
       "warnings": [
         "low_lexical_grounding"
       ],
       "generated_summary": {
-        "display_headline": "LangGraph 1.2.9 Released with Metadata and Counter Fixes",
-        "summary": "LangChain has released LangGraph version 1.2.9, addressing issues with updateState metadata and counters for the delta channel.",
-        "why_it_matters": "This update improves the reliability of state management in LangGraph's delta channel, enhancing agent orchestration workflows.",
+        "display_headline": "LangGraph CLI 0.4.29 Adds HTTPS Support with Certfile and Cert Key",
+        "summary": "LangGraph CLI version 0.4.29 introduces support for passing certfile and cert key to run the development server under HTTPS, enhancing secure local development.",
+        "why_it_matters": "This update enables developers to run LangGraph's dev server securely over HTTPS, improving security during development and testing.",
         "key_points": [
-          "LangGraph version 1.2.9 released.",
-          "Fixes updateState metadata and counters for delta channel.",
-          "Improves internal state handling for better orchestration."
+          "Released LangGraph CLI version 0.4.29",
+          "Added support for certfile and cert key parameters",
+          "Enables running the dev server under HTTPS"
         ],
         "primary_topic": "agents-orchestration",
         "topic_tags": [
-          "langchain",
-          "langgraph",
-          "update",
-          "bugfix"
+          "agents-orchestration",
+          "developer-tools",
+          "security"
         ],
         "event_types": [
           "library-release"
@@ -363,76 +439,23 @@
         "maturity": "stable"
       },
       "automated_metrics": {
-        "headline_characters": 56,
-        "summary_word_count": 17,
-        "why_it_matters_word_count": 17,
+        "headline_characters": 66,
+        "summary_word_count": 23,
+        "why_it_matters_word_count": 19,
         "key_point_count": 3,
-        "grounding_overlap": 0.2143,
+        "grounding_overlap": 0.2692,
         "unsupported_numbers": []
       },
       "faithfulness": "minor_issue",
       "coverage": "complete",
-      "usefulness": "not_useful",
+      "usefulness": "useful",
       "headline_quality": "good",
       "taxonomy_accuracy": "correct",
-      "human_notes": "The release and updateState metadata/counter fix are accurately represented, but improved reliability and better orchestration are inferred rather than stated. Consistent with the earlier review, this patch note is too sparse to make a useful standalone card even though its controlled taxonomy is appropriate. Low-detail repository notes should be skipped or down-ranked rather than excluding all GitHub-originated material."
-    },
-    {
-      "document_id": "4dd3c68a-90e8-425d-8b33-0b3b33767456",
-      "review_key": "07fb29a26aa5a5d86d4a215384b382a04ed0b69389792f265009cd36d529f590",
-      "source_name": "vllm",
-      "source_type": "official-release",
-      "title": "v0.24.0rc2: Fix P/D with DP Supervisor (#46628)",
-      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.24.0rc2",
-      "generated_by": "gpt-4.1-mini:official-release",
-      "automated_status": "warning",
-      "warnings": [
-        "low_lexical_grounding"
-      ],
-      "generated_summary": {
-        "display_headline": "vLLM v0.24.0rc2 Fixes P/D Issue with DP Supervisor",
-        "summary": "The vLLM project released version 0.24.0rc2, addressing problems with P/D in the DP Supervisor component.",
-        "why_it_matters": "This fix improves the stability and reliability of distributed processing in vLLM's inference-serving framework.",
-        "key_points": [
-          "Release version: v0.24.0rc2",
-          "Fix targets P/D issues with DP Supervisor",
-          "Commit c5e3c40 cherry-picked for this release",
-          "Signed off by Robert Shaw"
-        ],
-        "primary_topic": "inference-serving",
-        "topic_tags": [
-          "vllm",
-          "dp-supervisor",
-          "p-d-fix",
-          "release"
-        ],
-        "event_types": [
-          "product-release"
-        ],
-        "entity_tags": [
-          "vllm-project",
-          "robert-shaw"
-        ],
-        "maturity": "stable"
-      },
-      "automated_metrics": {
-        "headline_characters": 50,
-        "summary_word_count": 16,
-        "why_it_matters_word_count": 15,
-        "key_point_count": 4,
-        "grounding_overlap": 0.2222,
-        "unsupported_numbers": []
-      },
-      "faithfulness": "minor_issue",
-      "coverage": "complete",
-      "usefulness": "not_useful",
-      "headline_quality": "good",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The version, named P/D fix, commit, and sign-off are supported, but the claimed stability and reliability benefit is not stated in the source. This preserves the earlier judgment that the low-detail release is not useful as a standalone card. Taxonomy is partial because rc2 is a release candidate rather than stable, and library-release is more fitting than product-release."
+      "human_notes": "The version, certificate parameters, and HTTPS development-server capability are all captured. Phrases such as \"enhancing secure local development\" and \"improving security\" are reasonable but not explicitly claimed by the short source, so this remains a minor faithfulness issue covered by the revised sparse-source prompt. The agents-orchestration default and library-release event are correct; developer-tools is an appropriate secondary tag."
     },
     {
       "document_id": "497be340-1abd-434b-bbf4-ab1a37134b2f",
-      "review_key": "d2967269e359cc846d946cc3aac0f2c09452b0266fd01aebd2a24b33d51335e9",
+      "review_key": "a5a8b3ab409eb9a9e01f6ac6096390c7c812ba3d4983f8386204a192b89a60b7",
       "source_name": "qdrant",
       "source_type": "official-release",
       "title": "v1.18.3",
@@ -458,7 +481,7 @@
           "query-errors"
         ],
         "event_types": [
-          "product-release"
+          "library-release"
         ],
         "entity_tags": [
           "qdrant"
@@ -470,15 +493,15 @@
         "summary_word_count": 16,
         "why_it_matters_word_count": 16,
         "key_point_count": 3,
-        "grounding_overlap": 0.2667,
+        "grounding_overlap": 0.2857,
         "unsupported_numbers": []
       },
       "faithfulness": "minor_issue",
       "coverage": "complete",
-      "usefulness": "not_useful",
+      "usefulness": "somewhat_useful",
       "headline_quality": "good",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The query-error, shard-key, and resharding facts are supported, but claims about reliability, stability, consistency, and distributed environments go beyond the one-line source. This preserves the earlier view that extremely sparse patch releases should be skipped or down-ranked. The primary topic is correct, but library-release is more fitting than product-release."
+      "taxonomy_accuracy": "correct",
+      "human_notes": "The headline and summary accurately identify the shard-key resharding fix. Claims about general reliability, stability, and distributed consistency go beyond the one-line changelog, so faithfulness remains a minor issue in the stored pre-regeneration summary. Retrieval-data, library-release, and stable are correct. The revised sparse prompt already removes this speculation, and sparse visibility keeps the old card out of the default feed."
     },
     {
       "document_id": "64926637-8572-42c3-9c9c-fa6be14d760f",
@@ -523,7 +546,7 @@
         "summary_word_count": 28,
         "why_it_matters_word_count": 15,
         "key_point_count": 4,
-        "grounding_overlap": 0.2895,
+        "grounding_overlap": 0.3429,
         "unsupported_numbers": []
       },
       "faithfulness": "minor_issue",
@@ -534,62 +557,59 @@
       "human_notes": "The affected CLIP conversion, sam3 example, update recommendation, contributor, and PR are all supported. Calling the bug \"critical\" and asserting downstream impact are mild extrapolations from the source's \"big bug\" wording. Unlike the sparsest repository notes, this card contains an actionable update recommendation, though it remains relevant to a narrow audience."
     },
     {
-      "document_id": "db9732e1-faab-4996-87ce-a8eb839819ad",
-      "review_key": "5524c5da3adbc37072ee18f55e3c2ad02a469a28a1ab3178c8356a858a35fb62",
-      "source_name": "pytorch-blog",
-      "source_type": "official-engineering-blog",
-      "title": "PyTorch 2.13 Release Blog",
-      "url": "https://pytorch.org/blog/pytorch-2-13-release-blog/",
-      "generated_by": "gpt-4.1-mini:official-engineering-blog",
-      "automated_status": "warning",
-      "warnings": [
-        "headline_too_long"
-      ],
+      "document_id": "99748e2c-4c37-47d3-85eb-213f7fa62327",
+      "review_key": "3017821b4cca9e369c0d46c5a3972bfe1838f5589169d58da49473c01245d1c3",
+      "source_name": "import-ai",
+      "source_type": "editorial-analysis",
+      "title": "Humans are really, really, really bad at anticipating how technologies are built and used",
+      "url": "https://jack-clark.net/2026/06/29/import-ai-463-self-improving-robots-a-10k-chinese-gpu-cluster-and-an-elegiac-essay-for-the-human-era/",
+      "generated_by": "gpt-4.1-mini:editorial-analysis",
+      "automated_status": "pass",
+      "warnings": [],
       "generated_summary": {
-        "display_headline": "PyTorch 2.13 boosts training with FlexAttention on Apple Silicon and new torchcomms backend",
-        "summary": "PyTorch 2.13 introduces FlexAttention on Apple Silicon with up to 12\u00d7 speedup, a new torchcomms backend for distributed training, fused nn.LinearCrossEntropyLoss reducing GPU memory by 4\u00d7, and CuTeDSL backend for faster GPU compilation.",
-        "why_it_matters": "These enhancements improve performance, scalability, and memory efficiency for large-scale training and inference across diverse hardware platforms.",
+        "display_headline": "Humans consistently misjudge how new technologies develop and impact society",
+        "summary": "Experts frequently fail to predict technological breakthroughs and their societal effects, as shown by historical examples like nuclear fission and the internet. Both skepticism and optimism about AI\u2019s future impacts are often misplaced.",
+        "why_it_matters": "Understanding past prediction failures urges caution in assuming AI\u2019s economic and social effects will be straightforward or universally positive.",
         "key_points": [
-          "FlexAttention on Apple Silicon delivers up to 12\u00d7 speedup over SDPA on sparse attention patterns.",
-          "torchcomms backend enhances fault tolerance, scalability, and debuggability for large-cluster distributed training.",
-          "nn.LinearCrossEntropyLoss fuses linear projection and loss to cut peak GPU memory by up to 4\u00d7 for large-vocabulary models.",
-          "CuTeDSL backend offers a high-performance alternative to Triton for key GPU operations with faster compilation."
+          "Historical experts underestimated or misjudged major innovations like nuclear fission and the internet.",
+          "Predictions about technology\u2019s social and strategic impacts have often been wrong, both overly optimistic and overly skeptical.",
+          "AI\u2019s future effects on the economy and society are uncertain and likely more complex than current hot takes suggest.",
+          "History advises against complacency regarding AI\u2019s potential benefits and risks."
         ],
-        "primary_topic": "training-fine-tuning",
+        "primary_topic": "models-apis",
         "topic_tags": [
-          "performance",
-          "distributed-training",
-          "memory-optimization",
-          "gpu-acceleration"
+          "technology-prediction",
+          "ai-impact",
+          "innovation",
+          "history"
         ],
         "event_types": [
-          "model-launch",
-          "product-release"
+          "engineering-analysis",
+          "research-result"
         ],
         "entity_tags": [
-          "pytorch-foundation",
-          "pytorch",
-          "apple-silicon",
-          "cuda",
-          "cutedsl",
-          "torchcomms"
+          "matthew-tokson",
+          "albert-einstein",
+          "niels-bohr",
+          "robert-oppenheimer",
+          "paul-krugman"
         ],
-        "maturity": "stable"
+        "maturity": "research"
       },
       "automated_metrics": {
-        "headline_characters": 91,
-        "summary_word_count": 33,
-        "why_it_matters_word_count": 17,
+        "headline_characters": 76,
+        "summary_word_count": 34,
+        "why_it_matters_word_count": 20,
         "key_point_count": 4,
-        "grounding_overlap": 0.8077,
+        "grounding_overlap": 0.4348,
         "unsupported_numbers": []
       },
       "faithfulness": "faithful",
       "coverage": "complete",
-      "usefulness": "useful",
-      "headline_quality": "acceptable",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The summary accurately selects major release highlights and preserves the reported 12x and 4x improvements. The 91-character headline is only slightly above the limit and remains clear. Taxonomy is partial because this is a framework/library release, not a model launch; library-release should replace model-launch, while training-fine-tuning is a reasonable primary topic."
+      "usefulness": "somewhat_useful",
+      "headline_quality": "good",
+      "taxonomy_accuracy": "correct",
+      "human_notes": "The summary faithfully presents the paper's historical examples and its caution against confident AI forecasts. It is coherent context but does not announce a concrete engineering change, so it is only somewhat useful for the update feed and belongs in the contextual relevance tier. Models-apis is the closest retained controlled topic; research-result plus engineering-analysis and research maturity accurately describe the artifact."
     }
   ]
 }
