@@ -1,0 +1,367 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-07-25T05:00:22.999062+00:00",
+  "purpose": "Read-only before-and-after regression for sparse-source summary prompt changes.",
+  "change_note": "First saved regression after adding sparse-source classification, grounded impact instructions, and prohibitions on inferred benefits, recommendations, and guarantees.",
+  "change_history": [
+    {
+      "generated_at": "2026-07-25T05:00:22.999062+00:00",
+      "change_note": "First saved regression after adding sparse-source classification, grounded impact instructions, and prohibitions on inferred benefits, recommendations, and guarantees.",
+      "targets": [
+        "ollama",
+        "langgraph",
+        "vllm",
+        "qdrant"
+      ],
+      "database_updated": false
+    }
+  ],
+  "database_updated": false,
+  "prompt_behavior_under_test": [
+    "Classify low-detail source text as sparse.",
+    "Use near-extractive wording for sparse sources.",
+    "Do not infer generic benefits, recommendations, or guaranteed outcomes.",
+    "Use neutral affected-scope language for why_it_matters.",
+    "Treat configured taxonomy defaults as strong priors."
+  ],
+  "human_review_summary": {
+    "cases_reviewed": 4,
+    "faithfulness": {
+      "faithful": 4
+    },
+    "coverage": {
+      "complete": 4
+    },
+    "usefulness": {
+      "not_useful": 4
+    },
+    "headline_quality": {
+      "good": 4
+    },
+    "taxonomy_accuracy": {
+      "correct": 3,
+      "partial": 1
+    },
+    "conclusion": "The prompt revision removed the speculative benefit claims in all four cases. Sparse patch notes remain low-value feed cards, which is a separate source-detail and ranking concern. The vLLM taxonomy remains partial because rc2 maturity parsing is handled by a separate remediation item."
+  },
+  "targets": [
+    "ollama",
+    "langgraph",
+    "vllm",
+    "qdrant"
+  ],
+  "cases": [
+    {
+      "source_name": "ollama",
+      "title": "v0.32.0-rc0",
+      "url": "https://github.com/ollama/ollama/releases/tag/v0.32.0-rc0",
+      "source_detail_level": "sparse",
+      "before": {
+        "generated_summary": {
+          "display_headline": "Ollama Releases v0.32.0-rc0 with Agent UI Command",
+          "summary": "Ollama has released version 0.32.0-rc0, introducing the agent UI command to enhance user interaction.",
+          "why_it_matters": "This release improves the user interface for agents, streamlining inference-serving workflows.",
+          "key_points": [
+            "Version 0.32.0-rc0 is a release candidate from Ollama.",
+            "Introduces a new agent UI command (#17017).",
+            "Enhances user interaction with agent-based workflows."
+          ],
+          "primary_topic": "inference-serving",
+          "topic_tags": [
+            "inference-serving",
+            "agent-ui",
+            "release-candidate"
+          ],
+          "event_types": [
+            "product-release"
+          ],
+          "entity_tags": [
+            "ollama"
+          ],
+          "maturity": "release-candidate"
+        },
+        "automated_status": "warning",
+        "warnings": [
+          "low_lexical_grounding"
+        ],
+        "grounding_overlap": 0.0833,
+        "unsupported_numbers": []
+      },
+      "after": {
+        "generated_summary": {
+          "display_headline": "Ollama v0.32.0-rc0 introduces agent UI command",
+          "summary": "Ollama released version 0.32.0-rc0 which adds the agent UI command as noted in issue #17017.",
+          "why_it_matters": "The change applies to users of the Ollama agent UI command.",
+          "key_points": [
+            "Release version: v0.32.0-rc0",
+            "New feature: agent UI command",
+            "Referenced issue: #17017"
+          ],
+          "primary_topic": "inference-serving",
+          "topic_tags": [
+            "agent-ui",
+            "command",
+            "release"
+          ],
+          "event_types": [
+            "product-release"
+          ],
+          "entity_tags": [
+            "ollama"
+          ],
+          "maturity": "release-candidate"
+        },
+        "automated_status": "warning",
+        "warnings": [
+          "low_lexical_grounding"
+        ],
+        "grounding_overlap": 0.1176,
+        "unsupported_numbers": []
+      },
+      "human_review": {
+        "faithfulness": "faithful",
+        "coverage": "complete",
+        "usefulness": "not_useful",
+        "headline_quality": "good",
+        "taxonomy_accuracy": "correct",
+        "human_notes": "All generated claims stay within the sparse source: release version, agent UI command, and issue reference. The new why-it-matters sentence identifies only the affected command scope and no longer invents improved interaction or streamlined workflows. The card remains not useful because the source itself provides almost no detail."
+      }
+    },
+    {
+      "source_name": "langgraph",
+      "title": "langgraph==1.2.9",
+      "url": "https://github.com/langchain-ai/langgraph/releases/tag/1.2.9",
+      "source_detail_level": "sparse",
+      "before": {
+        "generated_summary": {
+          "display_headline": "LangGraph 1.2.9 Released with Metadata and Counter Fixes",
+          "summary": "LangChain has released LangGraph version 1.2.9, addressing issues with updateState metadata and counters for the delta channel.",
+          "why_it_matters": "This update improves the reliability of state management in LangGraph's delta channel, enhancing agent orchestration workflows.",
+          "key_points": [
+            "LangGraph version 1.2.9 released.",
+            "Fixes updateState metadata and counters for delta channel.",
+            "Improves internal state handling for better orchestration."
+          ],
+          "primary_topic": "agents-orchestration",
+          "topic_tags": [
+            "langchain",
+            "langgraph",
+            "update",
+            "bugfix"
+          ],
+          "event_types": [
+            "library-release"
+          ],
+          "entity_tags": [
+            "langchain",
+            "langgraph"
+          ],
+          "maturity": "stable"
+        },
+        "automated_status": "warning",
+        "warnings": [
+          "low_lexical_grounding"
+        ],
+        "grounding_overlap": 0.2143,
+        "unsupported_numbers": []
+      },
+      "after": {
+        "generated_summary": {
+          "display_headline": "LangGraph 1.2.9 released with fix to updateState metadata for delta channel",
+          "summary": "LangGraph version 1.2.9 was released, addressing an issue related to updateState metadata and counters for the delta channel. This update affects users of the delta channel functionality.",
+          "why_it_matters": "The change applies to users of the delta channel in LangGraph.",
+          "key_points": [
+            "LangGraph version 1.2.9 released.",
+            "Fix applied to updateState metadata and counters for the delta channel.",
+            "Update follows version 1.2.8."
+          ],
+          "primary_topic": "agents-orchestration",
+          "topic_tags": [
+            "agents-orchestration",
+            "library-release"
+          ],
+          "event_types": [
+            "library-release"
+          ],
+          "entity_tags": [
+            "langgraph"
+          ],
+          "maturity": "stable"
+        },
+        "automated_status": "warning",
+        "warnings": [
+          "low_lexical_grounding"
+        ],
+        "grounding_overlap": 0.2727,
+        "unsupported_numbers": []
+      },
+      "human_review": {
+        "faithfulness": "faithful",
+        "coverage": "complete",
+        "usefulness": "not_useful",
+        "headline_quality": "good",
+        "taxonomy_accuracy": "correct",
+        "human_notes": "The revision retains only the version, updateState metadata/counter fix, delta-channel scope, and prior-version context. It removes the unsupported reliability and orchestration benefits. The controlled agents-orchestration and library-release assignments fit, but the underlying patch note remains too sparse to be useful as a standalone card."
+      }
+    },
+    {
+      "source_name": "vllm",
+      "title": "v0.24.0rc2: Fix P/D with DP Supervisor (#46628)",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.24.0rc2",
+      "source_detail_level": "sparse",
+      "before": {
+        "generated_summary": {
+          "display_headline": "vLLM v0.24.0rc2 Fixes P/D Issue with DP Supervisor",
+          "summary": "The vLLM project released version 0.24.0rc2, addressing problems with P/D in the DP Supervisor component.",
+          "why_it_matters": "This fix improves the stability and reliability of distributed processing in vLLM's inference-serving framework.",
+          "key_points": [
+            "Release version: v0.24.0rc2",
+            "Fix targets P/D issues with DP Supervisor",
+            "Commit c5e3c40 cherry-picked for this release",
+            "Signed off by Robert Shaw"
+          ],
+          "primary_topic": "inference-serving",
+          "topic_tags": [
+            "vllm",
+            "dp-supervisor",
+            "p-d-fix",
+            "release"
+          ],
+          "event_types": [
+            "product-release"
+          ],
+          "entity_tags": [
+            "vllm-project",
+            "robert-shaw"
+          ],
+          "maturity": "stable"
+        },
+        "automated_status": "warning",
+        "warnings": [
+          "low_lexical_grounding"
+        ],
+        "grounding_overlap": 0.2222,
+        "unsupported_numbers": []
+      },
+      "after": {
+        "generated_summary": {
+          "display_headline": "vLLM v0.24.0rc2 fixes P/D with DP Supervisor",
+          "summary": "vLLM version 0.24.0rc2 includes a fix addressing P/D issues with the DP Supervisor component. The update affects users working with the DP Supervisor.",
+          "why_it_matters": "The change applies to users of the DP Supervisor component in vLLM.",
+          "key_points": [
+            "Release version: v0.24.0rc2",
+            "Fix targets P/D issues with DP Supervisor",
+            "Commit c5e3c40 cherry-picked for this fix",
+            "Signed off by Robert Shaw"
+          ],
+          "primary_topic": "inference-serving",
+          "topic_tags": [
+            "vllm",
+            "dp-supervisor",
+            "p-d-fix"
+          ],
+          "event_types": [
+            "library-release"
+          ],
+          "entity_tags": [
+            "vllm",
+            "dp-supervisor",
+            "robert-shaw"
+          ],
+          "maturity": "stable"
+        },
+        "automated_status": "warning",
+        "warnings": [
+          "low_lexical_grounding"
+        ],
+        "grounding_overlap": 0.2308,
+        "unsupported_numbers": []
+      },
+      "human_review": {
+        "faithfulness": "faithful",
+        "coverage": "complete",
+        "usefulness": "not_useful",
+        "headline_quality": "good",
+        "taxonomy_accuracy": "partial",
+        "human_notes": "The revision stays with the named P/D and DP Supervisor fix, version, commit, and sign-off. It removes the unsupported stability and reliability claims. Inference-serving and library-release are appropriate, but maturity remains incorrectly stable because the separate RC parser does not yet recognize an rc suffix attached directly to the version."
+      }
+    },
+    {
+      "source_name": "qdrant",
+      "title": "v1.18.3",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.18.3",
+      "source_detail_level": "sparse",
+      "before": {
+        "generated_summary": {
+          "display_headline": "Qdrant v1.18.3 Fixes Query Errors with Shard Keys During Resharding",
+          "summary": "Qdrant released version 1.18.3, addressing query errors encountered when using shard keys during the resharding process.",
+          "why_it_matters": "This fix improves the reliability and stability of Qdrant's data retrieval during shard resharding operations.",
+          "key_points": [
+            "Version 1.18.3 focuses on bug fixes.",
+            "Resolved query errors related to shard keys during resharding.",
+            "Enhances data retrieval consistency in distributed environments."
+          ],
+          "primary_topic": "retrieval-data",
+          "topic_tags": [
+            "bug-fix",
+            "sharding",
+            "query-errors"
+          ],
+          "event_types": [
+            "product-release"
+          ],
+          "entity_tags": [
+            "qdrant"
+          ],
+          "maturity": "stable"
+        },
+        "automated_status": "warning",
+        "warnings": [
+          "low_lexical_grounding"
+        ],
+        "grounding_overlap": 0.2667,
+        "unsupported_numbers": []
+      },
+      "after": {
+        "generated_summary": {
+          "display_headline": "Qdrant v1.18.3 fixes query errors with shard keys during resharding",
+          "summary": "Qdrant released version 1.18.3 which fixes query errors encountered when using shard keys while resharding. This update affects users performing resharding operations with shard keys.",
+          "why_it_matters": "The change applies to users of Qdrant's shard key query functionality during resharding.",
+          "key_points": [
+            "Version 1.18.3 addresses query errors related to shard keys.",
+            "The fix is specific to scenarios involving resharding.",
+            "The update targets Qdrant users utilizing shard keys in resharding workflows."
+          ],
+          "primary_topic": "retrieval-data",
+          "topic_tags": [
+            "qdrant",
+            "shard-keys",
+            "resharding",
+            "query-errors"
+          ],
+          "event_types": [
+            "library-release"
+          ],
+          "entity_tags": [
+            "qdrant"
+          ],
+          "maturity": "stable"
+        },
+        "automated_status": "warning",
+        "warnings": [
+          "low_lexical_grounding"
+        ],
+        "grounding_overlap": 0.3125,
+        "unsupported_numbers": []
+      },
+      "human_review": {
+        "faithfulness": "faithful",
+        "coverage": "complete",
+        "usefulness": "not_useful",
+        "headline_quality": "good",
+        "taxonomy_accuracy": "correct",
+        "human_notes": "The revision is limited to the stated version, query-error fix, shard keys, and resharding scope. It removes unsupported claims about general reliability, stability, consistency, and distributed environments. Retrieval-data and library-release fit the source, while usefulness remains low because the patch note is only one substantive line."
+      }
+    }
+  ]
+}

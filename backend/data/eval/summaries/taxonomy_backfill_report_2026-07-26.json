@@ -1,0 +1,1464 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-27T01:14:41.742131+00:00",
+  "mode": "committed",
+  "policy_version": "2026-07-26-v1",
+  "decisions_file": "/Users/jinkim/Documents/2026_Summer/ai-engineer-knowledge-engine/backend/data/eval/summaries/taxonomy_review_decisions_2026-07-26.json",
+  "documents_inspected": 239,
+  "reviewed_decisions": 43,
+  "missing_reviewed_document_ids": [],
+  "documents_with_taxonomy_changes": 57,
+  "field_changes": {
+    "primary_topic": 5,
+    "event_types": 30,
+    "maturity": 26
+  },
+  "reason_counts": {
+    "reviewed_primary_topic": 5,
+    "reviewed_event_types": 13,
+    "deterministic_maturity": 26,
+    "source_event_invariant": 20
+  },
+  "changes": [
+    {
+      "document_id": "1559e38f-57c2-46ec-a179-32e90824daed",
+      "source_name": "anthropic-news",
+      "title": "Inviting hard questions",
+      "url": "https://www.anthropic.com/news/hard-questions",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "safety-security",
+        "event_types": [
+          "product-release",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_primary_topic"
+      ],
+      "review_notes": "This is a public-engagement initiative rather than a clear product release or engineering analysis. Safety and societal-risk concerns are the principal available topic."
+    },
+    {
+      "document_id": "285aa947-0e0f-4215-afac-53fda2850cca",
+      "source_name": "anthropic-news",
+      "title": "Redeploying Fable 5",
+      "url": "https://www.anthropic.com/news/redeploying-fable-5",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release",
+          "security-issue",
+          "engineering-analysis",
+          "integration"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release",
+          "security-issue"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "The existing model is redeployed with material cybersecurity safeguards. Engineering-analysis and integration are not materially represented by the card."
+    },
+    {
+      "document_id": "6cbb2781-2e14-4b10-a5f4-3d930bd2478d",
+      "source_name": "anthropic-news",
+      "title": "Introducing Claude Opus 5",
+      "url": "https://www.anthropic.com/news/claude-opus-5",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "model-launch",
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "Claude Opus 5 is a newly introduced named model and is also made available through Anthropic plans."
+    },
+    {
+      "document_id": "6406e980-a5de-42cc-bc8e-6a752d3bc984",
+      "source_name": "aws-machine-learning",
+      "title": "Introducing Claude Opus 5 on AWS: Anthropic\u2019s most capable Opus model",
+      "url": "https://aws.amazon.com/blogs/machine-learning/introducing-claude-opus-5-on-aws-anthropics-most-capable-opus-model/",
+      "before": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "product-release",
+          "integration"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "The material event is availability of Claude Opus 5 through AWS platforms, not an engineering-analysis article."
+    },
+    {
+      "document_id": "fab8538f-9bc4-462f-a2e0-896a0153295b",
+      "source_name": "aws-machine-learning",
+      "title": "Custom OS installation now available on AWS DeepRacer devices",
+      "url": "https://aws.amazon.com/blogs/machine-learning/custom-os-installation-now-available-on-aws-deepracer-devices/",
+      "before": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "product-release",
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "The developer bootloader is a released device capability, not a reusable software library represented as such in the card."
+    },
+    {
+      "document_id": "fe409f38-eb0f-42b1-8095-58ca35fe52a0",
+      "source_name": "aws-machine-learning",
+      "title": "Exploring self-distilled reasoning for supervised fine-tuning with Amazon Nova",
+      "url": "https://aws.amazon.com/blogs/machine-learning/exploring-self-distilled-reasoning-for-supervised-fine-tuning-with-amazon-nova/",
+      "before": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "6e3ff82a-7900-4cf6-9c71-151548646656",
+      "source_name": "deepmind-blog",
+      "title": "Simulate real-world places with Project Genie and Street View",
+      "url": "https://blog.google/innovation-and-ai/models-and-research/google-deepmind/project-genie-expands/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "a6fe0398-a632-41b3-905a-35956e3c8b42",
+      "source_name": "deepmind-blog",
+      "title": "Introducing Gemini 3.5 Flash Cyber",
+      "url": "https://deepmind.google/blog/introducing-gemini-3-5-flash-cyber/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "f174086f-54bb-410d-87c2-2cd3659c6d90",
+      "source_name": "deepmind-blog",
+      "title": "Fluid, natural voice translation with Gemini 3.5 Live Translate",
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-live-3-5-translate/?utm_source=deepmind.google&utm_medium=referral&utm_campaign=gdm&utm_content=",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release",
+          "api-change",
+          "integration"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release",
+          "api-change"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "Live Translate is a released capability with API availability; listing several Google surfaces does not by itself constitute a cross-product integration event."
+    },
+    {
+      "document_id": "d24d03cb-7a76-484c-a3b5-1b023ca7b9d6",
+      "source_name": "github-changelog",
+      "title": "Claude Opus 5 is now available in GitHub Copilot",
+      "url": "https://github.blog/changelog/2026-07-24-claude-opus-5-is-now-available-in-github-copilot",
+      "before": {
+        "primary_topic": "developer-tools",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "developer-tools",
+        "event_types": [
+          "product-release",
+          "integration"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "GitHub Copilot added a hosted model option supplied by Anthropic, representing both a product capability and an explicit integration."
+    },
+    {
+      "document_id": "1b0cfb8d-ebaf-49ec-b906-bccd3dbf5920",
+      "source_name": "huggingface-blog",
+      "title": "Native-speed vLLM transformers modeling backend",
+      "url": "https://huggingface.co/blog/native-speed-vllm-transformers-backend",
+      "before": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "product-release",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "engineering-analysis",
+          "integration"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "The article explains an improved Transformers/vLLM backend integration; it is not a generic product release."
+    },
+    {
+      "document_id": "4569cc71-ca4a-46bf-a068-fa6a46b2dbf7",
+      "source_name": "huggingface-blog",
+      "title": "What building Shippy taught us about building agents",
+      "url": "https://huggingface.co/blog/allenai/shippy-tech-blog",
+      "before": {
+        "primary_topic": "agents-orchestration",
+        "event_types": [
+          "engineering-analysis",
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "agents-orchestration",
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "The article explains lessons from building an existing agent; it does not clearly announce a product launch."
+    },
+    {
+      "document_id": "4c71b7e2-bfcc-4bdf-bb72-27e2ff52c101",
+      "source_name": "huggingface-blog",
+      "title": "ScarfBench: Benchmarking AI Agents for Enterprise Java Framework Migration",
+      "url": "https://huggingface.co/blog/ibm-research/scarfbench",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "benchmark-result",
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "evaluation-observability",
+        "event_types": [
+          "benchmark-result",
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity",
+        "reviewed_primary_topic"
+      ],
+      "review_notes": "ScarfBench is a research benchmark for evaluating agent migrations; evaluation is the principal topic and the artifact is research-stage."
+    },
+    {
+      "document_id": "523c0e7d-4b53-4b82-9603-6816dde22937",
+      "source_name": "huggingface-blog",
+      "title": "DiScoFormer: One transformer for density and score, across distributions",
+      "url": "https://huggingface.co/blog/allenai/discoformer",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "765c2ff8-9985-4ec5-8e6c-04796429b770",
+      "source_name": "huggingface-blog",
+      "title": "Bringing Nunchaku 4-bit Diffusion Inference to Diffusers",
+      "url": "https://huggingface.co/blog/nunchaku-diffusers",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release",
+          "integration"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_primary_topic",
+        "reviewed_event_types"
+      ],
+      "review_notes": "Native Diffusers support for a quantized inference implementation is both a library capability and integration; the principal engineering subject is inference efficiency."
+    },
+    {
+      "document_id": "aa525230-67bc-4bec-b04a-da3660cb6d25",
+      "source_name": "huggingface-blog",
+      "title": "Newer Models, Same Advantage",
+      "url": "https://huggingface.co/blog/Dharma-AI/newer-models-same-advantages",
+      "before": {
+        "primary_topic": "training-fine-tuning",
+        "event_types": [
+          "research-result",
+          "benchmark-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "training-fine-tuning",
+        "event_types": [
+          "research-result",
+          "benchmark-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": "The card reports experimental benchmark results from specialized model training, so research maturity is more accurate than stable."
+    },
+    {
+      "document_id": "cd4c9d8f-7ada-42be-9769-df0113f11e6f",
+      "source_name": "huggingface-blog",
+      "title": "Experimenting with the proposed Cross-Origin Storage API in Transformers.js",
+      "url": "https://huggingface.co/blog/cross-origin-storage",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "engineering-analysis",
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "engineering-analysis",
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "0c1635ef-4e6d-4e80-a7bf-e5c3b22b0b66",
+      "source_name": "import-ai",
+      "title": "What real-world AI looks like: deep learning fuses with structured systems for inventory management in the Amazon of China",
+      "url": "https://jack-clark.net/2026/07/06/import-ai-464-fables-writes-gpu-kernels-ai-automation-and-analog-computation/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "515f7100-0bfc-4c6a-9ee6-0095dc3fef40",
+      "source_name": "import-ai",
+      "title": "LLMs can smuggle \u201cside channel\u201d tasks alongside legitimate tasks",
+      "url": "https://jack-clark.net/2026/07/20/import-ai-465-open-vs-closed-gaps-kimi-k3-demis-big-policy-plan/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "701f3d3c-5d0b-4eb3-b0d4-2f82ada9f2f0",
+      "source_name": "import-ai",
+      "title": "Is disempowerment inevitable?",
+      "url": "https://jack-clark.net/2026/06/29/import-ai-463-self-improving-robots-a-10k-chinese-gpu-cluster-and-an-elegiac-essay-for-the-human-era/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "engineering-analysis",
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "engineering-analysis",
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "7b8e978c-d871-4a1a-9619-6933db030adf",
+      "source_name": "import-ai",
+      "title": "NVIDIA sets up a crude self-improvement loop for real world robotics",
+      "url": "https://jack-clark.net/2026/06/29/import-ai-463-self-improving-robots-a-10k-chinese-gpu-cluster-and-an-elegiac-essay-for-the-human-era/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "7cb2c8d5-fcc2-4e60-9dee-e284734094be",
+      "source_name": "import-ai",
+      "title": "AI systems are getting better at pricey online work tasks \u2013 what does that mean for the economy?",
+      "url": "https://jack-clark.net/2026/07/06/import-ai-464-fables-writes-gpu-kernels-ai-automation-and-analog-computation/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "99748e2c-4c37-47d3-85eb-213f7fa62327",
+      "source_name": "import-ai",
+      "title": "Humans are really, really, really bad at anticipating how technologies are built and used",
+      "url": "https://jack-clark.net/2026/06/29/import-ai-463-self-improving-robots-a-10k-chinese-gpu-cluster-and-an-elegiac-essay-for-the-human-era/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "engineering-analysis",
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "engineering-analysis",
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "9ee0894f-1821-4d46-ba11-20de29b56439",
+      "source_name": "import-ai",
+      "title": "OSWORLD 2.0 shows we\u2019re in the era of multi-hour computer-using robots",
+      "url": "https://jack-clark.net/2026/07/06/import-ai-464-fables-writes-gpu-kernels-ai-automation-and-analog-computation/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "benchmark-result",
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "benchmark-result",
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "c489b7e4-c0ae-4222-b8b3-9b27d208d4a2",
+      "source_name": "import-ai",
+      "title": "UK government: Gap between open and closed weight models on cyber is shrinking",
+      "url": "https://jack-clark.net/2026/07/20/import-ai-465-open-vs-closed-gaps-kimi-k3-demis-big-policy-plan/",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "c33c2d8e-b546-448e-81d2-358f7300f564",
+      "source_name": "langgraph",
+      "title": "langgraph-cli==0.4.29",
+      "url": "https://github.com/langchain-ai/langgraph/releases/tag/cli%3D%3D0.4.29",
+      "before": {
+        "primary_topic": "agents-orchestration",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "agents-orchestration",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": "A versioned LangGraph CLI package release is a library/tool release, not a hosted product launch."
+    },
+    {
+      "document_id": "4520bdba-c5ef-4ff7-88f9-211a062e562a",
+      "source_name": "litellm",
+      "title": "v1.93.0",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.93.0",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release",
+          "security-issue"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release",
+          "security-issue"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "4bc7d9b1-dd0e-42cc-aae7-4e6cf83fec00",
+      "source_name": "litellm",
+      "title": "v1.95.0-dev.1",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.95.0-dev.1",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release",
+          "security-issue",
+          "engineering-analysis"
+        ],
+        "maturity": "development"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release",
+          "api-change"
+        ],
+        "maturity": "development"
+      },
+      "reasons": [
+        "source_event_invariant",
+        "reviewed_event_types"
+      ],
+      "review_notes": "LiteLLM is a versioned library/API proxy release. Image signing is a security feature, not evidence of a disclosed security issue; engineering-analysis is not material to the card."
+    },
+    {
+      "document_id": "5ba91ee4-6350-467b-a7e5-fe5fdb73cd8e",
+      "source_name": "litellm",
+      "title": "v1.94.0-dev.2",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.94.0-dev.2",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "development"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "development"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "8473121b-e198-4c6a-b9a0-3c19258e69f0",
+      "source_name": "litellm",
+      "title": "v1.94.0-rc.3",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.94.0-rc.3",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release",
+          "security-issue"
+        ],
+        "maturity": "release-candidate"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "reasons": [
+        "source_event_invariant",
+        "reviewed_event_types"
+      ],
+      "review_notes": "This release-candidate package adds signed images. It is a library release, while security-issue would imply a vulnerability or disclosed security problem."
+    },
+    {
+      "document_id": "8e7b3957-bb7c-4599-b813-496b8628981e",
+      "source_name": "litellm",
+      "title": "v1.94.0-dev.3",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.94.0-dev.3",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "development"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "development"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "a03b82e8-2c5a-419e-8742-daddc105cb9d",
+      "source_name": "litellm",
+      "title": "v1.90.6",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.90.6",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "abb5427f-466f-465a-b966-7aba2e63d572",
+      "source_name": "litellm",
+      "title": "v1.92.1",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.92.1",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release",
+          "security-issue"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release",
+          "security-issue"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "b4707f82-b023-4248-98e3-8079c64831f4",
+      "source_name": "litellm",
+      "title": "v1.91.4",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.91.4",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "ca3d682f-33da-4725-8344-eb98d11cafff",
+      "source_name": "litellm",
+      "title": "v1.94.0-rc.2",
+      "url": "https://github.com/BerriAI/litellm/releases/tag/v1.94.0-rc.2",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": "This is a LiteLLM release-candidate package release; no hosted product event is represented."
+    },
+    {
+      "document_id": "3f157a88-fbb4-4383-b49b-ae8407e0c7df",
+      "source_name": "nvidia-technical-blog",
+      "title": "Setting a World Record for MoE Pre-Training on NVIDIA GB300 NVL72",
+      "url": "https://developer.nvidia.com/blog/setting-a-world-record-for-moe-pre-training-on-nvidia-gb300-nvl72/",
+      "before": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "benchmark-result",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "benchmark-result",
+          "engineering-analysis"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "6e1dc0d1-e8a3-4cf6-b8d3-9c56b08d4996",
+      "source_name": "pytorch-blog",
+      "title": "Helion on TPU: Towards Hardware Heterogeneous Kernel Authoring",
+      "url": "https://pytorch.org/blog/helion-on-tpu-towards-hardware-heterogeneous-kernel-authoring/",
+      "before": {
+        "primary_topic": "training-fine-tuning",
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "infrastructure-hardware",
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_primary_topic"
+      ],
+      "review_notes": "The principal subject is hardware-specific TPU kernel authoring and optimization rather than model training itself."
+    },
+    {
+      "document_id": "f3b02b4a-c66a-4fd4-8e1a-addb03392bd7",
+      "source_name": "pytorch-blog",
+      "title": "Towards Free Normalization: Fusing Normalization into GEMM and Attention Kernels",
+      "url": "https://pytorch.org/blog/towards-free-normalization-fusing-normalization-into-gemm-and-attention-kernels/",
+      "before": {
+        "primary_topic": "training-fine-tuning",
+        "event_types": [
+          "engineering-analysis",
+          "research-result"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "training-fine-tuning",
+        "event_types": [
+          "engineering-analysis",
+          "research-result"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "25236ae2-aeb8-41e7-bc6f-4b5df07e3c47",
+      "source_name": "qdrant",
+      "title": "v1.16.1",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.16.1",
+      "before": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "497be340-1abd-434b-bbf4-ab1a37134b2f",
+      "source_name": "qdrant",
+      "title": "v1.18.3",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.18.3",
+      "before": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": "A versioned Qdrant database release is a library/software release rather than a hosted product launch."
+    },
+    {
+      "document_id": "529f632e-19da-4138-8a36-c3931754f320",
+      "source_name": "qdrant",
+      "title": "v1.17.0",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.17.0",
+      "before": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "5fd04497-db44-4120-859e-4d9544e282a4",
+      "source_name": "qdrant",
+      "title": "v1.18.1",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.18.1",
+      "before": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "7250e52a-9a45-4683-afe0-f0ab9f9600b5",
+      "source_name": "qdrant",
+      "title": "v1.16.0",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.16.0",
+      "before": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "b82f565a-5e51-49ef-b812-8ed8cebf4dc8",
+      "source_name": "qdrant",
+      "title": "v1.18.0",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.18.0",
+      "before": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "e998b975-97d6-4432-b57e-bd697f40ed15",
+      "source_name": "qdrant",
+      "title": "v1.17.1",
+      "url": "https://github.com/qdrant/qdrant/releases/tag/v1.17.1",
+      "before": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "66d81568-ec98-4b78-ad00-88bb57b43bfd",
+      "source_name": "the-batch",
+      "title": "Measuring Models\u2019 Manipulation",
+      "url": "https://www.deeplearning.ai/the-batch/measuring-models-manipulation",
+      "before": {
+        "primary_topic": "developer-tools",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "developer-tools",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "6f6cd373-030a-4c00-aab1-a23fc16367b6",
+      "source_name": "the-batch",
+      "title": "Web Retrieval Flusters LLMs",
+      "url": "https://www.deeplearning.ai/the-batch/web-retrieval-flusters-llms",
+      "before": {
+        "primary_topic": "developer-tools",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "retrieval-data",
+        "event_types": [
+          "research-result",
+          "engineering-analysis"
+        ],
+        "maturity": "research"
+      },
+      "reasons": [
+        "deterministic_maturity",
+        "reviewed_primary_topic"
+      ],
+      "review_notes": "The card covers a research study and editorial interpretation of web retrieval failures; the underlying artifact is research-stage and retrieval is the principal subject."
+    },
+    {
+      "document_id": "a60a1b72-3bbf-4112-968e-cc1e692faead",
+      "source_name": "the-batch",
+      "title": "Google Found Responsible for AI-Generated Search Results",
+      "url": "https://www.deeplearning.ai/the-batch/google-found-responsible-for-ai-generated-search-results",
+      "before": {
+        "primary_topic": "developer-tools",
+        "event_types": [
+          "incident"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "developer-tools",
+        "event_types": [
+          "engineering-analysis"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "reviewed_event_types"
+      ],
+      "review_notes": "A legal ruling is not an operational incident. Editorial analysis is the closest current event, but artifact maturity and primary engineering topic do not fit cleanly; consider a policy/legal event or exclusion."
+    },
+    {
+      "document_id": "b01aa9c5-3bbe-42fc-89f7-4b05bf6ab172",
+      "source_name": "transformers",
+      "title": "Release v5.12.0",
+      "url": "https://github.com/huggingface/transformers/releases/tag/v5.12.0",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "model-launch",
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant"
+      ],
+      "review_notes": "The release adds support for several models inside Transformers; it does not launch those models."
+    },
+    {
+      "document_id": "f32f6ea6-66aa-4df0-9818-8db5b9642863",
+      "source_name": "transformers",
+      "title": "Release v5.14.0",
+      "url": "https://github.com/huggingface/transformers/releases/tag/v5.14.0",
+      "before": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "model-launch",
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "models-apis",
+        "event_types": [
+          "library-release",
+          "breaking-change"
+        ],
+        "maturity": "stable"
+      },
+      "reasons": [
+        "source_event_invariant",
+        "reviewed_event_types"
+      ],
+      "review_notes": "This is a Transformers library release that adds model support; that is not itself a model launch. The card explicitly represents breaking compatibility changes."
+    },
+    {
+      "document_id": "12b3e6df-51d5-4469-9c21-376814d0e9c9",
+      "source_name": "vllm",
+      "title": "v0.23.1rc0: [Bugfix][CI] Update Dockerfile dependency graph PNG (#45602)",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.23.1rc0",
+      "before": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": null
+    },
+    {
+      "document_id": "2100436b-bb7d-4137-acd0-6f2a0991ec88",
+      "source_name": "vllm",
+      "title": "v0.24.0rc1: [CI/Build] Fix topk histogram build on SM75 (#46550)",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.24.0rc1",
+      "before": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": "Versioned vLLM library release; the attached rc1 suffix requires release-candidate maturity."
+    },
+    {
+      "document_id": "4dd3c68a-90e8-425d-8b33-0b3b33767456",
+      "source_name": "vllm",
+      "title": "v0.24.0rc2: Fix P/D with DP Supervisor (#46628)",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.24.0rc2",
+      "before": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "product-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "reasons": [
+        "source_event_invariant",
+        "deterministic_maturity"
+      ],
+      "review_notes": "This is a vLLM package release rather than a hosted product release, and v0.24.0rc2 is a release candidate."
+    },
+    {
+      "document_id": "5e7da0ad-0bbd-4a29-a84a-5b4294c159e1",
+      "source_name": "vllm",
+      "title": "v0.25.0rc1",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.25.0rc1",
+      "before": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": "Versioned vLLM library release; the attached rc1 suffix requires release-candidate maturity."
+    },
+    {
+      "document_id": "8ac6f263-a5c0-48b0-bcc3-30883f334ae4",
+      "source_name": "vllm",
+      "title": "v0.25.0rc2",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.25.0rc2",
+      "before": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": "Versioned vLLM library release; the attached rc2 suffix requires release-candidate maturity."
+    },
+    {
+      "document_id": "9d5b3f6e-5a4c-4657-b5de-248cb3391b86",
+      "source_name": "vllm",
+      "title": "v0.25.0rc3",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.25.0rc3",
+      "before": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": "Versioned vLLM library release; the attached rc3 suffix requires release-candidate maturity."
+    },
+    {
+      "document_id": "da1b27dc-0db9-42b5-9dfa-9be2291bdbab",
+      "source_name": "vllm",
+      "title": "v0.26.0rc1",
+      "url": "https://github.com/vllm-project/vllm/releases/tag/v0.26.0rc1",
+      "before": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "stable"
+      },
+      "after": {
+        "primary_topic": "inference-serving",
+        "event_types": [
+          "library-release"
+        ],
+        "maturity": "release-candidate"
+      },
+      "reasons": [
+        "deterministic_maturity"
+      ],
+      "review_notes": "Versioned vLLM library release; v0.26.0rc1 is explicitly a release candidate."
+    }
+  ],
+  "change_history": [
+    {
+      "date": "2026-07-26",
+      "change": "Applied reviewed change_required decisions, versioned-library event invariants, attached-RC maturity parsing, research maturity inference, and refreshed sparse visibility.",
+      "uncertain_decisions_applied": false
+    }
+  ]
+}

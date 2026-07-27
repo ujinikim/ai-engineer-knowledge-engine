@@ -1,0 +1,296 @@
+{
+  "policy_basis": "Recommended definitions in docs/TAXONOMY_REMEDIATION_PLAN.md",
+  "reviewed_at": "2026-07-26",
+  "decisions": {
+    "da1b27dc-0db9-42b5-9dfa-9be2291bdbab": {
+      "event_types_review": "correct",
+      "maturity_review": "change_required",
+      "proposed_maturity": "release-candidate",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "Versioned vLLM library release; v0.26.0rc1 is explicitly a release candidate."
+    },
+    "9d5b3f6e-5a4c-4657-b5de-248cb3391b86": {
+      "event_types_review": "correct",
+      "maturity_review": "change_required",
+      "proposed_maturity": "release-candidate",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "Versioned vLLM library release; the attached rc3 suffix requires release-candidate maturity."
+    },
+    "8ac6f263-a5c0-48b0-bcc3-30883f334ae4": {
+      "event_types_review": "correct",
+      "maturity_review": "change_required",
+      "proposed_maturity": "release-candidate",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "Versioned vLLM library release; the attached rc2 suffix requires release-candidate maturity."
+    },
+    "5e7da0ad-0bbd-4a29-a84a-5b4294c159e1": {
+      "event_types_review": "correct",
+      "maturity_review": "change_required",
+      "proposed_maturity": "release-candidate",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "Versioned vLLM library release; the attached rc1 suffix requires release-candidate maturity."
+    },
+    "4dd3c68a-90e8-425d-8b33-0b3b33767456": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["library-release"],
+      "maturity_review": "change_required",
+      "proposed_maturity": "release-candidate",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "This is a vLLM package release rather than a hosted product release, and v0.24.0rc2 is a release candidate."
+    },
+    "2100436b-bb7d-4137-acd0-6f2a0991ec88": {
+      "event_types_review": "correct",
+      "maturity_review": "change_required",
+      "proposed_maturity": "release-candidate",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "Versioned vLLM library release; the attached rc1 suffix requires release-candidate maturity."
+    },
+    "f32f6ea6-66aa-4df0-9818-8db5b9642863": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["library-release", "breaking-change"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "This is a Transformers library release that adds model support; that is not itself a model launch. The card explicitly represents breaking compatibility changes."
+    },
+    "b01aa9c5-3bbe-42fc-89f7-4b05bf6ab172": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["library-release"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The release adds support for several models inside Transformers; it does not launch those models."
+    },
+    "c33c2d8e-b546-448e-81d2-358f7300f564": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["library-release"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "A versioned LangGraph CLI package release is a library/tool release, not a hosted product launch."
+    },
+    "4bc7d9b1-dd0e-42cc-aae7-4e6cf83fec00": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["library-release", "api-change"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "LiteLLM is a versioned library/API proxy release. Image signing is a security feature, not evidence of a disclosed security issue; engineering-analysis is not material to the card."
+    },
+    "8473121b-e198-4c6a-b9a0-3c19258e69f0": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["library-release"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "This release-candidate package adds signed images. It is a library release, while security-issue would imply a vulnerability or disclosed security problem."
+    },
+    "ca3d682f-33da-4725-8344-eb98d11cafff": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["library-release"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "This is a LiteLLM release-candidate package release; no hosted product event is represented."
+    },
+    "6cbb2781-2e14-4b10-a5f4-3d930bd2478d": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["model-launch", "product-release"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "Claude Opus 5 is a newly introduced named model and is also made available through Anthropic plans."
+    },
+    "6406e980-a5de-42cc-bc8e-6a752d3bc984": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["product-release", "integration"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The material event is availability of Claude Opus 5 through AWS platforms, not an engineering-analysis article."
+    },
+    "8c069ff1-0965-4aa8-bee0-a4fafe706d45": {
+      "event_types_review": "uncertain",
+      "maturity_review": "uncertain",
+      "primary_topic_review": "uncertain",
+      "taxonomy_notes": "A funding commitment and government research partnership is not well represented by the current event, maturity, or topic axes. Consider a program/partnership event or exclude corporate funding announcements from the feed."
+    },
+    "d24d03cb-7a76-484c-a3b5-1b023ca7b9d6": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["product-release", "integration"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "GitHub Copilot added a hosted model option supplied by Anthropic, representing both a product capability and an explicit integration."
+    },
+    "47b79508-af63-4fe0-a677-ce12b3c8280a": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The article materially explains Ray AI library support on TPU and fits its configured engineering-analysis and developer-tools classification."
+    },
+    "765c2ff8-9985-4ec5-8e6c-04796429b770": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["library-release", "integration"],
+      "maturity_review": "correct",
+      "primary_topic_review": "change_required",
+      "proposed_primary_topic": "inference-serving",
+      "taxonomy_notes": "Native Diffusers support for a quantized inference implementation is both a library capability and integration; the principal engineering subject is inference efficiency."
+    },
+    "12f8f52d-7500-471f-a60c-dba8d6c8704b": {
+      "event_types_review": "correct",
+      "maturity_review": "uncertain",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The editorial card materially reports a named model introduction and comparative result. Maturity is unclear because the model is described as existing while its open-weight release remains forthcoming."
+    },
+    "f73d02cf-bd1b-417d-8dd5-8bfdaa76bbec": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The LangGraph CLI package release, stable maturity, and agents-orchestration topic are consistent."
+    },
+    "05725de1-5720-4928-a220-82bb4f3c04e5": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The development-version LiteLLM release contains package and API changes; all three assignments are supported."
+    },
+    "e0523017-4cdf-4b3d-92df-a5a81951faff": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The article is an infrastructure-focused engineering analysis of semiconductor development and manufacturing."
+    },
+    "54fb60d3-5a27-4b32-a6e9-758b64c1e9c1": {
+      "event_types_review": "uncertain",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "Release-candidate maturity and inference-serving topic are clear. Decide globally whether Ollama runtime versions are product-release or library-release before changing this event."
+    },
+    "164252c0-b620-494a-8e87-7dcdfd5ebcb8": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "OpenAI Presence is a hosted enterprise agent product; product-release, stable maturity, and agents-orchestration are appropriate."
+    },
+    "6e1dc0d1-e8a3-4cf6-b8d3-9c56b08d4996": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "change_required",
+      "proposed_primary_topic": "infrastructure-hardware",
+      "taxonomy_notes": "The principal subject is hardware-specific TPU kernel authoring and optimization rather than model training itself."
+    },
+    "497be340-1abd-434b-bbf4-ab1a37134b2f": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["library-release"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "A versioned Qdrant database release is a library/software release rather than a hosted product launch."
+    },
+    "6f6cd373-030a-4c00-aab1-a23fc16367b6": {
+      "event_types_review": "correct",
+      "maturity_review": "change_required",
+      "proposed_maturity": "research",
+      "primary_topic_review": "change_required",
+      "proposed_primary_topic": "retrieval-data",
+      "taxonomy_notes": "The card covers a research study and editorial interpretation of web retrieval failures; the underlying artifact is research-stage and retrieval is the principal subject."
+    },
+    "910b7e90-93dc-41a3-9aeb-9d2c6d966893": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "This is a stable Transformers patch release concerning model cache behavior."
+    },
+    "a9e39208-9bdb-4881-9d1d-a8ea199b7553": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The stable vLLM library release and inference-serving topic are appropriate."
+    },
+    "4569cc71-ca4a-46bf-a068-fa6a46b2dbf7": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["engineering-analysis"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The article explains lessons from building an existing agent; it does not clearly announce a product launch."
+    },
+    "1b0cfb8d-ebaf-49ec-b906-bccd3dbf5920": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["engineering-analysis", "integration"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The article explains an improved Transformers/vLLM backend integration; it is not a generic product release."
+    },
+    "aa525230-67bc-4bec-b04a-da3660cb6d25": {
+      "event_types_review": "correct",
+      "maturity_review": "change_required",
+      "proposed_maturity": "research",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The card reports experimental benchmark results from specialized model training, so research maturity is more accurate than stable."
+    },
+    "4033ade6-448c-4be8-92d4-19068ef6abdc": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "A new named Claude model is launched and made available as a product capability."
+    },
+    "fab8538f-9bc4-462f-a2e0-896a0153295b": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["product-release"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The developer bootloader is a released device capability, not a reusable software library represented as such in the card."
+    },
+    "f174086f-54bb-410d-87c2-2cd3659c6d90": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["product-release", "api-change"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "Live Translate is a released capability with API availability; listing several Google surfaces does not by itself constitute a cross-product integration event."
+    },
+    "4cfaf3ef-ab74-448f-a483-bb0b8a2f7153": {
+      "event_types_review": "uncertain",
+      "maturity_review": "uncertain",
+      "primary_topic_review": "uncertain",
+      "taxonomy_notes": "A funding commitment to research institutions is not well represented by the current event taxonomy or artifact-lifecycle maturity. Consider a program/partnership event or exclude corporate funding announcements."
+    },
+    "3a616afc-3e55-42c2-bbc5-fd9040b8c335": {
+      "event_types_review": "uncertain",
+      "maturity_review": "uncertain",
+      "primary_topic_review": "uncertain",
+      "taxonomy_notes": "This announces a research fund and agenda rather than a research result or product release. The current taxonomy needs a program/funding event or an explicit exclusion policy."
+    },
+    "4c71b7e2-bfcc-4bdf-bb72-27e2ff52c101": {
+      "event_types_review": "correct",
+      "maturity_review": "change_required",
+      "proposed_maturity": "research",
+      "primary_topic_review": "change_required",
+      "proposed_primary_topic": "evaluation-observability",
+      "taxonomy_notes": "ScarfBench is a research benchmark for evaluating agent migrations; evaluation is the principal topic and the artifact is research-stage."
+    },
+    "285aa947-0e0f-4215-afac-53fda2850cca": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["product-release", "security-issue"],
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The existing model is redeployed with material cybersecurity safeguards. Engineering-analysis and integration are not materially represented by the card."
+    },
+    "a60a1b72-3bbf-4112-968e-cc1e692faead": {
+      "event_types_review": "change_required",
+      "proposed_event_types": ["engineering-analysis"],
+      "maturity_review": "uncertain",
+      "primary_topic_review": "uncertain",
+      "taxonomy_notes": "A legal ruling is not an operational incident. Editorial analysis is the closest current event, but artifact maturity and primary engineering topic do not fit cleanly; consider a policy/legal event or exclusion."
+    },
+    "1559e38f-57c2-46ec-a179-32e90824daed": {
+      "event_types_review": "uncertain",
+      "maturity_review": "correct",
+      "primary_topic_review": "change_required",
+      "proposed_primary_topic": "safety-security",
+      "taxonomy_notes": "This is a public-engagement initiative rather than a clear product release or engineering analysis. Safety and societal-risk concerns are the principal available topic."
+    },
+    "4fda0edd-d12c-4c3b-9b01-9e7ff9673c15": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The article materially combines a released Ray capability, explicit TPU integration, and a tutorial walkthrough."
+    },
+    "36e2138c-00b8-4032-b71a-0976de30ea1b": {
+      "event_types_review": "correct",
+      "maturity_review": "correct",
+      "primary_topic_review": "correct",
+      "taxonomy_notes": "The GitHub agent-automation feature is a developer-tool product capability explicitly in public preview."
+    }
+  }
+}

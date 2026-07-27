@@ -10,6 +10,13 @@ From `backend`:
 uv run python scripts/evaluate_summaries.py
 ```
 
+Every evaluation that replaces a human-review artifact should describe what changed:
+
+```bash
+uv run python scripts/evaluate_summaries.py \
+  --change-note "Regenerated after sparse-source prompt revision; summaries are otherwise unchanged."
+```
+
 Optional filters:
 
 ```bash
@@ -23,6 +30,10 @@ The command writes:
 - `data/eval/summaries/human_review_sample.json`: a stratified sample for manual calibration
 
 Existing human ratings are preserved when the source text and generated summary have not changed.
+The human-review artifact also preserves a top-level `change_history` containing the
+timestamp, change note, document count, sample size, and filters for every generation.
+Use a specific `--change-note`; the default note records that no description was supplied
+so undocumented regenerations remain visible.
 
 ## Automated Checks
 

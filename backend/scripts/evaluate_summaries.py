@@ -37,17 +37,21 @@ def load_documents(source: str | None) -> list[Document]:
 
 
 def existing_reviews(path: Path) -> dict[str, dict]:
-    if not path.exists():
-        return {}
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return {}
+    payload = existing_review_payload(path)
     return {
         str(item["review_key"]): item
         for item in payload.get("items", [])
         if item.get("review_key")
     }
+
+
+def existing_review_payload(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
 
 
 def preserved_rating(prior: dict, field: str) -> str:
@@ -143,6 +147,10 @@ def main() -> None:
     )
     parser.add_argument("--sample-size", type=int, default=10, help="Human review sample size")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--change-note",
+        help="Describe what changed since the prior human-review artifact.",
+    )
     arguments = parser.parse_args()
 
     service = SummaryQualityService()
@@ -161,6 +169,7 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     report_path = output_dir / "summary_report.json"
     sample_path = output_dir / "human_review_sample.json"
+    prior_review_payload = existing_review_payload(sample_path)
     generated_at = datetime.now(timezone.utc).isoformat()
     summary = service.aggregate(evaluations)
     report = {
@@ -172,9 +181,20 @@ def main() -> None:
         "documents": [evaluation.as_dict() for evaluation in evaluations],
     }
     review = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": generated_at,
         "purpose": "Phase 2 human calibration of generated article summaries and taxonomy.",
+        "change_history": [
+            *prior_review_payload.get("change_history", []),
+            {
+                "generated_at": generated_at,
+                "change_note": arguments.change_note
+                or "Evaluation regenerated; no additional change description was supplied.",
+                "documents_evaluated": summary["documents_evaluated"],
+                "sample_size": max(0, arguments.sample_size),
+                "filters": {"source": arguments.source, "status": arguments.status},
+            },
+        ],
         "allowed_ratings": {
             field: sorted(values) for field, values in HUMAN_RATINGS.items()
         },

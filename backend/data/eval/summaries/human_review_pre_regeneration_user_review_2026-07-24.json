@@ -1,12 +1,12 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-25T04:23:11.728189+00:00",
+  "generated_at": "2026-07-24T18:40:39.933367+00:00",
   "purpose": "Phase 2 human calibration of generated article summaries and taxonomy.",
   "change_history": [
     {
-      "generated_at": "2026-07-25T04:23:11.728189+00:00",
-      "change_note": "Regenerated from the post-Phase-1 194-document collection after The Batch and Import AI boundary remediation. The ten-item sample was fully human-rated, taxonomy judgments were rechecked against configured source defaults, and user observations about sparse patch notes and generic announcements were retained. These stored summaries predate the sparse-source prompt change.",
-      "documents_evaluated": 194,
+      "generated_at": "2026-07-24T18:40:39.933367+00:00",
+      "change_note": "Original 187-document pre-boundary-remediation sample. The project owner reviewed the useful long-form items, identified sparse GitHub release notes as low value, and flagged the whole-newsletter Import AI record for story splitting. Several ratings remained incomplete; this artifact is preserved as historical input rather than the final calibration set.",
+      "documents_evaluated": 187,
       "sample_size": 10,
       "filters": {
         "source": null,
@@ -49,107 +49,47 @@
   "instructions": "Compare source_text with generated_summary. Rate faithfulness, coverage, usefulness, headline_quality, and taxonomy_accuracy using allowed_ratings. Add concise evidence to human_notes. Ratings are preserved only when review_key is unchanged.",
   "items": [
     {
-      "document_id": "6f6cd373-030a-4c00-aab1-a23fc16367b6",
-      "review_key": "09c465dc0899f39677a82f973b81bd5ac607f20f3799c9a9ee259eeb4b782c10",
+      "document_id": "01220d2e-aff5-40d5-82ce-f8f93cf7070a",
+      "review_key": "bb6938fd262c82b1139da6bb4744e14aa409f37982d6b8ae9490e1c163bc8550",
       "source_name": "the-batch",
       "source_type": "editorial-analysis",
-      "title": "Web Retrieval Flusters LLMs",
-      "url": "https://www.deeplearning.ai/the-batch/web-retrieval-flusters-llms",
+      "title": "The Batch: Jun 05, 2026",
+      "url": "https://www.deeplearning.ai/the-batch/tag/jun-05-2026",
       "generated_by": "gpt-4.1-mini:editorial-analysis",
       "automated_status": "warning",
       "warnings": [
-        "unsupported_number"
+        "low_lexical_grounding"
       ],
       "generated_summary": {
-        "display_headline": "LLMs Struggle with Web Retrieval, Hindering Accurate News Answers",
-        "summary": "A Stanford and Together AI study tested six LLMs with web search tools on daily news questions, finding retrieval errors as the main cause of inaccuracies, especially in non-English languages like Hindi.",
-        "why_it_matters": "Improving document retrieval quality is crucial for enhancing LLM accuracy on timely factual queries beyond just scaling model size.",
+        "display_headline": "Fine-Tuning LLMs Can Cause Copyright Issues by Revealing Pretraining Texts",
+        "summary": "Fine-tuning large language models to expand plot summaries can lead to the models reproducing large portions of copyrighted books from their training data. This reveals potential copyright alignment problems in fine-tuning processes.",
+        "why_it_matters": "Understanding fine-tuning risks is crucial to maintaining copyright compliance and ethical AI deployment.",
         "key_points": [
-          "Top models scored over 90% accuracy on English multiple-choice news questions but dropped significantly in Hindi.",
-          "Most errors stemmed from retrieving irrelevant or misleading documents rather than model comprehension.",
-          "Models struggled with questions containing false premises, with Grok 4 outperforming others in this scenario.",
-          "Improving indexing, source ranking, and multilingual query handling can boost retrieval performance."
+          "Fine-tuning LLMs on expanding summaries causes regurgitation of pretraining book texts.",
+          "This behavior exposes copyright alignment vulnerabilities in fine-tuned models.",
+          "The issue is significant for AI applications aimed at creative writing assistance."
         ],
         "primary_topic": "developer-tools",
         "topic_tags": [
-          "llms",
-          "web-retrieval",
-          "multilingual",
-          "news-accuracy",
-          "information-retrieval"
+          "fine-tuning",
+          "copyright",
+          "large-language-models",
+          "ai-ethics"
         ],
         "event_types": [
-          "research-result",
           "engineering-analysis"
         ],
         "entity_tags": [
-          "stanford-university",
-          "together-ai",
-          "google-gemini",
-          "anthropic-claude",
-          "openai-gpt"
+          "deeplearning.ai"
         ],
         "maturity": "stable"
       },
       "automated_metrics": {
-        "headline_characters": 65,
+        "headline_characters": 74,
         "summary_word_count": 32,
-        "why_it_matters_word_count": 19,
-        "key_point_count": 4,
-        "grounding_overlap": 0.5735,
-        "unsupported_numbers": [
-          "90%"
-        ]
-      },
-      "faithfulness": "faithful",
-      "coverage": "complete",
-      "usefulness": "useful",
-      "headline_quality": "good",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The summary accurately captures the study design, retrieval failures, multilingual weakness, false-premise results, and recommended improvements. The 90% warning is a false positive because the source says \"exceeded 90 percent.\" Taxonomy is partial: retrieval-data or evaluation-observability would be a better primary topic than developer-tools, and research is a better maturity signal than stable."
-    },
-    {
-      "document_id": "1f8e82f1-d756-401a-b46e-36e7e02c4441",
-      "review_key": "d74227a828b416b5917b1dc9d626f78712b5d73cd4dd717bfa81a56218c67747",
-      "source_name": "github-changelog",
-      "source_type": "official-changelog",
-      "title": "AI credit pools for cost centers in the billing UI",
-      "url": "https://github.blog/changelog/2026-07-20-ai-credit-pools-for-cost-centers-in-the-billing-ui",
-      "generated_by": "gpt-4.1-mini:official-changelog",
-      "automated_status": "pass",
-      "warnings": [],
-      "generated_summary": {
-        "display_headline": "GitHub adds AI credit pools for cost centers in billing UI",
-        "summary": "GitHub now allows managing AI credit pools for cost centers directly in the billing UI for Copilot Business and Enterprise on GitHub Enterprise Cloud, simplifying cost control.",
-        "why_it_matters": "This feature helps organizations control AI credit usage per cost center without manual calculations, improving budget management and cost transparency.",
-        "key_points": [
-          "AI credit pools can be toggled on when creating or editing cost centers in the billing UI.",
-          "GitHub auto-calculates pool limits based on assigned Copilot licenses and adjusts dynamically.",
-          "Users can choose to block usage at the limit or allow overages if permitted by the enterprise.",
-          "AI credit pools are distinct from cost center budgets, which cap metered charges after pool exhaustion."
-        ],
-        "primary_topic": "developer-tools",
-        "topic_tags": [
-          "billing",
-          "cost-management",
-          "github-copilot",
-          "enterprise"
-        ],
-        "event_types": [
-          "product-release"
-        ],
-        "entity_tags": [
-          "github",
-          "github-copilot"
-        ],
-        "maturity": "stable"
-      },
-      "automated_metrics": {
-        "headline_characters": 58,
-        "summary_word_count": 27,
-        "why_it_matters_word_count": 20,
-        "key_point_count": 4,
-        "grounding_overlap": 0.4815,
+        "why_it_matters_word_count": 13,
+        "key_point_count": 3,
+        "grounding_overlap": 0.32,
         "unsupported_numbers": []
       },
       "faithfulness": "faithful",
@@ -157,7 +97,58 @@
       "usefulness": "useful",
       "headline_quality": "good",
       "taxonomy_accuracy": "correct",
-      "human_notes": "Accurate and actionable: it explains availability, automatic limit calculation, overage behavior, and the distinction between credit pools and budgets. Although GitHub updates can be audience-specific, this card gives affected administrators enough information to decide whether to open the source. Low-detail patch releases should be filtered or down-ranked separately rather than treating all GitHub-originated updates as low value."
+      "human_notes": "Looks great and summarize the main points of the article. The summary captures the key issue of copyright alignment in fine-tuning LLMs and its implications for AI applications."
+    },
+    {
+      "document_id": "b500abfb-a837-476c-bcee-88b7605f6438",
+      "review_key": "3df01866ea1b837b6d5fa03c6a08f6db8434fb56d43bf3dabf2daeb6e15dfc7a",
+      "source_name": "github-changelog",
+      "source_type": "official-changelog",
+      "title": "Upcoming GHES change impacting uploading support bundles",
+      "url": "https://github.blog/changelog/2026-07-22-upcoming-ghes-change-impacting-uploading-support-bundles",
+      "generated_by": "gpt-4.1-mini:official-changelog",
+      "automated_status": "pass",
+      "warnings": [],
+      "generated_summary": {
+        "display_headline": "GitHub to block support bundle uploads from outdated GHES versions after Aug 18, 2026",
+        "summary": "Starting August 18, 2026, GitHub Enterprise Server will reject support bundle uploads from GHES instances not updated with required security patches. Users must update to specified minimum patch versions to avoid disruptions.",
+        "why_it_matters": "Ensuring GHES instances are updated prevents upload failures and maintains secure support processes.",
+        "key_points": [
+          "Support bundle uploads via command line will be blocked from outdated GHES versions after Aug 18, 2026.",
+          "Minimum required patch versions include 3.21.3, 3.20.5, 3.19.9, 3.18.12, and 3.17.18.",
+          "Users on unsupported GHES versions are urged to upgrade to supported versions promptly.",
+          "Contact GitHub Support if unable to update before the deadline for assistance."
+        ],
+        "primary_topic": "developer-tools",
+        "topic_tags": [
+          "github-enterprise-server",
+          "security",
+          "support-bundles",
+          "patch-updates"
+        ],
+        "event_types": [
+          "security-issue"
+        ],
+        "entity_tags": [
+          "github",
+          "github-enterprise-server"
+        ],
+        "maturity": "stable"
+      },
+      "automated_metrics": {
+        "headline_characters": 85,
+        "summary_word_count": 32,
+        "why_it_matters_word_count": 13,
+        "key_point_count": 4,
+        "grounding_overlap": 0.4681,
+        "unsupported_numbers": []
+      },
+      "faithfulness": "faithful",
+      "coverage": "complete",
+      "usefulness": "somewhat_useful",
+      "headline_quality": "good",
+      "taxonomy_accuracy": "correct",
+      "human_notes": "Alothough the summary is accurate the topic is very specific to certain developers. We could skip this sort of articles depending on the user but for now looks great"
     },
     {
       "document_id": "1ad3dc0c-00fc-4317-8b1e-2102afc52b22",
@@ -222,58 +213,65 @@
       "coverage": "complete",
       "usefulness": "useful",
       "headline_quality": "good",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The card summarizes monday.com's production agent architecture and operational controls very well, preserving the earlier positive review. The 50% warning is a false positive because the source says PR throughput increased by \"more than half.\" Infrastructure-hardware is defensible for this architecture-focused AWS article, with agents-orchestration as a strong secondary topic. The taxonomy is partial because product-release implies a launch that the article does not clearly announce; engineering-analysis is the supported event type."
+      "taxonomy_accuracy": "correct",
+      "human_notes": "Great work here. This summarizes the contents very well about Monday.com's implementation of their agentic system and the explanation on the architecture is very well done."
     },
     {
-      "document_id": "73e73164-2043-403a-aa06-1967aceb00cb",
-      "review_key": "cd37ba5809885667d515de712e5f4f5af604ac7994b96a7d4ea8b42f74bb6aeb",
-      "source_name": "openai-news",
+      "document_id": "1559e38f-57c2-46ec-a179-32e90824daed",
+      "review_key": "1ca1ebbc913631399f24debd87ea6c238ce25d6073cd5a63ee6199353d6eb6b0",
+      "source_name": "anthropic-news",
       "source_type": "official-product-news",
-      "title": "Introducing the ChatGPT for small business program",
-      "url": "https://openai.com/index/introducing-chatgpt-small-business-program",
+      "title": "Inviting hard questions",
+      "url": "https://www.anthropic.com/news/hard-questions",
       "generated_by": "gpt-4.1-mini:official-product-news",
-      "automated_status": "pass",
-      "warnings": [],
+      "automated_status": "warning",
+      "warnings": [
+        "unsupported_number"
+      ],
       "generated_summary": {
-        "display_headline": "OpenAI Launches ChatGPT for Small Businesses Program",
-        "summary": "OpenAI introduces the ChatGPT for Small Businesses program to help entrepreneurs develop AI skills, automate tasks, and grow their businesses using ChatGPT Work.",
-        "why_it_matters": "This program empowers small businesses to leverage AI for efficiency and growth, democratizing access to advanced AI tools.",
+        "display_headline": "Anthropic invites public to ask hard questions about AI impact",
+        "summary": "Anthropic launched an initiative to gather public questions on AI's societal effects, aiming to transparently address concerns and advance its public benefit mission with Claude AI.",
+        "why_it_matters": "Engaging diverse public perspectives helps ensure AI development aligns with societal values and mitigates risks.",
         "key_points": [
-          "Program targets small business entrepreneurs.",
-          "Focuses on building AI skills and automation.",
-          "Utilizes ChatGPT Work to support business growth."
+          "Anthropic surveyed over 130,000 people globally to understand hopes and concerns about AI.",
+          "The company invests in AI safeguards, alignment research, and free AI access for scientists.",
+          "Anthropic publicly tracks progress on addressing hard questions about AI's impact on jobs, society, and science.",
+          "The initiative includes a dedicated website for submitting and viewing challenging AI questions."
         ],
         "primary_topic": "models-apis",
         "topic_tags": [
-          "small-business",
-          "automation",
-          "ai-skills",
-          "chatgpt"
+          "ai-ethics",
+          "public-engagement",
+          "ai-safety",
+          "ai-alignment"
         ],
         "event_types": [
-          "product-release"
+          "product-release",
+          "research-result",
+          "engineering-analysis"
         ],
         "entity_tags": [
-          "openai",
-          "chatgpt"
+          "anthropic",
+          "claude"
         ],
         "maturity": "stable"
       },
       "automated_metrics": {
-        "headline_characters": 52,
-        "summary_word_count": 23,
-        "why_it_matters_word_count": 18,
-        "key_point_count": 3,
-        "grounding_overlap": 0.3939,
-        "unsupported_numbers": []
+        "headline_characters": 62,
+        "summary_word_count": 27,
+        "why_it_matters_word_count": 15,
+        "key_point_count": 4,
+        "grounding_overlap": 0.4643,
+        "unsupported_numbers": [
+          "130000"
+        ]
       },
-      "faithfulness": "minor_issue",
+      "faithfulness": "faithful",
       "coverage": "complete",
       "usefulness": "somewhat_useful",
       "headline_quality": "good",
       "taxonomy_accuracy": "correct",
-      "human_notes": "The card captures every concrete fact available in the one-sentence source preview, but \"democratizing access to advanced AI tools\" is promotional impact language not supported by that preview. Consistent with the earlier review, this is a generic announcement and only somewhat useful. Models-apis is the closest available controlled topic for a ChatGPT program because the current taxonomy has no end-user application or AI-adoption category; developer-tools would incorrectly imply a developer-focused product."
+      "human_notes": "The article is very generic yet allows me to think of AI ethics and safety. Not too bad to include I believe"
     },
     {
       "document_id": "6ce601c5-3ba1-4dd3-9a55-5c1c5e11bd7c",
@@ -318,12 +316,12 @@
         "grounding_overlap": 0.0833,
         "unsupported_numbers": []
       },
-      "faithfulness": "minor_issue",
+      "faithfulness": "faitful",
       "coverage": "complete",
       "usefulness": "not_useful",
       "headline_quality": "acceptable",
       "taxonomy_accuracy": "correct",
-      "human_notes": "The source only states \"cmd: agent UI (#17017).\" Claims about enhancing interaction and streamlining workflows are unsupported extrapolations. This preserves the earlier judgment that such a sparse repository release is not useful as a standalone feed card. Inference-serving remains appropriate for Ollama as a runtime, product-release matches the configured source policy, and release-candidate is correctly inferred; the sparse text does not justify overriding those defaults."
+      "human_notes": "This doesn't seem like a useful source at all. Also I'm not sure where it got the information because no other information was provided besides the title in the release."
     },
     {
       "document_id": "065776f4-2824-4a1f-a6dd-d514013028f1",
@@ -370,12 +368,12 @@
         "grounding_overlap": 0.2143,
         "unsupported_numbers": []
       },
-      "faithfulness": "minor_issue",
-      "coverage": "complete",
-      "usefulness": "not_useful",
-      "headline_quality": "good",
-      "taxonomy_accuracy": "correct",
-      "human_notes": "The release and updateState metadata/counter fix are accurately represented, but improved reliability and better orchestration are inferred rather than stated. Consistent with the earlier review, this patch note is too sparse to make a useful standalone card even though its controlled taxonomy is appropriate. Low-detail repository notes should be skipped or down-ranked rather than excluding all GitHub-originated material."
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": "Same as above, we can skip this sort of then information. Github repositories can be skipped from now on. Skipping the review"
     },
     {
       "document_id": "4dd3c68a-90e8-425d-8b33-0b3b33767456",
@@ -423,12 +421,12 @@
         "grounding_overlap": 0.2222,
         "unsupported_numbers": []
       },
-      "faithfulness": "minor_issue",
-      "coverage": "complete",
-      "usefulness": "not_useful",
-      "headline_quality": "good",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The version, named P/D fix, commit, and sign-off are supported, but the claimed stability and reliability benefit is not stated in the source. This preserves the earlier judgment that the low-detail release is not useful as a standalone card. Taxonomy is partial because rc2 is a release candidate rather than stable, and library-release is more fitting than product-release."
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": "Same as above, we can skip this sort of then information. Github repositories can be skipped from now on. Skipping the review"
     },
     {
       "document_id": "497be340-1abd-434b-bbf4-ab1a37134b2f",
@@ -473,12 +471,12 @@
         "grounding_overlap": 0.2667,
         "unsupported_numbers": []
       },
-      "faithfulness": "minor_issue",
-      "coverage": "complete",
-      "usefulness": "not_useful",
-      "headline_quality": "good",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The query-error, shard-key, and resharding facts are supported, but claims about reliability, stability, consistency, and distributed environments go beyond the one-line source. This preserves the earlier view that extremely sparse patch releases should be skipped or down-ranked. The primary topic is correct, but library-release is more fitting than product-release."
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": "Same as above."
     },
     {
       "document_id": "64926637-8572-42c3-9c9c-fa6be14d760f",
@@ -526,70 +524,72 @@
         "grounding_overlap": 0.2895,
         "unsupported_numbers": []
       },
-      "faithfulness": "minor_issue",
-      "coverage": "complete",
-      "usefulness": "somewhat_useful",
-      "headline_quality": "good",
-      "taxonomy_accuracy": "correct",
-      "human_notes": "The affected CLIP conversion, sam3 example, update recommendation, contributor, and PR are all supported. Calling the bug \"critical\" and asserting downstream impact are mild extrapolations from the source's \"big bug\" wording. Unlike the sparsest repository notes, this card contains an actionable update recommendation, though it remains relevant to a narrow audience."
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": ""
     },
     {
-      "document_id": "db9732e1-faab-4996-87ce-a8eb839819ad",
-      "review_key": "5524c5da3adbc37072ee18f55e3c2ad02a469a28a1ab3178c8356a858a35fb62",
-      "source_name": "pytorch-blog",
-      "source_type": "official-engineering-blog",
-      "title": "PyTorch 2.13 Release Blog",
-      "url": "https://pytorch.org/blog/pytorch-2-13-release-blog/",
-      "generated_by": "gpt-4.1-mini:official-engineering-blog",
+      "document_id": "4aa52297-18c8-4687-86cd-caa8a3acc9ca",
+      "review_key": "73d53b0d60609ca0a14ad79f39acd62d0d0991dd3fa3ebd9889852bac08bcd7f",
+      "source_name": "import-ai",
+      "source_type": "editorial-analysis",
+      "title": "Import AI 459: AI oversight is difficult; scaling laws for protein folding models; and pricing the extinction risk of AI systems",
+      "url": "https://jack-clark.net/2026/06/01/import-ai-459-ai-oversight-is-difficult-scaling-laws-for-protein-folding-models-and-pricing-the-extinction-risk-of-ai-systems/",
+      "generated_by": "gpt-4.1-mini:editorial-analysis",
       "automated_status": "warning",
       "warnings": [
-        "headline_too_long"
+        "unsupported_number"
       ],
       "generated_summary": {
-        "display_headline": "PyTorch 2.13 boosts training with FlexAttention on Apple Silicon and new torchcomms backend",
-        "summary": "PyTorch 2.13 introduces FlexAttention on Apple Silicon with up to 12\u00d7 speedup, a new torchcomms backend for distributed training, fused nn.LinearCrossEntropyLoss reducing GPU memory by 4\u00d7, and CuTeDSL backend for faster GPU compilation.",
-        "why_it_matters": "These enhancements improve performance, scalability, and memory efficiency for large-scale training and inference across diverse hardware platforms.",
+        "display_headline": "US AI Economy Growing 2,600% Annually, Yet Largely Invisible in GDP Stats",
+        "summary": "A study by economists from the University of Virginia, Anthropic, and the Bank of Canada reveals the US AI economy is expanding at an unprecedented 2,600% yearly rate in quality-adjusted terms, reaching an estimated $250 billion in 2025, but this growth is not reflected in conventional GDP measurements.",
+        "why_it_matters": "Accurate measurement of AI's economic impact is crucial for policymakers to prepare for labor market shifts and design effective economic policies.",
         "key_points": [
-          "FlexAttention on Apple Silicon delivers up to 12\u00d7 speedup over SDPA on sparse attention patterns.",
-          "torchcomms backend enhances fault tolerance, scalability, and debuggability for large-cluster distributed training.",
-          "nn.LinearCrossEntropyLoss fuses linear projection and loss to cut peak GPU memory by up to 4\u00d7 for large-vocabulary models.",
-          "CuTeDSL backend offers a high-performance alternative to Triton for key GPU operations with faster compilation."
+          "AI compute spending in the US is projected to rise from $37B in 2023 to $219B in 2025.",
+          "AI computing capacity is growing over 200% annually due to chip efficiency improvements.",
+          "Quality-adjusted AI output grew roughly 2,290% in 2024 and 2,271% in 2025.",
+          "Conventional GDP stats understate AI's impact, risking unpreparedness for economic shifts."
         ],
-        "primary_topic": "training-fine-tuning",
+        "primary_topic": "models-apis",
         "topic_tags": [
-          "performance",
-          "distributed-training",
-          "memory-optimization",
-          "gpu-acceleration"
+          "ai-economy",
+          "gdp-measurement",
+          "compute-spending",
+          "economic-growth"
         ],
         "event_types": [
-          "model-launch",
-          "product-release"
+          "research-result",
+          "engineering-analysis"
         ],
         "entity_tags": [
-          "pytorch-foundation",
-          "pytorch",
-          "apple-silicon",
-          "cuda",
-          "cutedsl",
-          "torchcomms"
+          "university-of-virginia",
+          "anthropic",
+          "bank-of-canada"
         ],
         "maturity": "stable"
       },
       "automated_metrics": {
-        "headline_characters": 91,
-        "summary_word_count": 33,
-        "why_it_matters_word_count": 17,
+        "headline_characters": 73,
+        "summary_word_count": 49,
+        "why_it_matters_word_count": 22,
         "key_point_count": 4,
-        "grounding_overlap": 0.8077,
-        "unsupported_numbers": []
+        "grounding_overlap": 0.5714,
+        "unsupported_numbers": [
+          "200%",
+          "2271%",
+          "2290%",
+          "2600%"
+        ]
       },
-      "faithfulness": "faithful",
-      "coverage": "complete",
-      "usefulness": "useful",
-      "headline_quality": "acceptable",
-      "taxonomy_accuracy": "partial",
-      "human_notes": "The summary accurately selects major release highlights and preserves the reported 12x and 4x improvements. The 91-character headline is only slightly above the limit and remains clear. Taxonomy is partial because this is a framework/library release, not a model launch; library-release should replace model-launch, while training-fine-tuning is a reasonable primary topic."
+      "faithfulness": "not_reviewed",
+      "coverage": "not_reviewed",
+      "usefulness": "not_reviewed",
+      "headline_quality": "not_reviewed",
+      "taxonomy_accuracy": "not_reviewed",
+      "human_notes": "Too much words and topics in this article, we should consider splitting the topics. We can discuss further about this. Seems like the only information in the article that was summarized is the first topic in the newsletter"
     }
   ]
 }
