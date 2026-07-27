@@ -1,0 +1,2781 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-27T22:35:10.630561+00:00",
+  "questions_file": "/Users/jinkim/Documents/2026_Summer/ai-engineer-knowledge-engine/backend/data/eval/retrieval/updates_questions_2026-07-27.yml",
+  "snapshot_file": "/Users/jinkim/Documents/2026_Summer/ai-engineer-knowledge-engine/backend/data/eval/retrieval/updates_snapshot_2026-07-27.json",
+  "snapshot_corpus_hash": "d12684ca90a0651eb3d80638d12b17df745ac780b9c3fefac5b86737db5eda73",
+  "overrides": {
+    "split": "all",
+    "search_mode": "keyword",
+    "retrieval_strategy": "standard"
+  },
+  "summary": {
+    "question_count": 30,
+    "recall_at_k": 0.7654,
+    "precision_at_k": 0.3832,
+    "mean_reciprocal_rank": 0.7469,
+    "all_relevant_documents_hit_rate": 0.7037,
+    "all_required_sources_hit_rate": 0.8148,
+    "filter_correct_rate": 1.0,
+    "minimum_results_met_rate": 0.9333,
+    "required_text_coverage": 0.8333,
+    "avg_embedding_ms": 0.0,
+    "avg_retrieval_ms": 421.2333,
+    "avg_total_ms": 421.3333
+  },
+  "by_intent": {
+    "comparison": {
+      "question_count": 5,
+      "recall_at_k": 0.5333,
+      "precision_at_k": 0.1607,
+      "mean_reciprocal_rank": 0.8,
+      "all_relevant_documents_hit_rate": 0.2,
+      "all_required_sources_hit_rate": 0.6,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": 0.9,
+      "avg_embedding_ms": 0.0,
+      "avg_retrieval_ms": 803.8,
+      "avg_total_ms": 804.0
+    },
+    "exact_lookup": {
+      "question_count": 8,
+      "recall_at_k": 0.75,
+      "precision_at_k": 0.1667,
+      "mean_reciprocal_rank": 0.5208,
+      "all_relevant_documents_hit_rate": 0.75,
+      "all_required_sources_hit_rate": 0.875,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": 0.875,
+      "avg_embedding_ms": 0.0,
+      "avg_retrieval_ms": 669.375,
+      "avg_total_ms": 669.5
+    },
+    "filter": {
+      "question_count": 5,
+      "recall_at_k": 0.8,
+      "precision_at_k": 0.8,
+      "mean_reciprocal_rank": 0.8,
+      "all_relevant_documents_hit_rate": 0.8,
+      "all_required_sources_hit_rate": 0.8,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 0.8,
+      "required_text_coverage": 0.8,
+      "avg_embedding_ms": 0.0,
+      "avg_retrieval_ms": 6.6,
+      "avg_total_ms": 6.6
+    },
+    "insufficient_evidence": {
+      "question_count": 3,
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mean_reciprocal_rank": null,
+      "all_relevant_documents_hit_rate": null,
+      "all_required_sources_hit_rate": null,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": null,
+      "avg_embedding_ms": 0.0,
+      "avg_retrieval_ms": 28.3333,
+      "avg_total_ms": 28.6667
+    },
+    "synthesis": {
+      "question_count": 4,
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.1774,
+      "mean_reciprocal_rank": 1.0,
+      "all_relevant_documents_hit_rate": 1.0,
+      "all_required_sources_hit_rate": 1.0,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": 0.75,
+      "avg_embedding_ms": 0.0,
+      "avg_retrieval_ms": 757.0,
+      "avg_total_ms": 757.0
+    },
+    "temporal": {
+      "question_count": 5,
+      "recall_at_k": 0.8,
+      "precision_at_k": 0.7,
+      "mean_reciprocal_rank": 0.8,
+      "all_relevant_documents_hit_rate": 0.8,
+      "all_required_sources_hit_rate": 0.8,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 0.8,
+      "required_text_coverage": 0.8,
+      "avg_embedding_ms": 0.0,
+      "avg_retrieval_ms": 23.4,
+      "avg_total_ms": 23.4
+    }
+  },
+  "by_split": {
+    "calibration": {
+      "question_count": 20,
+      "recall_at_k": 0.787,
+      "precision_at_k": 0.3914,
+      "mean_reciprocal_rank": 0.7963,
+      "all_relevant_documents_hit_rate": 0.7222,
+      "all_required_sources_hit_rate": 0.8333,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 0.9,
+      "required_text_coverage": 0.8333,
+      "avg_embedding_ms": 0.0,
+      "avg_retrieval_ms": 401.25,
+      "avg_total_ms": 401.3
+    },
+    "holdout": {
+      "question_count": 10,
+      "recall_at_k": 0.7222,
+      "precision_at_k": 0.3668,
+      "mean_reciprocal_rank": 0.6481,
+      "all_relevant_documents_hit_rate": 0.6667,
+      "all_required_sources_hit_rate": 0.7778,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": 0.8333,
+      "avg_embedding_ms": 0.0,
+      "avg_retrieval_ms": 461.2,
+      "avg_total_ms": 461.4
+    }
+  },
+  "questions": [
+    {
+      "id": "lookup_tensorrt_progress_cancel",
+      "question": "How can TensorRT engine builds report progress and be canceled?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "How can TensorRT engine builds report progress and be canceled?",
+        "top_k": 6,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "22ced16c-ce30-4651-af1f-ac407b520fe5"
+      ],
+      "required_source_names": [
+        "nvidia-technical-blog"
+      ],
+      "required_text_terms": [
+        "IProgressMonitor",
+        "step_complete"
+      ],
+      "retrieved_document_ids": [
+        "22ced16c-ce30-4651-af1f-ac407b520fe5",
+        "22ced16c-ce30-4651-af1f-ac407b520fe5",
+        "a08cc135-f448-4151-a6ab-e528355f2135",
+        "4c71b7e2-bfcc-4bdf-bb72-27e2ff52c101",
+        "4326922d-07b4-40cd-9521-995cb0c73475",
+        "c67d1203-24df-4379-b617-eb0f0e162e0e"
+      ],
+      "retrieved_chunk_ids": [
+        "d5a72f38-fbe5-4e3a-9527-a04ebbeb2e7c",
+        "7b306f1d-8944-494f-bac2-9c48b52d0f43",
+        "bd13d2bb-7632-466d-8a39-4fe276e5b04c",
+        "9921e1cd-cb97-4a03-bb74-897836acc13e",
+        "37e28abf-a02c-499b-9e5b-45c47fa731f8",
+        "a89674e5-0d6e-4e7e-aa62-6d5e7f5a77dd"
+      ],
+      "retrieved_sources": [
+        "nvidia-technical-blog",
+        "nvidia-technical-blog",
+        "huggingface-blog",
+        "huggingface-blog",
+        "aws-machine-learning",
+        "aws-machine-learning"
+      ],
+      "retrieved_titles": [
+        "Make Long-Running NVIDIA TensorRT Engine Builds Observable and Cancelable in Python or C++",
+        "Make Long-Running NVIDIA TensorRT Engine Builds Observable and Cancelable in Python or C++",
+        "Hugging Face Models on Foundry Managed Compute",
+        "ScarfBench: Benchmarking AI Agents for Enterprise Java Framework Migration",
+        "Evolving from legacy BI to agentic AI at Tradeshift with Amazon Quick",
+        "Built Technologies builds an AI-powered document intelligence solution on AWS to power agents across real estate finance"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        0.6667,
+        0.6667,
+        0.6667,
+        0.6667
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "IProgressMonitor",
+        "step_complete"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 693,
+      "total_ms": 693,
+      "notes": "Exact tutorial lookup with distinctive API terms."
+    },
+    {
+      "id": "lookup_github_mcp_specification",
+      "question": "What changed when GitHub MCP Server added support for the next MCP specification?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What changed when GitHub MCP Server added support for the next MCP specification?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "d28e5d1c-c6a8-46c5-8844-d98be1de6d7c"
+      ],
+      "required_source_names": [
+        "github-changelog"
+      ],
+      "required_text_terms": [
+        "MCP specification"
+      ],
+      "retrieved_document_ids": [
+        "d28e5d1c-c6a8-46c5-8844-d98be1de6d7c",
+        "26f4d0be-9a6b-4b2d-b620-22dac7ec82ad",
+        "3f0598fb-0315-4c8b-a761-543e243cbc87",
+        "1deefe70-9555-432c-aad1-810d7226bfeb",
+        "748ad5e7-a518-4b7b-9922-e5d4f5b21ce7"
+      ],
+      "retrieved_chunk_ids": [
+        "2a113f96-da5b-489d-9ecc-2c482e0786eb",
+        "366d6550-603f-47bf-8b6a-d76ce8503a5a",
+        "4a5af0c3-28bf-4d82-ace9-1e7ec1eb3960",
+        "164f5a08-3e00-4aeb-b9e2-45f1f9508348",
+        "5b773fa1-5f47-435b-a265-408550780b51"
+      ],
+      "retrieved_sources": [
+        "github-changelog",
+        "transformers",
+        "github-changelog",
+        "the-batch",
+        "google-developers"
+      ],
+      "retrieved_titles": [
+        "GitHub MCP Server supports the next MCP specification",
+        "Release v5.11.0",
+        "GitHub Code Quality is now generally available",
+        "DeepSeek\u2019s DSpark Gains Velocity",
+        "Evolving Spec-Driven Development: Conductor Now Supports Antigravity"
+      ],
+      "scores": [
+        1.0,
+        0.5714,
+        0.5714,
+        0.5714,
+        0.5714
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "MCP specification"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 504,
+      "total_ms": 504,
+      "notes": "Exact changelog lookup."
+    },
+    {
+      "id": "lookup_qdrant_shard_resharding",
+      "question": "Which Qdrant release fixed query errors with shard keys during resharding?",
+      "intent": "exact_lookup",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which Qdrant release fixed query errors with shard keys during resharding?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "497be340-1abd-434b-bbf4-ab1a37134b2f"
+      ],
+      "required_source_names": [
+        "qdrant"
+      ],
+      "required_text_terms": [
+        "shard keys",
+        "resharding"
+      ],
+      "retrieved_document_ids": [
+        "529f632e-19da-4138-8a36-c3931754f320",
+        "497be340-1abd-434b-bbf4-ab1a37134b2f",
+        "e998b975-97d6-4432-b57e-bd697f40ed15",
+        "16e22def-0f68-4613-9a6a-24fdb7025110",
+        "b82f565a-5e51-49ef-b812-8ed8cebf4dc8"
+      ],
+      "retrieved_chunk_ids": [
+        "9d8f53b1-80e2-445d-9a9d-2f3883b21c56",
+        "8584ffc0-6131-4f4b-a400-6b55bc5b76eb",
+        "0d085202-7f22-4199-8894-71a85fb7cc07",
+        "b6703f67-78ac-45b3-8e95-7c6302a6f16d",
+        "57c30134-4964-4f05-acd6-0917aeb439bc"
+      ],
+      "retrieved_sources": [
+        "qdrant",
+        "qdrant",
+        "qdrant",
+        "google-developers",
+        "qdrant"
+      ],
+      "retrieved_titles": [
+        "v1.17.0",
+        "v1.18.3",
+        "v1.17.1",
+        "Systems Engineering Playbook: Optimizing Qwen 3.5-397B MoE on Ironwood (TPU7x)",
+        "v1.18.0"
+      ],
+      "scores": [
+        1.0,
+        0.8334,
+        0.8334,
+        0.8334,
+        0.6666
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "reciprocal_rank": 0.5,
+      "first_relevant_rank": 2,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "shard keys",
+        "resharding"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 617,
+      "total_ms": 618,
+      "notes": "Narrow release lookup among many similarly titled Qdrant versions."
+    },
+    {
+      "id": "lookup_vllm_dp_supervisor",
+      "question": "Which vLLM release candidate fixed P/D with the DP Supervisor?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which vLLM release candidate fixed P/D with the DP Supervisor?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "4dd3c68a-90e8-425d-8b33-0b3b33767456"
+      ],
+      "required_source_names": [
+        "vllm"
+      ],
+      "required_text_terms": [
+        "DP Supervisor"
+      ],
+      "retrieved_document_ids": [
+        "47035db6-ae6d-4ade-88a2-45e97a931706",
+        "3ae65146-fede-41ab-93d8-2dfc17d5895d",
+        "aa672815-2268-4b11-8247-e07fd22be215",
+        "47035db6-ae6d-4ade-88a2-45e97a931706",
+        "3ae65146-fede-41ab-93d8-2dfc17d5895d"
+      ],
+      "retrieved_chunk_ids": [
+        "829a5987-91c9-4122-abc7-ce7e7430d76f",
+        "fca7001c-69d7-4e20-953f-82443b389901",
+        "c62de879-e96b-46b2-b72b-87c526727f90",
+        "3bb166bb-531b-45d6-874a-cd9f40371c33",
+        "122225f5-af5a-4c5c-ab1e-a6a8decb0372"
+      ],
+      "retrieved_sources": [
+        "vllm",
+        "vllm",
+        "vllm",
+        "vllm",
+        "vllm"
+      ],
+      "retrieved_titles": [
+        "v0.25.0",
+        "v0.24.0",
+        "v0.25.1",
+        "v0.25.0",
+        "v0.24.0"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        0.6667,
+        0.6667,
+        0.6667
+      ],
+      "recall_at_k": 0.0,
+      "precision_at_k": 0.0,
+      "reciprocal_rank": 0.0,
+      "first_relevant_rank": null,
+      "all_relevant_documents_hit": false,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "DP Supervisor"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 557,
+      "total_ms": 557,
+      "notes": "Exact sparse-release lookup."
+    },
+    {
+      "id": "lookup_pytorch_213",
+      "question": "What were the principal changes in the PyTorch 2.13 release?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What were the principal changes in the PyTorch 2.13 release?",
+        "top_k": 6,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "db9732e1-faab-4996-87ce-a8eb839819ad"
+      ],
+      "required_source_names": [
+        "pytorch-blog"
+      ],
+      "required_text_terms": [
+        "FlexAttention",
+        "torchcomms"
+      ],
+      "retrieved_document_ids": [
+        "f32f6ea6-66aa-4df0-9818-8db5b9642863",
+        "f95b0424-e2e6-42dc-9e8f-760e0c106319",
+        "db9732e1-faab-4996-87ce-a8eb839819ad",
+        "db9732e1-faab-4996-87ce-a8eb839819ad",
+        "116cb2de-3469-4d29-932d-483c1f3c6a2b",
+        "5faeb8b0-bfac-48d6-8646-c7005904b458"
+      ],
+      "retrieved_chunk_ids": [
+        "708a1131-d6bf-4c35-8791-2a67e32de062",
+        "df72ab8f-5c5b-453e-947c-b8b90054927e",
+        "34dbd0e3-d610-4fc0-be92-3c56bef935d7",
+        "f5a7b9e2-1657-4598-ab05-b816b65d405c",
+        "11674a19-33b6-4b3d-a7a3-ccbfe53531fb",
+        "e110d801-68f4-4892-a69a-644cf7f23547"
+      ],
+      "retrieved_sources": [
+        "transformers",
+        "pytorch-blog",
+        "pytorch-blog",
+        "pytorch-blog",
+        "transformers",
+        "google-developers"
+      ],
+      "retrieved_titles": [
+        "Release v5.14.0",
+        "Triton Plugin Extensions: Enabling TLX and Custom Compiler Passes Out of the Box",
+        "PyTorch 2.13 Release Blog",
+        "PyTorch 2.13 Release Blog",
+        "Release v5.10.1",
+        "LiteRT.js, Google's high performance Web AI Inference"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "reciprocal_rank": 0.3333,
+      "first_relevant_rank": 3,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "FlexAttention",
+        "torchcomms"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 949,
+      "total_ms": 949,
+      "notes": "Detailed release lookup requiring multiple facts from one article."
+    },
+    {
+      "id": "lookup_openai_gpt_live",
+      "question": "What did OpenAI announce in the GPT-Live update?",
+      "intent": "exact_lookup",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What did OpenAI announce in the GPT-Live update?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "0c1d941c-98ec-4f2d-bab8-4211b7cb7829"
+      ],
+      "required_source_names": [
+        "openai-news"
+      ],
+      "required_text_terms": [
+        "GPT-Live"
+      ],
+      "retrieved_document_ids": [
+        "008cb317-bdd2-4bdd-ba77-ab51a3328385",
+        "a08cc135-f448-4151-a6ab-e528355f2135",
+        "47035db6-ae6d-4ade-88a2-45e97a931706",
+        "f32f6ea6-66aa-4df0-9818-8db5b9642863",
+        "f32f6ea6-66aa-4df0-9818-8db5b9642863"
+      ],
+      "retrieved_chunk_ids": [
+        "f68faee3-4ece-4c9a-aa12-8db8742cbd21",
+        "de2bfc49-39ce-48ce-80fc-49fb795641c6",
+        "3bb166bb-531b-45d6-874a-cd9f40371c33",
+        "4c7f55f4-8528-4392-930b-3f1fc60f610e",
+        "2aa4cf58-cf0c-467d-818b-d305b8233e9f"
+      ],
+      "retrieved_sources": [
+        "the-batch",
+        "huggingface-blog",
+        "vllm",
+        "transformers",
+        "transformers"
+      ],
+      "retrieved_titles": [
+        "Fable\u2019s Return and Fallout",
+        "Hugging Face Models on Foundry Managed Compute",
+        "v0.25.0",
+        "Release v5.14.0",
+        "Release v5.14.0"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        0.6667,
+        0.6667,
+        0.6667
+      ],
+      "recall_at_k": 0.0,
+      "precision_at_k": 0.0,
+      "reciprocal_rank": 0.0,
+      "first_relevant_rank": null,
+      "all_relevant_documents_hit": false,
+      "all_required_sources_hit": false,
+      "required_text_hits": [],
+      "required_text_coverage": 0.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 631,
+      "total_ms": 631,
+      "notes": "Tests retrieval of a preview-only product-news record."
+    },
+    {
+      "id": "lookup_nunchaku_diffusers",
+      "question": "How was Nunchaku 4-bit diffusion inference added to Diffusers?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "How was Nunchaku 4-bit diffusion inference added to Diffusers?",
+        "top_k": 6,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "765c2ff8-9985-4ec5-8e6c-04796429b770"
+      ],
+      "required_source_names": [
+        "huggingface-blog"
+      ],
+      "required_text_terms": [
+        "Nunchaku",
+        "4-bit"
+      ],
+      "retrieved_document_ids": [
+        "765c2ff8-9985-4ec5-8e6c-04796429b770",
+        "765c2ff8-9985-4ec5-8e6c-04796429b770",
+        "26f4d0be-9a6b-4b2d-b620-22dac7ec82ad",
+        "3ae65146-fede-41ab-93d8-2dfc17d5895d",
+        "fe409f38-eb0f-42b1-8095-58ca35fe52a0",
+        "1deefe70-9555-432c-aad1-810d7226bfeb"
+      ],
+      "retrieved_chunk_ids": [
+        "542e9cb7-5e11-460f-9aae-0254c74a24e2",
+        "55c48d24-7bc1-4c99-90e6-3cab21565a86",
+        "dbde70fc-589c-4aff-a24d-bda5a00e65ef",
+        "fca7001c-69d7-4e20-953f-82443b389901",
+        "aec2e6b4-081c-4ee9-8ebc-1776bf037204",
+        "35a7ec04-8f3c-4af6-9fd1-902b8237f659"
+      ],
+      "retrieved_sources": [
+        "huggingface-blog",
+        "huggingface-blog",
+        "transformers",
+        "vllm",
+        "aws-machine-learning",
+        "the-batch"
+      ],
+      "retrieved_titles": [
+        "Bringing Nunchaku 4-bit Diffusion Inference to Diffusers",
+        "Bringing Nunchaku 4-bit Diffusion Inference to Diffusers",
+        "Release v5.11.0",
+        "v0.24.0",
+        "Exploring self-distilled reasoning for supervised fine-tuning with Amazon Nova",
+        "DeepSeek\u2019s DSpark Gains Velocity"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        0.7999,
+        0.6,
+        0.6,
+        0.6
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "Nunchaku",
+        "4-bit"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 812,
+      "total_ms": 812,
+      "notes": "Detailed integration lookup."
+    },
+    {
+      "id": "lookup_ray_tpu_part_2",
+      "question": "Which Ray AI libraries were demonstrated on TPU in part two of Google's series?",
+      "intent": "exact_lookup",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which Ray AI libraries were demonstrated on TPU in part two of Google's series?",
+        "top_k": 6,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "47b79508-af63-4fe0-a677-ce12b3c8280a"
+      ],
+      "required_source_names": [
+        "google-developers"
+      ],
+      "required_text_terms": [
+        "Ray AI libraries"
+      ],
+      "retrieved_document_ids": [
+        "4fda0edd-d12c-4c3b-9b01-9e7ff9673c15",
+        "4fda0edd-d12c-4c3b-9b01-9e7ff9673c15",
+        "47b79508-af63-4fe0-a677-ce12b3c8280a",
+        "47b79508-af63-4fe0-a677-ce12b3c8280a",
+        "ad719ee3-a075-43d5-a000-72d9393325d7",
+        "ad719ee3-a075-43d5-a000-72d9393325d7"
+      ],
+      "retrieved_chunk_ids": [
+        "1f6aff41-f007-49ae-ae31-ba986539fc88",
+        "5c769064-5f65-4595-a635-2ee5794e493a",
+        "16b2c8c3-ac76-49d9-896c-1afd12f3fd99",
+        "4b09617d-8e77-4a2f-aa47-f4262a5912a2",
+        "bb8016c4-38cc-4f50-a9e6-47f469c98e01",
+        "3687f133-7cfb-4952-8e98-43646b33e5b6"
+      ],
+      "retrieved_sources": [
+        "google-developers",
+        "google-developers",
+        "google-developers",
+        "google-developers",
+        "google-developers",
+        "google-developers"
+      ],
+      "retrieved_titles": [
+        "Run Ray on TPU, Part 1: The foundations",
+        "Run Ray on TPU, Part 1: The foundations",
+        "Run Ray on TPU, Part 2: Ray AI libraries",
+        "Run Ray on TPU, Part 2: Ray AI libraries",
+        "We terminated a TPU mid-training and it recovered in seconds: Introduction to elastic training with MaxText",
+        "We terminated a TPU mid-training and it recovered in seconds: Introduction to elastic training with MaxText"
+      ],
+      "scores": [
+        1.0,
+        0.8572,
+        0.8572,
+        0.8572,
+        0.7143,
+        0.7143
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.3333,
+      "reciprocal_rank": 0.3333,
+      "first_relevant_rank": 3,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "Ray AI libraries"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 592,
+      "total_ms": 592,
+      "notes": "Distinguishes part two from the foundations article."
+    },
+    {
+      "id": "temporal_latest_vllm_stable",
+      "question": "What stable vLLM release was published after July 24, 2026?",
+      "intent": "temporal",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What stable vLLM release was published after July 24, 2026?",
+        "top_k": 5,
+        "source_names": [
+          "vllm"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": [
+          "stable"
+        ],
+        "collection": "updates",
+        "published_after": "2026-07-24T23:59:59Z",
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "a9e39208-9bdb-4881-9d1d-a8ea199b7553"
+      ],
+      "required_source_names": [
+        "vllm"
+      ],
+      "required_text_terms": [
+        "v0.26.0"
+      ],
+      "retrieved_document_ids": [
+        "a9e39208-9bdb-4881-9d1d-a8ea199b7553",
+        "a9e39208-9bdb-4881-9d1d-a8ea199b7553"
+      ],
+      "retrieved_chunk_ids": [
+        "2080eea8-82b8-4eae-9bdc-05becb167260",
+        "62ade659-997a-42c3-a690-d43eeea33fc4"
+      ],
+      "retrieved_sources": [
+        "vllm",
+        "vllm"
+      ],
+      "retrieved_titles": [
+        "v0.26.0",
+        "v0.26.0"
+      ],
+      "scores": [
+        1.0,
+        1.0
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "v0.26.0"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 32,
+      "total_ms": 32,
+      "notes": "Tests source, maturity, and lower-date filters together."
+    },
+    {
+      "id": "temporal_ollama_after_july_24",
+      "question": "Which Ollama releases or release candidates were published after July 24, 2026?",
+      "intent": "temporal",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which Ollama releases or release candidates were published after July 24, 2026?",
+        "top_k": 8,
+        "source_names": [
+          "ollama"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": "2026-07-24T23:59:59Z",
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "9f4250c9-f6fc-4430-b994-3584fdf9e3a8",
+        "895c8c84-5a20-4763-9a82-95f68ed5f703",
+        "54fb60d3-5a27-4b32-a6e9-758b64c1e9c1"
+      ],
+      "required_source_names": [
+        "ollama"
+      ],
+      "required_text_terms": [
+        "v0.32.4",
+        "v0.32.5-rc0"
+      ],
+      "retrieved_document_ids": [],
+      "retrieved_chunk_ids": [],
+      "retrieved_sources": [],
+      "retrieved_titles": [],
+      "scores": [],
+      "recall_at_k": 0.0,
+      "precision_at_k": 0.0,
+      "reciprocal_rank": 0.0,
+      "first_relevant_rank": null,
+      "all_relevant_documents_hit": false,
+      "all_required_sources_hit": false,
+      "required_text_hits": [],
+      "required_text_coverage": 0.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": false,
+      "embedding_ms": 0,
+      "retrieval_ms": 18,
+      "total_ms": 18,
+      "notes": "Multi-document temporal listing over sparse release records."
+    },
+    {
+      "id": "temporal_nvidia_july_27",
+      "question": "What NVIDIA technical articles were published on July 27, 2026?",
+      "intent": "temporal",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What NVIDIA technical articles were published on July 27, 2026?",
+        "top_k": 8,
+        "source_names": [
+          "nvidia-technical-blog"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": "2026-07-27T00:00:00Z",
+        "published_before": "2026-07-27T23:59:59Z",
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "e0523017-4cdf-4b3d-92df-a5a81951faff",
+        "eb7bd945-34ce-4846-a45b-d313e9450553"
+      ],
+      "required_source_names": [
+        "nvidia-technical-blog"
+      ],
+      "required_text_terms": [
+        "semiconductor",
+        "RTL coding"
+      ],
+      "retrieved_document_ids": [
+        "e0523017-4cdf-4b3d-92df-a5a81951faff",
+        "e0523017-4cdf-4b3d-92df-a5a81951faff",
+        "eb7bd945-34ce-4846-a45b-d313e9450553",
+        "eb7bd945-34ce-4846-a45b-d313e9450553"
+      ],
+      "retrieved_chunk_ids": [
+        "62c49e53-d75f-4eb7-8f62-183b854f11b8",
+        "b7b74187-6c09-4a2f-9399-98f88fe9495f",
+        "9803df25-c779-4c23-a11f-bbb116f2e399",
+        "b821e1df-3e52-46e7-a21e-3846cb16392f"
+      ],
+      "retrieved_sources": [
+        "nvidia-technical-blog",
+        "nvidia-technical-blog",
+        "nvidia-technical-blog",
+        "nvidia-technical-blog"
+      ],
+      "retrieved_titles": [
+        "Advancing Semiconductor Innovation Across Materials Engineering and Manufacturing",
+        "Advancing Semiconductor Innovation Across Materials Engineering and Manufacturing",
+        "NVIDIA Nemotron 3 Ultra Leads Open Models on Accuracy and Efficiency in Agentic RTL Coding",
+        "NVIDIA Nemotron 3 Ultra Leads Open Models on Accuracy and Efficiency in Agentic RTL Coding"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "semiconductor",
+        "RTL coding"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 25,
+      "total_ms": 25,
+      "notes": "Date-window listing with two documents."
+    },
+    {
+      "id": "temporal_github_july_24",
+      "question": "Which GitHub Copilot model-availability update was published on July 24, 2026?",
+      "intent": "temporal",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which GitHub Copilot model-availability update was published on July 24, 2026?",
+        "top_k": 5,
+        "source_names": [
+          "github-changelog"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": "2026-07-24T00:00:00Z",
+        "published_before": "2026-07-24T23:59:59Z",
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "d24d03cb-7a76-484c-a3b5-1b023ca7b9d6"
+      ],
+      "required_source_names": [
+        "github-changelog"
+      ],
+      "required_text_terms": [
+        "Claude Opus 5",
+        "GitHub Copilot"
+      ],
+      "retrieved_document_ids": [
+        "d24d03cb-7a76-484c-a3b5-1b023ca7b9d6"
+      ],
+      "retrieved_chunk_ids": [
+        "bc2bd8b9-8d17-4a22-a291-43ce76c17278"
+      ],
+      "retrieved_sources": [
+        "github-changelog"
+      ],
+      "retrieved_titles": [
+        "Claude Opus 5 is now available in GitHub Copilot"
+      ],
+      "scores": [
+        1.0
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "Claude Opus 5",
+        "GitHub Copilot"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 18,
+      "total_ms": 18,
+      "notes": "Date and source filter with an exact availability event."
+    },
+    {
+      "id": "temporal_batch_retrieval_research",
+      "question": "Which July 24 Batch article reported research about LLM web retrieval failures?",
+      "intent": "temporal",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which July 24 Batch article reported research about LLM web retrieval failures?",
+        "top_k": 5,
+        "source_names": [
+          "the-batch"
+        ],
+        "tools": null,
+        "categories": [
+          "retrieval-data"
+        ],
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": "2026-07-24T00:00:00Z",
+        "published_before": "2026-07-24T23:59:59Z",
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "6f6cd373-030a-4c00-aab1-a23fc16367b6"
+      ],
+      "required_source_names": [
+        "the-batch"
+      ],
+      "required_text_terms": [
+        "retrieval failures",
+        "Hindi"
+      ],
+      "retrieved_document_ids": [
+        "6f6cd373-030a-4c00-aab1-a23fc16367b6",
+        "6f6cd373-030a-4c00-aab1-a23fc16367b6",
+        "49f5612a-6eed-4153-8224-664b84314cb5",
+        "49f5612a-6eed-4153-8224-664b84314cb5"
+      ],
+      "retrieved_chunk_ids": [
+        "852ebecd-9ad1-44d0-94ed-765b72536a89",
+        "dc5e4b9b-ebe8-40ae-8a20-bf3d2a1a2350",
+        "4f5135e1-165a-47c1-ba57-8c1487bc1e58",
+        "5aadb86d-4c1f-4235-9f62-e18224564b30"
+      ],
+      "retrieved_sources": [
+        "the-batch",
+        "the-batch",
+        "the-batch",
+        "the-batch"
+      ],
+      "retrieved_titles": [
+        "Web Retrieval Flusters LLMs",
+        "Web Retrieval Flusters LLMs",
+        "Cloudflare\u2019s Web Crawler Flare-Up",
+        "Cloudflare\u2019s Web Crawler Flare-Up"
+      ],
+      "scores": [
+        1.0,
+        0.6666,
+        0.1666,
+        0.1666
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.5,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "retrieval failures",
+        "Hindi"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 24,
+      "total_ms": 24,
+      "notes": "Combines source, date, and topic filtering."
+    },
+    {
+      "id": "compare_claude_opus_5_availability",
+      "question": "Compare the Claude Opus 5 announcements from Anthropic, AWS, and GitHub Copilot.",
+      "intent": "comparison",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Compare the Claude Opus 5 announcements from Anthropic, AWS, and GitHub Copilot.",
+        "top_k": 10,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "6cbb2781-2e14-4b10-a5f4-3d930bd2478d",
+        "6406e980-a5de-42cc-bc8e-6a752d3bc984",
+        "d24d03cb-7a76-484c-a3b5-1b023ca7b9d6"
+      ],
+      "required_source_names": [
+        "anthropic-news",
+        "aws-machine-learning",
+        "github-changelog"
+      ],
+      "required_text_terms": [
+        "Claude Opus 5",
+        "Amazon Bedrock",
+        "GitHub Copilot"
+      ],
+      "retrieved_document_ids": [
+        "d24d03cb-7a76-484c-a3b5-1b023ca7b9d6",
+        "6406e980-a5de-42cc-bc8e-6a752d3bc984",
+        "efacb28a-1891-4c5a-9a83-f561ee4a1d49",
+        "008cb317-bdd2-4bdd-ba77-ab51a3328385",
+        "008cb317-bdd2-4bdd-ba77-ab51a3328385",
+        "6406e980-a5de-42cc-bc8e-6a752d3bc984",
+        "06ec7476-70ee-432d-8600-2e4a8eae0abe",
+        "4520bdba-c5ef-4ff7-88f9-211a062e562a",
+        "4520bdba-c5ef-4ff7-88f9-211a062e562a",
+        "8e7b3957-bb7c-4599-b813-496b8628981e"
+      ],
+      "retrieved_chunk_ids": [
+        "bc2bd8b9-8d17-4a22-a291-43ce76c17278",
+        "797adc88-381a-49ed-8523-faf66cf9b42e",
+        "a6683b1a-0fa8-477c-b81f-e5e78216dd6c",
+        "f68faee3-4ece-4c9a-aa12-8db8742cbd21",
+        "0c0dcb3c-092a-4fc6-bc69-451a59566669",
+        "e68b4875-2c03-48f4-83fe-664b41bc8741",
+        "5a514399-45cc-4206-a3ea-238fcbc64166",
+        "51076316-8ab5-4114-88aa-679f7e1cb1a6",
+        "e351474c-8f60-4906-bff3-2ea363ec5e37",
+        "270169cc-bc91-4021-b482-312f10378eaf"
+      ],
+      "retrieved_sources": [
+        "github-changelog",
+        "aws-machine-learning",
+        "huggingface-blog",
+        "the-batch",
+        "the-batch",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "litellm",
+        "litellm",
+        "litellm"
+      ],
+      "retrieved_titles": [
+        "Claude Opus 5 is now available in GitHub Copilot",
+        "Introducing Claude Opus 5 on AWS: Anthropic\u2019s most capable Opus model",
+        "We got local models to triage the OpenClaw repo for FREE!*",
+        "Fable\u2019s Return and Fallout",
+        "Fable\u2019s Return and Fallout",
+        "Introducing Claude Opus 5 on AWS: Anthropic\u2019s most capable Opus model",
+        "Building trade assistant: How Jefferies optimized front office trading operations with AI",
+        "v1.93.0",
+        "v1.93.0",
+        "v1.94.0-dev.3"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        0.7999,
+        0.7999,
+        0.7999,
+        0.7999,
+        0.6,
+        0.6,
+        0.6,
+        0.6
+      ],
+      "recall_at_k": 0.6667,
+      "precision_at_k": 0.2857,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": false,
+      "all_required_sources_hit": false,
+      "required_text_hits": [
+        "Claude Opus 5",
+        "Amazon Bedrock",
+        "GitHub Copilot"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 810,
+      "total_ms": 810,
+      "notes": "Three-source comparison of a model launch and downstream availability."
+    },
+    {
+      "id": "compare_gemini_36_flash_availability",
+      "question": "Compare Gemini 3.6 Flash availability from Google DeepMind and GitHub Copilot.",
+      "intent": "comparison",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Compare Gemini 3.6 Flash availability from Google DeepMind and GitHub Copilot.",
+        "top_k": 8,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "6281be38-bd0f-428b-ac00-fad6d4f3c48b",
+        "1482dead-9b32-4f1e-ae2b-0e413d2595c2"
+      ],
+      "required_source_names": [
+        "deepmind-blog",
+        "github-changelog"
+      ],
+      "required_text_terms": [
+        "Gemini 3.6 Flash",
+        "GitHub Copilot"
+      ],
+      "retrieved_document_ids": [
+        "1482dead-9b32-4f1e-ae2b-0e413d2595c2",
+        "036d0e63-7239-4a9f-a92b-43044f4e9a0a",
+        "13780809-074e-4f61-b374-c6751bd7b50f",
+        "cd4c9d8f-7ada-42be-9769-df0113f11e6f",
+        "3f0598fb-0315-4c8b-a761-543e243cbc87",
+        "45ad611e-376c-42e3-9507-adee7257c5b0",
+        "6f6cd373-030a-4c00-aab1-a23fc16367b6",
+        "6d5b03a8-71db-41ac-b331-7cf95ea3011f"
+      ],
+      "retrieved_chunk_ids": [
+        "e2d28821-69ab-4687-9989-a35f7c7c1654",
+        "5e946ca9-045e-4b85-8fa6-37ea12f589f3",
+        "3bc0eb6d-adc0-4902-b219-99ac073703f7",
+        "e065e125-fb91-41b3-bcce-35a6f5b16e00",
+        "4a5af0c3-28bf-4d82-ace9-1e7ec1eb3960",
+        "cbad924e-a74c-4152-8f13-9a9a540e47b7",
+        "852ebecd-9ad1-44d0-94ed-765b72536a89",
+        "cc2620f7-7f06-43d6-b804-e1a4f9b8e660"
+      ],
+      "retrieved_sources": [
+        "github-changelog",
+        "google-developers",
+        "the-batch",
+        "huggingface-blog",
+        "github-changelog",
+        "the-batch",
+        "the-batch",
+        "the-batch"
+      ],
+      "retrieved_titles": [
+        "Gemini 3.6 Flash is now available in GitHub Copilot",
+        "Build agentic full-stack apps with Genkit",
+        "Google Pairs Nano Banana Update With Video API",
+        "Experimenting with the proposed Cross-Origin Storage API in Transformers.js",
+        "GitHub Code Quality is now generally available",
+        "Meta Sparks A Price War",
+        "Web Retrieval Flusters LLMs",
+        "One Model Talks, Another One Thinks"
+      ],
+      "scores": [
+        1.0,
+        0.8334,
+        0.6667,
+        0.5001,
+        0.5001,
+        0.5001,
+        0.5001,
+        0.5001
+      ],
+      "recall_at_k": 0.5,
+      "precision_at_k": 0.125,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": false,
+      "all_required_sources_hit": false,
+      "required_text_hits": [
+        "Gemini 3.6 Flash",
+        "GitHub Copilot"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 896,
+      "total_ms": 896,
+      "notes": "Cross-source launch and integration comparison."
+    },
+    {
+      "id": "compare_agentic_retrieval_findings",
+      "question": "Compare AWS guidance on agentic retrieval with research findings about LLM web retrieval failures.",
+      "intent": "comparison",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Compare AWS guidance on agentic retrieval with research findings about LLM web retrieval failures.",
+        "top_k": 10,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "1919ed28-ec5e-4039-91e1-89215515b92b",
+        "6f6cd373-030a-4c00-aab1-a23fc16367b6"
+      ],
+      "required_source_names": [
+        "aws-machine-learning",
+        "the-batch"
+      ],
+      "required_text_terms": [
+        "agentic retrieval",
+        "retrieval failures"
+      ],
+      "retrieved_document_ids": [
+        "6f6cd373-030a-4c00-aab1-a23fc16367b6",
+        "6f6cd373-030a-4c00-aab1-a23fc16367b6",
+        "e194fd6f-f837-48a1-8af3-94214a9a2407",
+        "9e075849-8a0a-40e8-83bf-9fc22972259f",
+        "9e075849-8a0a-40e8-83bf-9fc22972259f",
+        "f32f6ea6-66aa-4df0-9818-8db5b9642863",
+        "06ec7476-70ee-432d-8600-2e4a8eae0abe",
+        "06ec7476-70ee-432d-8600-2e4a8eae0abe",
+        "fe409f38-eb0f-42b1-8095-58ca35fe52a0",
+        "e8c5cd57-6ff6-46cb-937a-7d2bdb21639c"
+      ],
+      "retrieved_chunk_ids": [
+        "852ebecd-9ad1-44d0-94ed-765b72536a89",
+        "dc5e4b9b-ebe8-40ae-8a20-bf3d2a1a2350",
+        "eb7a4c48-8bd9-4d13-9505-56ba96654b4a",
+        "df927782-d06e-4e17-b985-3339ea24b300",
+        "46b84da3-2834-4201-a60f-d2f75140f39a",
+        "708a1131-d6bf-4c35-8791-2a67e32de062",
+        "b91dd841-47fc-4ede-b0cb-8ab7594c75c5",
+        "3534021e-284f-4e91-ba99-24ba6d0541ef",
+        "fb67163e-7222-4b52-976b-873dcc82fa5e",
+        "4ad920f8-c535-4f17-bd29-e2588919c7be"
+      ],
+      "retrieved_sources": [
+        "the-batch",
+        "the-batch",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "transformers",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "pytorch-blog"
+      ],
+      "retrieved_titles": [
+        "Web Retrieval Flusters LLMs",
+        "Web Retrieval Flusters LLMs",
+        "How Smartsheet built a remote MCP server on AWS",
+        "Build enterprise search for agents with Amazon Bedrock Managed Knowledge Base",
+        "Build enterprise search for agents with Amazon Bedrock Managed Knowledge Base",
+        "Release v5.14.0",
+        "Building trade assistant: How Jefferies optimized front office trading operations with AI",
+        "Building trade assistant: How Jefferies optimized front office trading operations with AI",
+        "Exploring self-distilled reasoning for supervised fine-tuning with Amazon Nova",
+        "Shopify Joins the PyTorch Foundation as a Platinum Member"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.7999,
+        0.7999,
+        0.7999,
+        0.7999,
+        0.7999
+      ],
+      "recall_at_k": 0.5,
+      "precision_at_k": 0.1429,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": false,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "agentic retrieval",
+        "retrieval failures"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 788,
+      "total_ms": 788,
+      "notes": "Comparison between implementation guidance and research evidence."
+    },
+    {
+      "id": "compare_fine_tuning_methods",
+      "question": "Compare Hugging Face's PEFT findings with AWS self-distilled reasoning for supervised fine-tuning.",
+      "intent": "comparison",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Compare Hugging Face's PEFT findings with AWS self-distilled reasoning for supervised fine-tuning.",
+        "top_k": 10,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "c8e2fd17-51e6-4f3b-b12f-8814ecb37d1c",
+        "fe409f38-eb0f-42b1-8095-58ca35fe52a0"
+      ],
+      "required_source_names": [
+        "huggingface-blog",
+        "aws-machine-learning"
+      ],
+      "required_text_terms": [
+        "LoRA",
+        "self-distilled reasoning"
+      ],
+      "retrieved_document_ids": [
+        "fe409f38-eb0f-42b1-8095-58ca35fe52a0",
+        "c8e2fd17-51e6-4f3b-b12f-8814ecb37d1c",
+        "fe409f38-eb0f-42b1-8095-58ca35fe52a0",
+        "df7316aa-1158-4ea7-ada6-5ee7afe396aa",
+        "c8e2fd17-51e6-4f3b-b12f-8814ecb37d1c",
+        "7beaf556-d388-4d67-8e8f-81fd48607a3d",
+        "7cb5f13e-6199-4fc6-a179-1446d2fc85ec",
+        "4569cc71-ca4a-46bf-a068-fa6a46b2dbf7",
+        "a08cc135-f448-4151-a6ab-e528355f2135",
+        "c0962845-96b9-4bad-9f11-18ca91cc3b7d"
+      ],
+      "retrieved_chunk_ids": [
+        "b3495d64-f2bb-4139-8b71-1dbf13134e14",
+        "d208524c-b709-4d8a-8d31-bf6ca1b91776",
+        "6eab8627-2074-46dd-a2ca-ebb49f764b6c",
+        "f6f1f026-b718-4c50-b4f7-609c50f2ee5b",
+        "2e6029ca-7fc7-438c-947d-09967a1d8148",
+        "6791f399-a241-455a-b219-995938a8f3c3",
+        "1bdf1739-17ec-4278-8b80-7cac7a808893",
+        "38a46198-8e96-4ce4-8323-b335b10befbb",
+        "e5d29250-32d1-48ec-a3d3-b83394014134",
+        "f12c8dc9-48a7-47e9-96e9-2029a0ff6299"
+      ],
+      "retrieved_sources": [
+        "aws-machine-learning",
+        "huggingface-blog",
+        "aws-machine-learning",
+        "google-developers",
+        "huggingface-blog",
+        "openai-news",
+        "aws-machine-learning",
+        "huggingface-blog",
+        "huggingface-blog",
+        "huggingface-blog"
+      ],
+      "retrieved_titles": [
+        "Exploring self-distilled reasoning for supervised fine-tuning with Amazon Nova",
+        "Beyond LoRA: Can you beat the most popular fine-tuning technique?",
+        "Exploring self-distilled reasoning for supervised fine-tuning with Amazon Nova",
+        "Scaling Agentic RL: High-Throughput Agentic Training with Tunix",
+        "Beyond LoRA: Can you beat the most popular fine-tuning technique?",
+        "OpenAI and Hugging Face partner to address security incident during model evaluation",
+        "How Couchbase built a multi-model AI architecture for Capella iQ with Amazon Bedrock",
+        "What building Shippy taught us about building agents",
+        "Hugging Face Models on Foundry Managed Compute",
+        "Accelerating Transformers Fine-Tuning with NVIDIA NeMo AutoModel"
+      ],
+      "scores": [
+        1.0,
+        0.8572,
+        0.7143,
+        0.7143,
+        0.5714,
+        0.4285,
+        0.4285,
+        0.4285,
+        0.4285,
+        0.4285
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.25,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "LoRA",
+        "self-distilled reasoning"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 674,
+      "total_ms": 675,
+      "notes": "Cross-source comparison of distinct fine-tuning approaches."
+    },
+    {
+      "id": "compare_agent_security_research",
+      "question": "Compare DeepMind's agent-security research with Hugging Face's MosaicLeaks findings.",
+      "intent": "comparison",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Compare DeepMind's agent-security research with Hugging Face's MosaicLeaks findings.",
+        "top_k": 10,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "b35f1c85-6c51-4f90-bce5-859f517e5c4c",
+        "b52bca8f-222e-4427-aba2-dcec766b3724"
+      ],
+      "required_source_names": [
+        "deepmind-blog",
+        "huggingface-blog"
+      ],
+      "required_text_terms": [
+        "AI agents",
+        "MosaicLeaks"
+      ],
+      "retrieved_document_ids": [
+        "a0c77e52-b0ed-4b53-b13c-4dfbbbcde2da",
+        "a0c77e52-b0ed-4b53-b13c-4dfbbbcde2da",
+        "7beaf556-d388-4d67-8e8f-81fd48607a3d",
+        "fe409f38-eb0f-42b1-8095-58ca35fe52a0",
+        "4c71b7e2-bfcc-4bdf-bb72-27e2ff52c101",
+        "122848c5-cfca-4561-840a-ea2d2005a643",
+        "4c71b7e2-bfcc-4bdf-bb72-27e2ff52c101",
+        "b5a55c30-ae9d-4658-b0d7-9383f0d97d89",
+        "b5a55c30-ae9d-4658-b0d7-9383f0d97d89",
+        "8c069ff1-0965-4aa8-bee0-a4fafe706d45"
+      ],
+      "retrieved_chunk_ids": [
+        "e7aec682-76cb-406c-a78b-8a85dbff9772",
+        "dbd2d8b1-5e07-4744-b2bd-330b08eae087",
+        "6791f399-a241-455a-b219-995938a8f3c3",
+        "b3495d64-f2bb-4139-8b71-1dbf13134e14",
+        "cd2f282c-8a08-4577-a87b-ac5ed7e98285",
+        "a98c86ad-f6b1-4624-a028-e3de3d766c14",
+        "9921e1cd-cb97-4a03-bb74-897836acc13e",
+        "a2682f9e-9820-4cec-9c3a-72c6657ce1a0",
+        "fc7957bc-51bf-425a-8de6-9c15ef2d490a",
+        "08e666a8-79eb-4158-9360-4cd3fcbbe024"
+      ],
+      "retrieved_sources": [
+        "openai-news",
+        "openai-news",
+        "openai-news",
+        "aws-machine-learning",
+        "huggingface-blog",
+        "huggingface-blog",
+        "huggingface-blog",
+        "pytorch-blog",
+        "pytorch-blog",
+        "deepmind-blog"
+      ],
+      "retrieved_titles": [
+        "OpenAI and Hugging Face partner to address security incident during model evaluation",
+        "OpenAI and Hugging Face partner to address security incident during model evaluation",
+        "OpenAI and Hugging Face partner to address security incident during model evaluation",
+        "Exploring self-distilled reasoning for supervised fine-tuning with Amazon Nova",
+        "ScarfBench: Benchmarking AI Agents for Enterprise Java Framework Migration",
+        "Featuring Every Eval Ever Results on Hugging Face Model Pages",
+        "ScarfBench: Benchmarking AI Agents for Enterprise Java Framework Migration",
+        "Driving the Future of Open Source AI: An Update from PyTorch Foundation Projects",
+        "Driving the Future of Open Source AI: An Update from PyTorch Foundation Projects",
+        "Accelerating the frontiers of scientific discovery: Google\u2019s $40M commitment to the Genesis Mission"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        0.7501,
+        0.7501,
+        0.7501,
+        0.7501,
+        0.7501,
+        0.7501,
+        0.7501,
+        0.7501
+      ],
+      "recall_at_k": 0.0,
+      "precision_at_k": 0.0,
+      "reciprocal_rank": 0.0,
+      "first_relevant_rank": null,
+      "all_relevant_documents_hit": false,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "AI agents"
+      ],
+      "required_text_coverage": 0.5,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 851,
+      "total_ms": 851,
+      "notes": "Cross-source security research comparison."
+    },
+    {
+      "id": "filter_litellm_development_api_changes",
+      "question": "Which LiteLLM development releases include API changes?",
+      "intent": "filter",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which LiteLLM development releases include API changes?",
+        "top_k": 8,
+        "source_names": [
+          "litellm"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": [
+          "api-change"
+        ],
+        "source_types": null,
+        "maturities": [
+          "development"
+        ],
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "4bc7d9b1-dd0e-42cc-aae7-4e6cf83fec00",
+        "05725de1-5720-4928-a220-82bb4f3c04e5"
+      ],
+      "required_source_names": [
+        "litellm"
+      ],
+      "required_text_terms": [
+        "v1.95.0-dev.1",
+        "v1.95.0-dev.2"
+      ],
+      "retrieved_document_ids": [
+        "4bc7d9b1-dd0e-42cc-aae7-4e6cf83fec00",
+        "4bc7d9b1-dd0e-42cc-aae7-4e6cf83fec00",
+        "05725de1-5720-4928-a220-82bb4f3c04e5",
+        "05725de1-5720-4928-a220-82bb4f3c04e5"
+      ],
+      "retrieved_chunk_ids": [
+        "991cfbf8-c9b1-4c98-b3e9-e7a215c943e9",
+        "fff08f05-4457-4be5-8d0a-9bfa51014f12",
+        "ce3a573c-7b77-4af7-b86b-955a79a59b9b",
+        "ef540577-97de-4661-9244-b69a825b210f"
+      ],
+      "retrieved_sources": [
+        "litellm",
+        "litellm",
+        "litellm",
+        "litellm"
+      ],
+      "retrieved_titles": [
+        "v1.95.0-dev.1",
+        "v1.95.0-dev.1",
+        "v1.95.0-dev.2",
+        "v1.95.0-dev.2"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        1.0,
+        0.5002
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "v1.95.0-dev.1",
+        "v1.95.0-dev.2"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 11,
+      "total_ms": 11,
+      "notes": "Combined source, event, and maturity filter."
+    },
+    {
+      "id": "filter_retrieval_research",
+      "question": "What research-result update is categorized as retrieval-data?",
+      "intent": "filter",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What research-result update is categorized as retrieval-data?",
+        "top_k": 6,
+        "source_names": null,
+        "tools": null,
+        "categories": [
+          "retrieval-data"
+        ],
+        "event_types": [
+          "research-result"
+        ],
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "6f6cd373-030a-4c00-aab1-a23fc16367b6"
+      ],
+      "required_source_names": [
+        "the-batch"
+      ],
+      "required_text_terms": [
+        "Web Retrieval Flusters LLMs"
+      ],
+      "retrieved_document_ids": [],
+      "retrieved_chunk_ids": [],
+      "retrieved_sources": [],
+      "retrieved_titles": [],
+      "scores": [],
+      "recall_at_k": 0.0,
+      "precision_at_k": 0.0,
+      "reciprocal_rank": 0.0,
+      "first_relevant_rank": null,
+      "all_relevant_documents_hit": false,
+      "all_required_sources_hit": false,
+      "required_text_hits": [],
+      "required_text_coverage": 0.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": false,
+      "embedding_ms": 0,
+      "retrieval_ms": 7,
+      "total_ms": 7,
+      "notes": "Topic and event filter intersection."
+    },
+    {
+      "id": "filter_recent_openai_security",
+      "question": "Which OpenAI security-issue update was published after July 20, 2026?",
+      "intent": "filter",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which OpenAI security-issue update was published after July 20, 2026?",
+        "top_k": 6,
+        "source_names": [
+          "openai-news"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": [
+          "security-issue"
+        ],
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": "2026-07-20T00:00:00Z",
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "7beaf556-d388-4d67-8e8f-81fd48607a3d"
+      ],
+      "required_source_names": [
+        "openai-news"
+      ],
+      "required_text_terms": [
+        "security incident",
+        "model evaluation"
+      ],
+      "retrieved_document_ids": [
+        "7beaf556-d388-4d67-8e8f-81fd48607a3d"
+      ],
+      "retrieved_chunk_ids": [
+        "6791f399-a241-455a-b219-995938a8f3c3"
+      ],
+      "retrieved_sources": [
+        "openai-news"
+      ],
+      "retrieved_titles": [
+        "OpenAI and Hugging Face partner to address security incident during model evaluation"
+      ],
+      "scores": [
+        1.0
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "security incident",
+        "model evaluation"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 5,
+      "total_ms": 5,
+      "notes": "Event, source, and date filtering over duplicate story coverage."
+    },
+    {
+      "id": "filter_github_preview",
+      "question": "Which GitHub Copilot update is in public preview?",
+      "intent": "filter",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which GitHub Copilot update is in public preview?",
+        "top_k": 5,
+        "source_names": [
+          "github-changelog"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": [
+          "preview"
+        ],
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "36e2138c-00b8-4032-b71a-0976de30ea1b"
+      ],
+      "required_source_names": [
+        "github-changelog"
+      ],
+      "required_text_terms": [
+        "Agent automation controls",
+        "public preview"
+      ],
+      "retrieved_document_ids": [
+        "36e2138c-00b8-4032-b71a-0976de30ea1b",
+        "36e2138c-00b8-4032-b71a-0976de30ea1b"
+      ],
+      "retrieved_chunk_ids": [
+        "1d39175a-5735-461f-b83d-d451046f7dd4",
+        "a2f5ad52-fa2e-4987-8830-0796a753ac08"
+      ],
+      "retrieved_sources": [
+        "github-changelog",
+        "github-changelog"
+      ],
+      "retrieved_titles": [
+        "Agent automation controls in GitHub Issues in public preview",
+        "Agent automation controls in GitHub Issues in public preview"
+      ],
+      "scores": [
+        1.0,
+        0.8
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "Agent automation controls",
+        "public preview"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 5,
+      "total_ms": 5,
+      "notes": "Source and lifecycle filter."
+    },
+    {
+      "id": "filter_nvidia_benchmark",
+      "question": "Which NVIDIA AI update reports a benchmark result?",
+      "intent": "filter",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which NVIDIA AI update reports a benchmark result?",
+        "top_k": 6,
+        "source_names": null,
+        "tools": [
+          "NVIDIA AI"
+        ],
+        "categories": null,
+        "event_types": [
+          "benchmark-result"
+        ],
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "3f157a88-fbb4-4383-b49b-ae8407e0c7df"
+      ],
+      "required_source_names": [
+        "nvidia-technical-blog"
+      ],
+      "required_text_terms": [
+        "world record",
+        "MoE pre-training"
+      ],
+      "retrieved_document_ids": [
+        "3f157a88-fbb4-4383-b49b-ae8407e0c7df",
+        "3f157a88-fbb4-4383-b49b-ae8407e0c7df"
+      ],
+      "retrieved_chunk_ids": [
+        "042f27f7-3c23-4356-ae0d-e0535dc1abd5",
+        "790e34e1-dc95-4b42-91c3-0fcce1cc7040"
+      ],
+      "retrieved_sources": [
+        "nvidia-technical-blog",
+        "nvidia-technical-blog"
+      ],
+      "retrieved_titles": [
+        "Setting a World Record for MoE Pre-Training on NVIDIA GB300 NVL72",
+        "Setting a World Record for MoE Pre-Training on NVIDIA GB300 NVL72"
+      ],
+      "scores": [
+        1.0,
+        1.0
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 1.0,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "world record",
+        "MoE pre-training"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 5,
+      "total_ms": 5,
+      "notes": "Tool and event filter."
+    },
+    {
+      "id": "synthesis_monday_agents",
+      "question": "How does monday.com operate production AI agents on Amazon Bedrock?",
+      "intent": "synthesis",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "How does monday.com operate production AI agents on Amazon Bedrock?",
+        "top_k": 8,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "1ad3dc0c-00fc-4317-8b1e-2102afc52b22"
+      ],
+      "required_source_names": [
+        "aws-machine-learning"
+      ],
+      "required_text_terms": [
+        "SNS",
+        "SQS",
+        "EFS"
+      ],
+      "retrieved_document_ids": [
+        "1ad3dc0c-00fc-4317-8b1e-2102afc52b22",
+        "1ad3dc0c-00fc-4317-8b1e-2102afc52b22",
+        "c1dc2827-04c0-4356-99b2-09082b1e6f03",
+        "06ec7476-70ee-432d-8600-2e4a8eae0abe",
+        "06ec7476-70ee-432d-8600-2e4a8eae0abe",
+        "fe409f38-eb0f-42b1-8095-58ca35fe52a0",
+        "7cb5f13e-6199-4fc6-a179-1446d2fc85ec",
+        "9e075849-8a0a-40e8-83bf-9fc22972259f"
+      ],
+      "retrieved_chunk_ids": [
+        "fcbad5d1-9c05-41b0-852d-18e222a542ec",
+        "4332f237-b0cb-4382-8198-7f1d3429f204",
+        "4b428aa0-6004-4757-bd54-af388f2653e6",
+        "5a514399-45cc-4206-a3ea-238fcbc64166",
+        "4e194994-e87b-4ad8-bac3-01d709dc18b5",
+        "fb67163e-7222-4b52-976b-873dcc82fa5e",
+        "11547940-db2b-4797-af45-f1ce90a83acd",
+        "df927782-d06e-4e17-b985-3339ea24b300"
+      ],
+      "retrieved_sources": [
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning"
+      ],
+      "retrieved_titles": [
+        "AI Teammates: how monday.com runs production AI agents on Amazon Bedrock",
+        "AI Teammates: how monday.com runs production AI agents on Amazon Bedrock",
+        "Detecting silent agent failures with Amazon Bedrock AgentCore optimization",
+        "Building trade assistant: How Jefferies optimized front office trading operations with AI",
+        "Building trade assistant: How Jefferies optimized front office trading operations with AI",
+        "Exploring self-distilled reasoning for supervised fine-tuning with Amazon Nova",
+        "How Couchbase built a multi-model AI architecture for Capella iQ with Amazon Bedrock",
+        "Build enterprise search for agents with Amazon Bedrock Managed Knowledge Base"
+      ],
+      "scores": [
+        1.0,
+        0.8571,
+        0.8571,
+        0.7143,
+        0.7143,
+        0.7143,
+        0.7143,
+        0.7143
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.1667,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [],
+      "required_text_coverage": 0.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 620,
+      "total_ms": 620,
+      "notes": "Requires several architecture details from a long article."
+    },
+    {
+      "id": "synthesis_bedrock_guardrails",
+      "question": "What practices does AWS recommend for applying Bedrock Guardrails to code generation?",
+      "intent": "synthesis",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What practices does AWS recommend for applying Bedrock Guardrails to code generation?",
+        "top_k": 8,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "27565c23-0b60-4a4c-b260-66ef61be5c66"
+      ],
+      "required_source_names": [
+        "aws-machine-learning"
+      ],
+      "required_text_terms": [
+        "Amazon Bedrock Guardrails",
+        "code generation"
+      ],
+      "retrieved_document_ids": [
+        "27565c23-0b60-4a4c-b260-66ef61be5c66",
+        "27565c23-0b60-4a4c-b260-66ef61be5c66",
+        "7cb5f13e-6199-4fc6-a179-1446d2fc85ec",
+        "06ec7476-70ee-432d-8600-2e4a8eae0abe",
+        "06ec7476-70ee-432d-8600-2e4a8eae0abe",
+        "5ba91ee4-6350-467b-a7e5-fe5fdb73cd8e",
+        "7cb5f13e-6199-4fc6-a179-1446d2fc85ec",
+        "fe409f38-eb0f-42b1-8095-58ca35fe52a0"
+      ],
+      "retrieved_chunk_ids": [
+        "f68452f4-0c3c-462b-9a95-684ce32f4497",
+        "bcbbf4ea-63e5-474f-b0e2-db7880d446f6",
+        "1bdf1739-17ec-4278-8b80-7cac7a808893",
+        "4e194994-e87b-4ad8-bac3-01d709dc18b5",
+        "3534021e-284f-4e91-ba99-24ba6d0541ef",
+        "54e9f2b7-04a3-4d97-9f36-2f969a9d687c",
+        "7f1c2772-412c-4753-9d21-00b40bce2fa5",
+        "fb67163e-7222-4b52-976b-873dcc82fa5e"
+      ],
+      "retrieved_sources": [
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "litellm",
+        "aws-machine-learning",
+        "aws-machine-learning"
+      ],
+      "retrieved_titles": [
+        "Best practices for applying Amazon Bedrock Guardrails to code generation workflows",
+        "Best practices for applying Amazon Bedrock Guardrails to code generation workflows",
+        "How Couchbase built a multi-model AI architecture for Capella iQ with Amazon Bedrock",
+        "Building trade assistant: How Jefferies optimized front office trading operations with AI",
+        "Building trade assistant: How Jefferies optimized front office trading operations with AI",
+        "v1.94.0-dev.2",
+        "How Couchbase built a multi-model AI architecture for Capella iQ with Amazon Bedrock",
+        "Exploring self-distilled reasoning for supervised fine-tuning with Amazon Nova"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        0.7143,
+        0.5714,
+        0.5714,
+        0.5714,
+        0.5714,
+        0.5714
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "Amazon Bedrock Guardrails",
+        "code generation"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 682,
+      "total_ms": 682,
+      "notes": "Multi-chunk technical-guidance synthesis."
+    },
+    {
+      "id": "synthesis_cloudflare_crawler_controls",
+      "question": "How do Cloudflare's AI crawler controls, BotBase, and monetization work together?",
+      "intent": "synthesis",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "How do Cloudflare's AI crawler controls, BotBase, and monetization work together?",
+        "top_k": 8,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "49f5612a-6eed-4153-8224-664b84314cb5"
+      ],
+      "required_source_names": [
+        "the-batch"
+      ],
+      "required_text_terms": [
+        "BotBase",
+        "monetization",
+        "training bots"
+      ],
+      "retrieved_document_ids": [
+        "49f5612a-6eed-4153-8224-664b84314cb5",
+        "9e075849-8a0a-40e8-83bf-9fc22972259f",
+        "49f5612a-6eed-4153-8224-664b84314cb5",
+        "129ee26b-90c0-4661-b4d2-3ca0c28da3e1",
+        "564b8e0e-51c8-435f-b654-210e47dd1ed5",
+        "7b05c451-68f3-47d2-90db-82d2b9a4ab9e",
+        "e194fd6f-f837-48a1-8af3-94214a9a2407",
+        "285aa947-0e0f-4215-afac-53fda2850cca"
+      ],
+      "retrieved_chunk_ids": [
+        "f02c35f6-a8d0-42ae-953d-1dd1e60ec14d",
+        "df927782-d06e-4e17-b985-3339ea24b300",
+        "4f5135e1-165a-47c1-ba57-8c1487bc1e58",
+        "13629752-872d-4122-890b-4b727d5c2fcd",
+        "3eee5f06-20b9-4ed3-a816-cb32e8b612e2",
+        "a324cfd8-8086-481e-a2fd-ae10ddfbb717",
+        "8030f446-fe55-4939-b06a-70c1b230efc4",
+        "041433f5-8592-4701-8d4a-2618f23c9cc4"
+      ],
+      "retrieved_sources": [
+        "the-batch",
+        "aws-machine-learning",
+        "the-batch",
+        "aws-machine-learning",
+        "nvidia-technical-blog",
+        "nvidia-technical-blog",
+        "aws-machine-learning",
+        "anthropic-news"
+      ],
+      "retrieved_titles": [
+        "Cloudflare\u2019s Web Crawler Flare-Up",
+        "Build enterprise search for agents with Amazon Bedrock Managed Knowledge Base",
+        "Cloudflare\u2019s Web Crawler Flare-Up",
+        "Introducing Mobile Layout for Amazon Quick dashboards",
+        "Integrate NVIDIA Omniverse RTX Sensor Simulation Into Existing Apps",
+        "Scaling Agentic AI Factories Through Extreme Co-Design with NVIDIA BlueField",
+        "How Smartsheet built a remote MCP server on AWS",
+        "Redeploying Fable 5"
+      ],
+      "scores": [
+        1.0,
+        0.6,
+        0.4,
+        0.4,
+        0.4,
+        0.4,
+        0.4,
+        0.4
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.1429,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "BotBase",
+        "monetization",
+        "training bots"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 946,
+      "total_ms": 946,
+      "notes": "Requires three distinct mechanisms from a long article."
+    },
+    {
+      "id": "synthesis_free_normalization",
+      "question": "How does the PyTorch free-normalization work fuse normalization into GEMM and attention kernels?",
+      "intent": "synthesis",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "How does the PyTorch free-normalization work fuse normalization into GEMM and attention kernels?",
+        "top_k": 8,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "f3b02b4a-c66a-4fd4-8e1a-addb03392bd7"
+      ],
+      "required_source_names": [
+        "pytorch-blog"
+      ],
+      "required_text_terms": [
+        "normalization",
+        "GEMM",
+        "attention"
+      ],
+      "retrieved_document_ids": [
+        "f3b02b4a-c66a-4fd4-8e1a-addb03392bd7",
+        "f3b02b4a-c66a-4fd4-8e1a-addb03392bd7",
+        "db9732e1-faab-4996-87ce-a8eb839819ad",
+        "db9732e1-faab-4996-87ce-a8eb839819ad",
+        "1333b318-1906-49a4-9974-1d280c52ef60",
+        "c0962845-96b9-4bad-9f11-18ca91cc3b7d",
+        "c0962845-96b9-4bad-9f11-18ca91cc3b7d",
+        "a9e39208-9bdb-4881-9d1d-a8ea199b7553"
+      ],
+      "retrieved_chunk_ids": [
+        "93d6bd33-b7b0-4405-b4d0-2eaf76ce181d",
+        "39376c50-89b4-42ab-8414-928643c9c027",
+        "34dbd0e3-d610-4fc0-be92-3c56bef935d7",
+        "f5a7b9e2-1657-4598-ab05-b816b65d405c",
+        "2ec1112f-fd37-4793-b97e-bed32040d713",
+        "ec62b223-2227-464d-96c6-2982af8c937a",
+        "c55ca7d8-386e-439f-93de-ff005835c0a5",
+        "d7d2e975-a56b-428d-b0de-1aab236ece9f"
+      ],
+      "retrieved_sources": [
+        "pytorch-blog",
+        "pytorch-blog",
+        "pytorch-blog",
+        "pytorch-blog",
+        "vllm",
+        "huggingface-blog",
+        "huggingface-blog",
+        "vllm"
+      ],
+      "retrieved_titles": [
+        "Towards Free Normalization: Fusing Normalization into GEMM and Attention Kernels",
+        "Towards Free Normalization: Fusing Normalization into GEMM and Attention Kernels",
+        "PyTorch 2.13 Release Blog",
+        "PyTorch 2.13 Release Blog",
+        "v0.23.0",
+        "Accelerating Transformers Fine-Tuning with NVIDIA NeMo AutoModel",
+        "Accelerating Transformers Fine-Tuning with NVIDIA NeMo AutoModel",
+        "v0.26.0"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.8333,
+        0.8333,
+        0.8333,
+        0.8333
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "normalization",
+        "GEMM",
+        "attention"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 780,
+      "total_ms": 780,
+      "notes": "Research/engineering synthesis across multiple article sections."
+    },
+    {
+      "id": "insufficient_qdrant_119",
+      "question": "What changed in Qdrant v1.19.0?",
+      "intent": "insufficient_evidence",
+      "split": "calibration",
+      "expected_outcome": "insufficient_evidence",
+      "request": {
+        "query": "What changed in Qdrant v1.19.0?",
+        "top_k": 5,
+        "source_names": [
+          "qdrant"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [],
+      "required_source_names": [],
+      "required_text_terms": [],
+      "retrieved_document_ids": [
+        "b82f565a-5e51-49ef-b812-8ed8cebf4dc8",
+        "e998b975-97d6-4432-b57e-bd697f40ed15",
+        "529f632e-19da-4138-8a36-c3931754f320",
+        "529f632e-19da-4138-8a36-c3931754f320",
+        "877596c9-b15f-4252-93ee-557707e0888e"
+      ],
+      "retrieved_chunk_ids": [
+        "57c30134-4964-4f05-acd6-0917aeb439bc",
+        "0d085202-7f22-4199-8894-71a85fb7cc07",
+        "9d8f53b1-80e2-445d-9a9d-2f3883b21c56",
+        "53f8a81a-32e3-4ac4-9f4f-b47502ef1d51",
+        "60c65af1-ebc7-4312-82c3-955672561092"
+      ],
+      "retrieved_sources": [
+        "qdrant",
+        "qdrant",
+        "qdrant",
+        "qdrant",
+        "qdrant"
+      ],
+      "retrieved_titles": [
+        "v1.18.0",
+        "v1.17.1",
+        "v1.17.0",
+        "v1.17.0",
+        "v1.16.3"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "reciprocal_rank": null,
+      "first_relevant_rank": null,
+      "all_relevant_documents_hit": null,
+      "all_required_sources_hit": null,
+      "required_text_hits": [],
+      "required_text_coverage": null,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 21,
+      "total_ms": 21,
+      "notes": "The frozen corpus ends at Qdrant v1.18.3."
+    },
+    {
+      "id": "insufficient_vllm_026_latency",
+      "question": "By exactly how much did vLLM v0.26.0 reduce production inference latency?",
+      "intent": "insufficient_evidence",
+      "split": "calibration",
+      "expected_outcome": "insufficient_evidence",
+      "request": {
+        "query": "By exactly how much did vLLM v0.26.0 reduce production inference latency?",
+        "top_k": 6,
+        "source_names": [
+          "vllm"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [],
+      "required_source_names": [],
+      "required_text_terms": [],
+      "retrieved_document_ids": [
+        "47035db6-ae6d-4ade-88a2-45e97a931706",
+        "3ae65146-fede-41ab-93d8-2dfc17d5895d",
+        "1333b318-1906-49a4-9974-1d280c52ef60",
+        "a9e39208-9bdb-4881-9d1d-a8ea199b7553",
+        "aa672815-2268-4b11-8247-e07fd22be215",
+        "47035db6-ae6d-4ade-88a2-45e97a931706"
+      ],
+      "retrieved_chunk_ids": [
+        "3bb166bb-531b-45d6-874a-cd9f40371c33",
+        "094ba2d4-5fe0-47e3-8745-dbc04a65a1a6",
+        "2ec1112f-fd37-4793-b97e-bed32040d713",
+        "62ade659-997a-42c3-a690-d43eeea33fc4",
+        "c62de879-e96b-46b2-b72b-87c526727f90",
+        "07d559f7-aff9-436c-95e2-0599daef72d2"
+      ],
+      "retrieved_sources": [
+        "vllm",
+        "vllm",
+        "vllm",
+        "vllm",
+        "vllm",
+        "vllm"
+      ],
+      "retrieved_titles": [
+        "v0.25.0",
+        "v0.24.0",
+        "v0.23.0",
+        "v0.26.0",
+        "v0.25.1",
+        "v0.25.0"
+      ],
+      "scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.6667,
+        0.6667
+      ],
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "reciprocal_rank": null,
+      "first_relevant_rank": null,
+      "all_relevant_documents_hit": null,
+      "all_required_sources_hit": null,
+      "required_text_hits": [],
+      "required_text_coverage": null,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 39,
+      "total_ms": 39,
+      "notes": "The release record does not establish an exact production-latency reduction."
+    },
+    {
+      "id": "insufficient_presence_incident_rate",
+      "question": "What production incident rate did OpenAI Presence achieve?",
+      "intent": "insufficient_evidence",
+      "split": "holdout",
+      "expected_outcome": "insufficient_evidence",
+      "request": {
+        "query": "What production incident rate did OpenAI Presence achieve?",
+        "top_k": 6,
+        "source_names": [
+          "openai-news"
+        ],
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "keyword",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [],
+      "required_source_names": [],
+      "required_text_terms": [],
+      "retrieved_document_ids": [
+        "a0c77e52-b0ed-4b53-b13c-4dfbbbcde2da",
+        "164252c0-b620-494a-8e87-7dcdfd5ebcb8",
+        "164252c0-b620-494a-8e87-7dcdfd5ebcb8",
+        "22cb2109-002e-4f3c-a062-66550813d104",
+        "a0c77e52-b0ed-4b53-b13c-4dfbbbcde2da",
+        "7beaf556-d388-4d67-8e8f-81fd48607a3d"
+      ],
+      "retrieved_chunk_ids": [
+        "e7aec682-76cb-406c-a78b-8a85dbff9772",
+        "107c236d-c7b5-4ee3-9ad2-7db0c0f80406",
+        "66d81eaa-4574-4512-9ced-00ea2bdeeebc",
+        "e83d0244-86fc-4b7d-8a0f-9d5c249a03e1",
+        "dbd2d8b1-5e07-4744-b2bd-330b08eae087",
+        "6791f399-a241-455a-b219-995938a8f3c3"
+      ],
+      "retrieved_sources": [
+        "openai-news",
+        "openai-news",
+        "openai-news",
+        "openai-news",
+        "openai-news",
+        "openai-news"
+      ],
+      "retrieved_titles": [
+        "OpenAI and Hugging Face partner to address security incident during model evaluation",
+        "Introducing OpenAI Presence",
+        "Introducing OpenAI Presence",
+        "Introducing the ChatGPT for small business program",
+        "OpenAI and Hugging Face partner to address security incident during model evaluation",
+        "OpenAI and Hugging Face partner to address security incident during model evaluation"
+      ],
+      "scores": [
+        1.0,
+        0.7999,
+        0.7999,
+        0.6,
+        0.6,
+        0.4
+      ],
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "reciprocal_rank": null,
+      "first_relevant_rank": null,
+      "all_relevant_documents_hit": null,
+      "all_required_sources_hit": null,
+      "required_text_hits": [],
+      "required_text_coverage": null,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 0,
+      "retrieval_ms": 25,
+      "total_ms": 26,
+      "notes": "Presence announcements do not provide this operational metric."
+    }
+  ]
+}

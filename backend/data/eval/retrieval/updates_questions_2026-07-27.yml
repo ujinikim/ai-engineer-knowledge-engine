@@ -1,0 +1,449 @@
+schema_version: 1
+benchmark_id: updates-2026-07-27-v1
+snapshot_file: updates_snapshot_2026-07-27.json
+snapshot_corpus_hash: d12684ca90a0651eb3d80638d12b17df745ac780b9c3fefac5b86737db5eda73
+purpose: Phase 3 exact-document retrieval calibration and holdout benchmark.
+
+questions:
+  - id: lookup_tensorrt_progress_cancel
+    question: How can TensorRT engine builds report progress and be canceled?
+    intent: exact_lookup
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 6
+    relevant_document_ids: [22ced16c-ce30-4651-af1f-ac407b520fe5]
+    required_source_names: [nvidia-technical-blog]
+    required_text_terms: [IProgressMonitor, step_complete]
+    notes: Exact tutorial lookup with distinctive API terms.
+
+  - id: lookup_github_mcp_specification
+    question: What changed when GitHub MCP Server added support for the next MCP specification?
+    intent: exact_lookup
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 5
+    relevant_document_ids: [d28e5d1c-c6a8-46c5-8844-d98be1de6d7c]
+    required_source_names: [github-changelog]
+    required_text_terms: [MCP specification]
+    notes: Exact changelog lookup.
+
+  - id: lookup_qdrant_shard_resharding
+    question: Which Qdrant release fixed query errors with shard keys during resharding?
+    intent: exact_lookup
+    split: holdout
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 5
+    relevant_document_ids: [497be340-1abd-434b-bbf4-ab1a37134b2f]
+    required_source_names: [qdrant]
+    required_text_terms: [shard keys, resharding]
+    notes: Narrow release lookup among many similarly titled Qdrant versions.
+
+  - id: lookup_vllm_dp_supervisor
+    question: Which vLLM release candidate fixed P/D with the DP Supervisor?
+    intent: exact_lookup
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 5
+    relevant_document_ids: [4dd3c68a-90e8-425d-8b33-0b3b33767456]
+    required_source_names: [vllm]
+    required_text_terms: [DP Supervisor]
+    notes: Exact sparse-release lookup.
+
+  - id: lookup_pytorch_213
+    question: What were the principal changes in the PyTorch 2.13 release?
+    intent: exact_lookup
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 6
+    relevant_document_ids: [db9732e1-faab-4996-87ce-a8eb839819ad]
+    required_source_names: [pytorch-blog]
+    required_text_terms: [FlexAttention, torchcomms]
+    notes: Detailed release lookup requiring multiple facts from one article.
+
+  - id: lookup_openai_gpt_live
+    question: What did OpenAI announce in the GPT-Live update?
+    intent: exact_lookup
+    split: holdout
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 5
+    relevant_document_ids: [0c1d941c-98ec-4f2d-bab8-4211b7cb7829]
+    required_source_names: [openai-news]
+    required_text_terms: [GPT-Live]
+    notes: Tests retrieval of a preview-only product-news record.
+
+  - id: lookup_nunchaku_diffusers
+    question: How was Nunchaku 4-bit diffusion inference added to Diffusers?
+    intent: exact_lookup
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 6
+    relevant_document_ids: [765c2ff8-9985-4ec5-8e6c-04796429b770]
+    required_source_names: [huggingface-blog]
+    required_text_terms: [Nunchaku, 4-bit]
+    notes: Detailed integration lookup.
+
+  - id: lookup_ray_tpu_part_2
+    question: Which Ray AI libraries were demonstrated on TPU in part two of Google's series?
+    intent: exact_lookup
+    split: holdout
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 6
+    relevant_document_ids: [47b79508-af63-4fe0-a677-ce12b3c8280a]
+    required_source_names: [google-developers]
+    required_text_terms: [Ray AI libraries]
+    notes: Distinguishes part two from the foundations article.
+
+  - id: temporal_latest_vllm_stable
+    question: What stable vLLM release was published after July 24, 2026?
+    intent: temporal
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 5
+      source_names: [vllm]
+      maturities: [stable]
+      published_after: 2026-07-24T23:59:59Z
+    relevant_document_ids: [a9e39208-9bdb-4881-9d1d-a8ea199b7553]
+    required_source_names: [vllm]
+    required_text_terms: [v0.26.0]
+    notes: Tests source, maturity, and lower-date filters together.
+
+  - id: temporal_ollama_after_july_24
+    question: Which Ollama releases or release candidates were published after July 24, 2026?
+    intent: temporal
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 8
+      source_names: [ollama]
+      published_after: 2026-07-24T23:59:59Z
+    relevant_document_ids:
+      - 9f4250c9-f6fc-4430-b994-3584fdf9e3a8
+      - 895c8c84-5a20-4763-9a82-95f68ed5f703
+      - 54fb60d3-5a27-4b32-a6e9-758b64c1e9c1
+    required_source_names: [ollama]
+    required_text_terms: [v0.32.4, v0.32.5-rc0]
+    notes: Multi-document temporal listing over sparse release records.
+
+  - id: temporal_nvidia_july_27
+    question: What NVIDIA technical articles were published on July 27, 2026?
+    intent: temporal
+    split: holdout
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 8
+      source_names: [nvidia-technical-blog]
+      published_after: 2026-07-27T00:00:00Z
+      published_before: 2026-07-27T23:59:59Z
+    relevant_document_ids:
+      - e0523017-4cdf-4b3d-92df-a5a81951faff
+      - eb7bd945-34ce-4846-a45b-d313e9450553
+    required_source_names: [nvidia-technical-blog]
+    required_text_terms: [semiconductor, RTL coding]
+    notes: Date-window listing with two documents.
+
+  - id: temporal_github_july_24
+    question: Which GitHub Copilot model-availability update was published on July 24, 2026?
+    intent: temporal
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 5
+      source_names: [github-changelog]
+      published_after: 2026-07-24T00:00:00Z
+      published_before: 2026-07-24T23:59:59Z
+    relevant_document_ids: [d24d03cb-7a76-484c-a3b5-1b023ca7b9d6]
+    required_source_names: [github-changelog]
+    required_text_terms: [Claude Opus 5, GitHub Copilot]
+    notes: Date and source filter with an exact availability event.
+
+  - id: temporal_batch_retrieval_research
+    question: Which July 24 Batch article reported research about LLM web retrieval failures?
+    intent: temporal
+    split: holdout
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 5
+      source_names: [the-batch]
+      published_after: 2026-07-24T00:00:00Z
+      published_before: 2026-07-24T23:59:59Z
+      categories: [retrieval-data]
+    relevant_document_ids: [6f6cd373-030a-4c00-aab1-a23fc16367b6]
+    required_source_names: [the-batch]
+    required_text_terms: [retrieval failures, Hindi]
+    notes: Combines source, date, and topic filtering.
+
+  - id: compare_claude_opus_5_availability
+    question: Compare the Claude Opus 5 announcements from Anthropic, AWS, and GitHub Copilot.
+    intent: comparison
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 10
+      retrieval_strategy: source_balanced
+    relevant_document_ids:
+      - 6cbb2781-2e14-4b10-a5f4-3d930bd2478d
+      - 6406e980-a5de-42cc-bc8e-6a752d3bc984
+      - d24d03cb-7a76-484c-a3b5-1b023ca7b9d6
+    required_source_names: [anthropic-news, aws-machine-learning, github-changelog]
+    required_text_terms: [Claude Opus 5, Amazon Bedrock, GitHub Copilot]
+    notes: Three-source comparison of a model launch and downstream availability.
+
+  - id: compare_gemini_36_flash_availability
+    question: Compare Gemini 3.6 Flash availability from Google DeepMind and GitHub Copilot.
+    intent: comparison
+    split: holdout
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 8
+      retrieval_strategy: source_balanced
+    relevant_document_ids:
+      - 6281be38-bd0f-428b-ac00-fad6d4f3c48b
+      - 1482dead-9b32-4f1e-ae2b-0e413d2595c2
+    required_source_names: [deepmind-blog, github-changelog]
+    required_text_terms: [Gemini 3.6 Flash, GitHub Copilot]
+    notes: Cross-source launch and integration comparison.
+
+  - id: compare_agentic_retrieval_findings
+    question: Compare AWS guidance on agentic retrieval with research findings about LLM web retrieval failures.
+    intent: comparison
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 10
+      retrieval_strategy: source_balanced
+    relevant_document_ids:
+      - 1919ed28-ec5e-4039-91e1-89215515b92b
+      - 6f6cd373-030a-4c00-aab1-a23fc16367b6
+    required_source_names: [aws-machine-learning, the-batch]
+    required_text_terms: [agentic retrieval, retrieval failures]
+    notes: Comparison between implementation guidance and research evidence.
+
+  - id: compare_fine_tuning_methods
+    question: Compare Hugging Face's PEFT findings with AWS self-distilled reasoning for supervised fine-tuning.
+    intent: comparison
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 10
+      retrieval_strategy: source_balanced
+    relevant_document_ids:
+      - c8e2fd17-51e6-4f3b-b12f-8814ecb37d1c
+      - fe409f38-eb0f-42b1-8095-58ca35fe52a0
+    required_source_names: [huggingface-blog, aws-machine-learning]
+    required_text_terms: [LoRA, self-distilled reasoning]
+    notes: Cross-source comparison of distinct fine-tuning approaches.
+
+  - id: compare_agent_security_research
+    question: Compare DeepMind's agent-security research with Hugging Face's MosaicLeaks findings.
+    intent: comparison
+    split: holdout
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 10
+      retrieval_strategy: source_balanced
+    relevant_document_ids:
+      - b35f1c85-6c51-4f90-bce5-859f517e5c4c
+      - b52bca8f-222e-4427-aba2-dcec766b3724
+    required_source_names: [deepmind-blog, huggingface-blog]
+    required_text_terms: [AI agents, MosaicLeaks]
+    notes: Cross-source security research comparison.
+
+  - id: filter_litellm_development_api_changes
+    question: Which LiteLLM development releases include API changes?
+    intent: filter
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 8
+      source_names: [litellm]
+      event_types: [api-change]
+      maturities: [development]
+    relevant_document_ids:
+      - 4bc7d9b1-dd0e-42cc-aae7-4e6cf83fec00
+      - 05725de1-5720-4928-a220-82bb4f3c04e5
+    required_source_names: [litellm]
+    required_text_terms: [v1.95.0-dev.1, v1.95.0-dev.2]
+    notes: Combined source, event, and maturity filter.
+
+  - id: filter_retrieval_research
+    question: What research-result update is categorized as retrieval-data?
+    intent: filter
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 6
+      categories: [retrieval-data]
+      event_types: [research-result]
+    relevant_document_ids: [6f6cd373-030a-4c00-aab1-a23fc16367b6]
+    required_source_names: [the-batch]
+    required_text_terms: [Web Retrieval Flusters LLMs]
+    notes: Topic and event filter intersection.
+
+  - id: filter_recent_openai_security
+    question: Which OpenAI security-issue update was published after July 20, 2026?
+    intent: filter
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 6
+      source_names: [openai-news]
+      event_types: [security-issue]
+      published_after: 2026-07-20T00:00:00Z
+    relevant_document_ids: [7beaf556-d388-4d67-8e8f-81fd48607a3d]
+    required_source_names: [openai-news]
+    required_text_terms: [security incident, model evaluation]
+    notes: Event, source, and date filtering over duplicate story coverage.
+
+  - id: filter_github_preview
+    question: Which GitHub Copilot update is in public preview?
+    intent: filter
+    split: holdout
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 5
+      source_names: [github-changelog]
+      maturities: [preview]
+    relevant_document_ids: [36e2138c-00b8-4032-b71a-0976de30ea1b]
+    required_source_names: [github-changelog]
+    required_text_terms: [Agent automation controls, public preview]
+    notes: Source and lifecycle filter.
+
+  - id: filter_nvidia_benchmark
+    question: Which NVIDIA AI update reports a benchmark result?
+    intent: filter
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 6
+      tools: [NVIDIA AI]
+      event_types: [benchmark-result]
+    relevant_document_ids: [3f157a88-fbb4-4383-b49b-ae8407e0c7df]
+    required_source_names: [nvidia-technical-blog]
+    required_text_terms: [world record, MoE pre-training]
+    notes: Tool and event filter.
+
+  - id: synthesis_monday_agents
+    question: How does monday.com operate production AI agents on Amazon Bedrock?
+    intent: synthesis
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 8
+    relevant_document_ids: [1ad3dc0c-00fc-4317-8b1e-2102afc52b22]
+    required_source_names: [aws-machine-learning]
+    required_text_terms: [SNS, SQS, EFS]
+    notes: Requires several architecture details from a long article.
+
+  - id: synthesis_bedrock_guardrails
+    question: What practices does AWS recommend for applying Bedrock Guardrails to code generation?
+    intent: synthesis
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 8
+    relevant_document_ids: [27565c23-0b60-4a4c-b260-66ef61be5c66]
+    required_source_names: [aws-machine-learning]
+    required_text_terms: [Amazon Bedrock Guardrails, code generation]
+    notes: Multi-chunk technical-guidance synthesis.
+
+  - id: synthesis_cloudflare_crawler_controls
+    question: How do Cloudflare's AI crawler controls, BotBase, and monetization work together?
+    intent: synthesis
+    split: holdout
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 8
+    relevant_document_ids: [49f5612a-6eed-4153-8224-664b84314cb5]
+    required_source_names: [the-batch]
+    required_text_terms: [BotBase, monetization, training bots]
+    notes: Requires three distinct mechanisms from a long article.
+
+  - id: synthesis_free_normalization
+    question: How does the PyTorch free-normalization work fuse normalization into GEMM and attention kernels?
+    intent: synthesis
+    split: calibration
+    expected_outcome: answerable
+    request:
+      collection: updates
+      top_k: 8
+    relevant_document_ids: [f3b02b4a-c66a-4fd4-8e1a-addb03392bd7]
+    required_source_names: [pytorch-blog]
+    required_text_terms: [normalization, GEMM, attention]
+    notes: Research/engineering synthesis across multiple article sections.
+
+  - id: insufficient_qdrant_119
+    question: What changed in Qdrant v1.19.0?
+    intent: insufficient_evidence
+    split: calibration
+    expected_outcome: insufficient_evidence
+    request:
+      collection: updates
+      top_k: 5
+      source_names: [qdrant]
+    relevant_document_ids: []
+    required_source_names: []
+    required_text_terms: []
+    notes: The frozen corpus ends at Qdrant v1.18.3.
+
+  - id: insufficient_vllm_026_latency
+    question: By exactly how much did vLLM v0.26.0 reduce production inference latency?
+    intent: insufficient_evidence
+    split: calibration
+    expected_outcome: insufficient_evidence
+    request:
+      collection: updates
+      top_k: 6
+      source_names: [vllm]
+    relevant_document_ids: []
+    required_source_names: []
+    required_text_terms: []
+    notes: The release record does not establish an exact production-latency reduction.
+
+  - id: insufficient_presence_incident_rate
+    question: What production incident rate did OpenAI Presence achieve?
+    intent: insufficient_evidence
+    split: holdout
+    expected_outcome: insufficient_evidence
+    request:
+      collection: updates
+      top_k: 6
+      source_names: [openai-news]
+    relevant_document_ids: []
+    required_source_names: []
+    required_text_terms: []
+    notes: Presence announcements do not provide this operational metric.

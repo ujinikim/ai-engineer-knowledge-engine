@@ -53,6 +53,7 @@ class SearchRequest(BaseModel):
 
 class RetrievedChunk(BaseModel):
     chunk_id: str
+    document_id: str
     document_title: str
     source_name: str
     url: str

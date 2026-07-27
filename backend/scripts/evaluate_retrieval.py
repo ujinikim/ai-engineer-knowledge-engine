@@ -47,8 +47,9 @@ def load_questions() -> list[dict[str, Any]]:
 
 
 def evaluate_question(retriever: RetrieverService, item: dict[str, Any]) -> dict[str, Any]:
-    top_k = int(item.get("top_k", 6))
-    response = retriever.search(SearchRequest(query=item["question"], top_k=top_k))
+    request = search_request(item)
+    top_k = request.top_k
+    response = retriever.search(request)
     expected_sources = item["expected_sources"]
     expected_title_terms = item.get("expected_title_terms", [])
     expected_keywords = item.get("expected_keywords", [])
@@ -95,6 +96,14 @@ def evaluate_question(retriever: RetrieverService, item: dict[str, Any]) -> dict
         "evaluated_at": datetime.now(timezone.utc).isoformat(),
         "notes": item.get("notes", ""),
     }
+
+
+def search_request(item: dict[str, Any]) -> SearchRequest:
+    return SearchRequest(
+        query=item["question"],
+        top_k=int(item.get("top_k", 6)),
+        collection=item.get("collection", "docs"),
+    )
 
 
 def first_rank(values: list[str], expected: str) -> int | None:

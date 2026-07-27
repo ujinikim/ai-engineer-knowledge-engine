@@ -1,0 +1,753 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-27T22:39:39.594137+00:00",
+  "questions_file": "/Users/jinkim/Documents/2026_Summer/ai-engineer-knowledge-engine/backend/data/eval/retrieval/updates_questions_2026-07-27.yml",
+  "snapshot_file": "/Users/jinkim/Documents/2026_Summer/ai-engineer-knowledge-engine/backend/data/eval/retrieval/updates_snapshot_2026-07-27.json",
+  "snapshot_corpus_hash": "d12684ca90a0651eb3d80638d12b17df745ac780b9c3fefac5b86737db5eda73",
+  "overrides": {
+    "split": "all",
+    "intent": "exact_lookup",
+    "top_k": 5,
+    "search_mode": "hybrid",
+    "retrieval_strategy": "standard"
+  },
+  "summary": {
+    "question_count": 8,
+    "recall_at_k": 1.0,
+    "precision_at_k": 0.2792,
+    "mean_reciprocal_rank": 0.9375,
+    "all_relevant_documents_hit_rate": 1.0,
+    "all_required_sources_hit_rate": 1.0,
+    "filter_correct_rate": 1.0,
+    "minimum_results_met_rate": 1.0,
+    "required_text_coverage": 0.875,
+    "avg_embedding_ms": 238.5,
+    "avg_retrieval_ms": 555.5,
+    "avg_total_ms": 794.375
+  },
+  "by_intent": {
+    "exact_lookup": {
+      "question_count": 8,
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2792,
+      "mean_reciprocal_rank": 0.9375,
+      "all_relevant_documents_hit_rate": 1.0,
+      "all_required_sources_hit_rate": 1.0,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": 0.875,
+      "avg_embedding_ms": 238.5,
+      "avg_retrieval_ms": 555.5,
+      "avg_total_ms": 794.375
+    }
+  },
+  "by_split": {
+    "calibration": {
+      "question_count": 5,
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2733,
+      "mean_reciprocal_rank": 1.0,
+      "all_relevant_documents_hit_rate": 1.0,
+      "all_required_sources_hit_rate": 1.0,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": 0.8,
+      "avg_embedding_ms": 218.4,
+      "avg_retrieval_ms": 553.2,
+      "avg_total_ms": 772.0
+    },
+    "holdout": {
+      "question_count": 3,
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2889,
+      "mean_reciprocal_rank": 0.8333,
+      "all_relevant_documents_hit_rate": 1.0,
+      "all_required_sources_hit_rate": 1.0,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": 1.0,
+      "avg_embedding_ms": 272.0,
+      "avg_retrieval_ms": 559.3333,
+      "avg_total_ms": 831.6667
+    }
+  },
+  "questions": [
+    {
+      "id": "lookup_tensorrt_progress_cancel",
+      "question": "How can TensorRT engine builds report progress and be canceled?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "How can TensorRT engine builds report progress and be canceled?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "22ced16c-ce30-4651-af1f-ac407b520fe5"
+      ],
+      "required_source_names": [
+        "nvidia-technical-blog"
+      ],
+      "required_text_terms": [
+        "IProgressMonitor",
+        "step_complete"
+      ],
+      "retrieved_document_ids": [
+        "22ced16c-ce30-4651-af1f-ac407b520fe5",
+        "22ced16c-ce30-4651-af1f-ac407b520fe5",
+        "b27945a0-ae05-4f34-8c8f-972c5d426731",
+        "a9e39208-9bdb-4881-9d1d-a8ea199b7553",
+        "df7316aa-1158-4ea7-ada6-5ee7afe396aa"
+      ],
+      "retrieved_chunk_ids": [
+        "d5667825-8d45-44db-b590-c730af28f200",
+        "6e1c2ca3-e523-4262-b694-05e58797f016",
+        "4626c886-964c-458b-89b8-c56534b06833",
+        "c6afaf80-3703-4d68-af64-d32427570065",
+        "ef65ba6f-621f-4db3-94c3-8245311b4a4e"
+      ],
+      "retrieved_sources": [
+        "nvidia-technical-blog",
+        "nvidia-technical-blog",
+        "nvidia-technical-blog",
+        "vllm",
+        "google-developers"
+      ],
+      "retrieved_titles": [
+        "Make Long-Running NVIDIA TensorRT Engine Builds Observable and Cancelable in Python or C++",
+        "Make Long-Running NVIDIA TensorRT Engine Builds Observable and Cancelable in Python or C++",
+        "ModelExpress: Distributing Model Artifacts at the Speed of Light",
+        "v0.26.0",
+        "Scaling Agentic RL: High-Throughput Agentic Training with Tunix"
+      ],
+      "scores": [
+        0.7842,
+        0.7842,
+        0.3998,
+        0.3898,
+        0.4316
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.25,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [],
+      "required_text_coverage": 0.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 385,
+      "retrieval_ms": 597,
+      "total_ms": 983,
+      "notes": "Exact tutorial lookup with distinctive API terms."
+    },
+    {
+      "id": "lookup_github_mcp_specification",
+      "question": "What changed when GitHub MCP Server added support for the next MCP specification?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What changed when GitHub MCP Server added support for the next MCP specification?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "d28e5d1c-c6a8-46c5-8844-d98be1de6d7c"
+      ],
+      "required_source_names": [
+        "github-changelog"
+      ],
+      "required_text_terms": [
+        "MCP specification"
+      ],
+      "retrieved_document_ids": [
+        "d28e5d1c-c6a8-46c5-8844-d98be1de6d7c",
+        "e194fd6f-f837-48a1-8af3-94214a9a2407",
+        "e194fd6f-f837-48a1-8af3-94214a9a2407",
+        "4520bdba-c5ef-4ff7-88f9-211a062e562a",
+        "4520bdba-c5ef-4ff7-88f9-211a062e562a"
+      ],
+      "retrieved_chunk_ids": [
+        "2a113f96-da5b-489d-9ecc-2c482e0786eb",
+        "9c6817c4-cdb5-42b2-8bdf-79fdc21f7fed",
+        "3fc8bc11-b27a-4e22-9770-7146209b4948",
+        "e351474c-8f60-4906-bff3-2ea363ec5e37",
+        "3de26f88-c634-4741-a156-14d6e45647bf"
+      ],
+      "retrieved_sources": [
+        "github-changelog",
+        "aws-machine-learning",
+        "aws-machine-learning",
+        "litellm",
+        "litellm"
+      ],
+      "retrieved_titles": [
+        "GitHub MCP Server supports the next MCP specification",
+        "How Smartsheet built a remote MCP server on AWS",
+        "How Smartsheet built a remote MCP server on AWS",
+        "v1.93.0",
+        "v1.93.0"
+      ],
+      "scores": [
+        0.8491,
+        0.465,
+        0.465,
+        0.4442,
+        0.437
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.3333,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "MCP specification"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 143,
+      "retrieval_ms": 535,
+      "total_ms": 678,
+      "notes": "Exact changelog lookup."
+    },
+    {
+      "id": "lookup_qdrant_shard_resharding",
+      "question": "Which Qdrant release fixed query errors with shard keys during resharding?",
+      "intent": "exact_lookup",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which Qdrant release fixed query errors with shard keys during resharding?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "497be340-1abd-434b-bbf4-ab1a37134b2f"
+      ],
+      "required_source_names": [
+        "qdrant"
+      ],
+      "required_text_terms": [
+        "shard keys",
+        "resharding"
+      ],
+      "retrieved_document_ids": [
+        "497be340-1abd-434b-bbf4-ab1a37134b2f",
+        "529f632e-19da-4138-8a36-c3931754f320",
+        "e998b975-97d6-4432-b57e-bd697f40ed15",
+        "b82f565a-5e51-49ef-b812-8ed8cebf4dc8",
+        "e93bbb45-24c5-4b9c-b1f1-19f060e3b840"
+      ],
+      "retrieved_chunk_ids": [
+        "8584ffc0-6131-4f4b-a400-6b55bc5b76eb",
+        "9d8f53b1-80e2-445d-9a9d-2f3883b21c56",
+        "0d085202-7f22-4199-8894-71a85fb7cc07",
+        "57c30134-4964-4f05-acd6-0917aeb439bc",
+        "2806ea59-e2c0-4b11-b95f-6c838c950785"
+      ],
+      "retrieved_sources": [
+        "qdrant",
+        "qdrant",
+        "qdrant",
+        "qdrant",
+        "qdrant"
+      ],
+      "retrieved_titles": [
+        "v1.18.3",
+        "v1.17.0",
+        "v1.17.1",
+        "v1.18.0",
+        "v1.16.2"
+      ],
+      "scores": [
+        0.6912,
+        0.6189,
+        0.5248,
+        0.5217,
+        0.5047
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "shard keys",
+        "resharding"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 164,
+      "retrieval_ms": 580,
+      "total_ms": 744,
+      "notes": "Narrow release lookup among many similarly titled Qdrant versions."
+    },
+    {
+      "id": "lookup_vllm_dp_supervisor",
+      "question": "Which vLLM release candidate fixed P/D with the DP Supervisor?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which vLLM release candidate fixed P/D with the DP Supervisor?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "4dd3c68a-90e8-425d-8b33-0b3b33767456"
+      ],
+      "required_source_names": [
+        "vllm"
+      ],
+      "required_text_terms": [
+        "DP Supervisor"
+      ],
+      "retrieved_document_ids": [
+        "4dd3c68a-90e8-425d-8b33-0b3b33767456",
+        "47035db6-ae6d-4ade-88a2-45e97a931706",
+        "1333b318-1906-49a4-9974-1d280c52ef60",
+        "4a2e18cc-04f0-4a46-936d-14ebc99c5d1a",
+        "aa672815-2268-4b11-8247-e07fd22be215"
+      ],
+      "retrieved_chunk_ids": [
+        "ef404796-8cec-40b3-a792-5d20943802ee",
+        "829a5987-91c9-4122-abc7-ce7e7430d76f",
+        "a5d12802-4c85-41f1-99e7-ce4f8ae3c7f4",
+        "ea85c424-fa1e-40ad-a539-dafa0d545e74",
+        "c62de879-e96b-46b2-b72b-87c526727f90"
+      ],
+      "retrieved_sources": [
+        "vllm",
+        "vllm",
+        "vllm",
+        "transformers",
+        "vllm"
+      ],
+      "retrieved_titles": [
+        "v0.24.0rc2: Fix P/D with DP Supervisor (#46628)",
+        "v0.25.0",
+        "v0.23.0",
+        "Patch release v5.13.1",
+        "v0.25.1"
+      ],
+      "scores": [
+        0.6465,
+        0.5384,
+        0.4868,
+        0.4731,
+        0.4725
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "DP Supervisor"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 178,
+      "retrieval_ms": 558,
+      "total_ms": 736,
+      "notes": "Exact sparse-release lookup."
+    },
+    {
+      "id": "lookup_pytorch_213",
+      "question": "What were the principal changes in the PyTorch 2.13 release?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What were the principal changes in the PyTorch 2.13 release?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "db9732e1-faab-4996-87ce-a8eb839819ad"
+      ],
+      "required_source_names": [
+        "pytorch-blog"
+      ],
+      "required_text_terms": [
+        "FlexAttention",
+        "torchcomms"
+      ],
+      "retrieved_document_ids": [
+        "db9732e1-faab-4996-87ce-a8eb839819ad",
+        "db9732e1-faab-4996-87ce-a8eb839819ad",
+        "f32f6ea6-66aa-4df0-9818-8db5b9642863",
+        "b5a55c30-ae9d-4658-b0d7-9383f0d97d89",
+        "b5a55c30-ae9d-4658-b0d7-9383f0d97d89"
+      ],
+      "retrieved_chunk_ids": [
+        "34dbd0e3-d610-4fc0-be92-3c56bef935d7",
+        "7191a121-9386-42a5-a94a-dbac2c3c1da5",
+        "708a1131-d6bf-4c35-8791-2a67e32de062",
+        "a2682f9e-9820-4cec-9c3a-72c6657ce1a0",
+        "e969558e-f13a-47ec-bf99-b59489dd32f3"
+      ],
+      "retrieved_sources": [
+        "pytorch-blog",
+        "pytorch-blog",
+        "transformers",
+        "pytorch-blog",
+        "pytorch-blog"
+      ],
+      "retrieved_titles": [
+        "PyTorch 2.13 Release Blog",
+        "PyTorch 2.13 Release Blog",
+        "Release v5.14.0",
+        "Driving the Future of Open Source AI: An Update from PyTorch Foundation Projects",
+        "Driving the Future of Open Source AI: An Update from PyTorch Foundation Projects"
+      ],
+      "scores": [
+        0.7362,
+        0.7001,
+        0.5371,
+        0.5799,
+        0.5309
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.3333,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "FlexAttention",
+        "torchcomms"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 190,
+      "retrieval_ms": 555,
+      "total_ms": 746,
+      "notes": "Detailed release lookup requiring multiple facts from one article."
+    },
+    {
+      "id": "lookup_openai_gpt_live",
+      "question": "What did OpenAI announce in the GPT-Live update?",
+      "intent": "exact_lookup",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "What did OpenAI announce in the GPT-Live update?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "0c1d941c-98ec-4f2d-bab8-4211b7cb7829"
+      ],
+      "required_source_names": [
+        "openai-news"
+      ],
+      "required_text_terms": [
+        "GPT-Live"
+      ],
+      "retrieved_document_ids": [
+        "6d5b03a8-71db-41ac-b331-7cf95ea3011f",
+        "0c1d941c-98ec-4f2d-bab8-4211b7cb7829",
+        "6d5b03a8-71db-41ac-b331-7cf95ea3011f",
+        "35c47f41-d540-42c2-a31a-3126cbbe79cf",
+        "35c47f41-d540-42c2-a31a-3126cbbe79cf"
+      ],
+      "retrieved_chunk_ids": [
+        "f5f6aa62-4827-4c0e-b865-545700fd4766",
+        "f9e7aebd-efb5-49ca-ba43-d895d993e681",
+        "5c53b1e1-02ac-46c1-8974-f21c535eb2db",
+        "989da68b-ed26-49af-92b8-395715fd8cd2",
+        "2658c407-f362-4094-b78f-69c8983751cb"
+      ],
+      "retrieved_sources": [
+        "the-batch",
+        "openai-news",
+        "the-batch",
+        "aws-machine-learning",
+        "aws-machine-learning"
+      ],
+      "retrieved_titles": [
+        "One Model Talks, Another One Thinks",
+        "Introducing GPT-Live",
+        "One Model Talks, Another One Thinks",
+        "Get started with OpenAI GPT-5.6 Sol, Terra, and Luna on Amazon Bedrock",
+        "Get started with OpenAI GPT-5.6 Sol, Terra, and Luna on Amazon Bedrock"
+      ],
+      "scores": [
+        0.7194,
+        0.7148,
+        0.7108,
+        0.6951,
+        0.6931
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.3333,
+      "reciprocal_rank": 0.5,
+      "first_relevant_rank": 2,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "GPT-Live"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 492,
+      "retrieval_ms": 529,
+      "total_ms": 1021,
+      "notes": "Tests retrieval of a preview-only product-news record."
+    },
+    {
+      "id": "lookup_nunchaku_diffusers",
+      "question": "How was Nunchaku 4-bit diffusion inference added to Diffusers?",
+      "intent": "exact_lookup",
+      "split": "calibration",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "How was Nunchaku 4-bit diffusion inference added to Diffusers?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "765c2ff8-9985-4ec5-8e6c-04796429b770"
+      ],
+      "required_source_names": [
+        "huggingface-blog"
+      ],
+      "required_text_terms": [
+        "Nunchaku",
+        "4-bit"
+      ],
+      "retrieved_document_ids": [
+        "765c2ff8-9985-4ec5-8e6c-04796429b770",
+        "765c2ff8-9985-4ec5-8e6c-04796429b770",
+        "a9e39208-9bdb-4881-9d1d-a8ea199b7553",
+        "26f4d0be-9a6b-4b2d-b620-22dac7ec82ad",
+        "895c8c84-5a20-4763-9a82-95f68ed5f703"
+      ],
+      "retrieved_chunk_ids": [
+        "542e9cb7-5e11-460f-9aae-0254c74a24e2",
+        "55c48d24-7bc1-4c99-90e6-3cab21565a86",
+        "62ade659-997a-42c3-a690-d43eeea33fc4",
+        "dbde70fc-589c-4aff-a24d-bda5a00e65ef",
+        "b84bd5a2-9c5d-45e5-9bc9-06e776aeacb4"
+      ],
+      "retrieved_sources": [
+        "huggingface-blog",
+        "huggingface-blog",
+        "vllm",
+        "transformers",
+        "ollama"
+      ],
+      "retrieved_titles": [
+        "Bringing Nunchaku 4-bit Diffusion Inference to Diffusers",
+        "Bringing Nunchaku 4-bit Diffusion Inference to Diffusers",
+        "v0.26.0",
+        "Release v5.11.0",
+        "v0.32.4"
+      ],
+      "scores": [
+        0.9,
+        0.9,
+        0.4466,
+        0.3761,
+        0.391
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.25,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "Nunchaku",
+        "4-bit"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 196,
+      "retrieval_ms": 521,
+      "total_ms": 717,
+      "notes": "Detailed integration lookup."
+    },
+    {
+      "id": "lookup_ray_tpu_part_2",
+      "question": "Which Ray AI libraries were demonstrated on TPU in part two of Google's series?",
+      "intent": "exact_lookup",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Which Ray AI libraries were demonstrated on TPU in part two of Google's series?",
+        "top_k": 5,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "47b79508-af63-4fe0-a677-ce12b3c8280a"
+      ],
+      "required_source_names": [
+        "google-developers"
+      ],
+      "required_text_terms": [
+        "Ray AI libraries"
+      ],
+      "retrieved_document_ids": [
+        "47b79508-af63-4fe0-a677-ce12b3c8280a",
+        "47b79508-af63-4fe0-a677-ce12b3c8280a",
+        "4fda0edd-d12c-4c3b-9b01-9e7ff9673c15",
+        "4fda0edd-d12c-4c3b-9b01-9e7ff9673c15",
+        "16e22def-0f68-4613-9a6a-24fdb7025110"
+      ],
+      "retrieved_chunk_ids": [
+        "3369ed48-af94-492f-8b93-670032e770b2",
+        "49b2029f-0eea-45ff-a1e6-55b4c57e1b96",
+        "1f6aff41-f007-49ae-ae31-ba986539fc88",
+        "5c769064-5f65-4595-a635-2ee5794e493a",
+        "a2f8d0e7-f389-47ed-beea-0b117eef0de3"
+      ],
+      "retrieved_sources": [
+        "google-developers",
+        "google-developers",
+        "google-developers",
+        "google-developers",
+        "google-developers"
+      ],
+      "retrieved_titles": [
+        "Run Ray on TPU, Part 2: Ray AI libraries",
+        "Run Ray on TPU, Part 2: Ray AI libraries",
+        "Run Ray on TPU, Part 1: The foundations",
+        "Run Ray on TPU, Part 1: The foundations",
+        "Systems Engineering Playbook: Optimizing Qwen 3.5-397B MoE on Ironwood (TPU7x)"
+      ],
+      "scores": [
+        0.8166,
+        0.8166,
+        0.7592,
+        0.6934,
+        0.4999
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.3333,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "Ray AI libraries"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 160,
+      "retrieval_ms": 569,
+      "total_ms": 730,
+      "notes": "Distinguishes part two from the foundations article."
+    }
+  ]
+}

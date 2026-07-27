@@ -1,5 +1,10 @@
 # Phase 3 Retrieval Benchmark Plan
 
+**Status (July 27, 2026):** in progress. The 240-document snapshot, 30-question set,
+document-level evaluator, untouched four-configuration baseline, and first calibrated
+hybrid correction are complete. Findings are recorded in
+`PHASE3_RETRIEVAL_BASELINE_FINDINGS_2026-07-27.md`. Answer grounding review remains.
+
 ## Goal
 
 Measure whether the RAG system retrieves the right original update evidence, respects

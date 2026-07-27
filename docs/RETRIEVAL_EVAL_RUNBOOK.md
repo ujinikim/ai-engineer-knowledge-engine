@@ -8,6 +8,53 @@ It must remain green for backward compatibility, but its 15 documentation questi
 are not the update-focused Phase 3 benchmark. The versioned update benchmark is
 specified in `PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
 
+## Update Benchmark
+
+Frozen snapshot:
+
+```text
+backend/data/eval/retrieval/updates_snapshot_2026-07-27.json
+```
+
+Question set:
+
+```text
+backend/data/eval/retrieval/updates_questions_2026-07-27.yml
+```
+
+Create or intentionally refresh a snapshot:
+
+```bash
+cd backend
+uv run python scripts/prepare_update_retrieval_snapshot.py
+```
+
+Run the exact-document evaluator:
+
+```bash
+uv run python scripts/evaluate_update_retrieval.py \
+  --search-mode hybrid \
+  --retrieval-strategy standard \
+  --output data/eval/retrieval/updates_tuned_hybrid_standard.json
+```
+
+Useful isolated runs:
+
+```bash
+uv run python scripts/evaluate_update_retrieval.py \
+  --split calibration \
+  --search-mode hybrid
+
+uv run python scripts/evaluate_update_retrieval.py \
+  --intent exact_lookup \
+  --top-k 5 \
+  --search-mode hybrid
+```
+
+Do not regenerate the snapshot after ordinary collection and continue using the same
+question judgments. A changed corpus hash requires an explicit benchmark-version
+decision.
+
 ## Files
 
 Question set:

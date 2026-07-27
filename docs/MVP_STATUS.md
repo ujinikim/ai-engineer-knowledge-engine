@@ -25,7 +25,7 @@ Last validated: July 27, 2026
 
 ## Validation
 
-- Backend tests: 77 passed
+- Backend tests: 88 passed
 - Backend lint: Ruff passed
 - Frontend TypeScript and production build: passed
 - Desktop layout: validated at 1440 x 900 with no horizontal overflow
@@ -60,3 +60,13 @@ Last validated: July 27, 2026
 See `ROADMAP.md` for the recommended order of follow-up work.
 The update-focused RAG benchmark is the next active phase; see
 `PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`. Deployment follows as Phase 4.
+
+Phase 3 checkpoint:
+
+- Frozen 240-document/1,134-chunk update snapshot
+- 30 exact-document cases: 20 calibration and 10 holdout
+- Untouched vector, keyword, hybrid, and source-balanced baselines saved
+- Calibrated hybrid: 98.2% overall Recall@K, 95.4% MRR, and 100% filter correctness
+- Holdout: 94.4% Recall@K against an 85% initial target
+- Exact lookup at K=5: 100% recall and 0.938 MRR
+- Remaining work: 12-case answer grounding, citation, comparison, and abstention review

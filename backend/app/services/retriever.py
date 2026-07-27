@@ -153,15 +153,16 @@ class RetrieverService:
         )
 
         candidates: list[Candidate] = []
-        phrase = request.query.lower()
         for chunk, document in self.db.execute(stmt).all():
-            haystack = f"{document.title}\n{chunk.content}".lower()
-            matched_terms = sum(1 for term in terms if term in haystack)
-            if matched_terms == 0:
+            score = self._keyword_match_score(
+                request.query,
+                terms,
+                str(document.title or ""),
+                str(chunk.content or ""),
+            )
+            if score == 0:
                 continue
 
-            phrase_bonus = 0.5 if phrase in haystack else 0
-            score = (matched_terms / len(terms)) + phrase_bonus
             candidates.append(
                 Candidate(
                     chunk=chunk,
@@ -184,15 +185,25 @@ class RetrieverService:
             "are",
             "best",
             "compare",
+            "changed",
+            "change",
+            "candidate",
             "docs",
             "documents",
+            "did",
             "does",
             "for",
             "from",
             "how",
             "mentioning",
+            "principal",
+            "published",
+            "release",
+            "releases",
             "show",
             "the",
+            "update",
+            "updates",
             "what",
             "when",
             "where",
@@ -202,11 +213,40 @@ class RetrieverService:
             "would",
         }
         terms = [
-            term
+            {
+                "fixed": "fix",
+                "fixes": "fix",
+                "fixing": "fix",
+            }.get(term, term)
             for term in re.findall(r"[a-zA-Z0-9_+-]+", query.lower())
             if len(term) > 2 and term not in stop_words
         ]
         return list(dict.fromkeys(terms))
+
+    def _keyword_match_score(
+        self,
+        query: str,
+        terms: list[str],
+        title: str,
+        content: str,
+    ) -> float:
+        if not terms:
+            return 0
+        normalized_title = title.lower()
+        normalized_content = content.lower()
+        title_matches = sum(term in normalized_title for term in terms)
+        content_matches = sum(term in normalized_content for term in terms)
+        phrase = query.lower()
+        phrase_bonus = 0.5 if phrase in f"{normalized_title}\n{normalized_content}" else 0
+        # Title matches are strong document-identity evidence. Counting them
+        # separately prevents long changelogs from outranking a sparse exact release
+        # merely because the changelog repeats more generic query terms.
+        return round(
+            (content_matches / len(terms))
+            + (title_matches / len(terms))
+            + phrase_bonus,
+            4,
+        )
 
     def _rank_candidates(self, candidates: list[Candidate], search_mode: str) -> list[Candidate]:
         max_keyword = max((candidate.keyword_score or 0 for candidate in candidates), default=0)
@@ -244,6 +284,7 @@ class RetrieverService:
 
         return RetrievedChunk(
             chunk_id=str(candidate.chunk.id),
+            document_id=str(candidate.document.id),
             document_title=candidate.document.title,
             source_name=candidate.document.source_name,
             url=candidate.document.url,
