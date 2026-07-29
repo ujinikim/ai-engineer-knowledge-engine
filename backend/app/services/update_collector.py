@@ -137,8 +137,11 @@ class UpdateCollectorService:
         return source
 
     def _upsert_entry(self, source: UpdateSource, config: dict, entry) -> str:
-        url = str(entry.get("link") or entry.get("id") or "").strip()
-        canonical_url = str(entry.get("_canonical_url") or url).strip()
+        raw_url = str(entry.get("link") or entry.get("id") or "").strip()
+        url = self._normalize_document_url(raw_url)
+        canonical_url = self._normalize_document_url(
+            str(entry.get("_canonical_url") or raw_url).strip()
+        )
         title = str(entry.get("title") or "Untitled update").strip()
         if not url:
             raise ValueError(f"Feed entry from {source.slug} has no URL")
@@ -207,7 +210,11 @@ class UpdateCollectorService:
             base_metadata["parent_title"] = str(entry["_parent_title"])
         if entry.get("_section_index") is not None:
             base_metadata["section_index"] = int(entry["_section_index"])
-        document = self.db.scalar(select(Document).where(Document.url == url))
+        document = self.db.scalar(
+            select(Document).where(
+                Document.url.in_(self._document_url_candidates(raw_url))
+            )
+        )
         if document and document.content_hash == content_hash:
             document.fetched_at = now
             document.published_at = published_at
@@ -304,6 +311,21 @@ class UpdateCollectorService:
                 )
             )
         return status
+
+    def _normalize_document_url(self, value: str) -> str:
+        parsed = urlparse(value.strip())
+        path = parsed.path
+        if path and path != "/":
+            path = path.rstrip("/")
+        return parsed._replace(path=path).geturl()
+
+    def _document_url_candidates(self, value: str) -> list[str]:
+        normalized = self._normalize_document_url(value)
+        parsed = urlparse(normalized)
+        candidates = [normalized]
+        if parsed.path and parsed.path != "/":
+            candidates.append(parsed._replace(path=f"{parsed.path}/").geturl())
+        return list(dict.fromkeys(candidates))
 
     def _source_entries(self, config: dict, response: httpx.Response) -> list[dict]:
         if config.get("source_kind") in {"html_listing", "nested_html_listing"}:

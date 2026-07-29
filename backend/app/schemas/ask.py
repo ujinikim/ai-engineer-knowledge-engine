@@ -63,6 +63,8 @@ class AskResponse(BaseModel):
     answer: str
     citations: list[Citation]
     retrieved_chunks: list[RetrievedChunk]
+    context_chunks: list[RetrievedChunk] = Field(default_factory=list)
     metrics: AnswerMetrics
     retrieval_warning: str | None = None
     citation_warnings: list[str] = Field(default_factory=list)
+    generation_warnings: list[str] = Field(default_factory=list)

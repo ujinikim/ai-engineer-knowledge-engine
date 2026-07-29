@@ -218,10 +218,14 @@ class RetrieverService:
                 "fixes": "fix",
                 "fixing": "fix",
             }.get(term, term)
-            for term in re.findall(r"[a-zA-Z0-9_+-]+", query.lower())
+            for term in re.findall(r"[a-z0-9+]+", self._normalize_keyword_text(query))
             if len(term) > 2 and term not in stop_words
         ]
         return list(dict.fromkeys(terms))
+
+    def _normalize_keyword_text(self, value: str) -> str:
+        normalized = re.sub(r"[-_/]+", " ", value.lower())
+        return " ".join(normalized.split())
 
     def _keyword_match_score(
         self,
@@ -232,11 +236,11 @@ class RetrieverService:
     ) -> float:
         if not terms:
             return 0
-        normalized_title = title.lower()
-        normalized_content = content.lower()
+        normalized_title = self._normalize_keyword_text(title)
+        normalized_content = self._normalize_keyword_text(content)
         title_matches = sum(term in normalized_title for term in terms)
         content_matches = sum(term in normalized_content for term in terms)
-        phrase = query.lower()
+        phrase = self._normalize_keyword_text(query)
         phrase_bonus = 0.5 if phrase in f"{normalized_title}\n{normalized_content}" else 0
         # Title matches are strong document-identity evidence. Counting them
         # separately prevents long changelogs from outranking a sparse exact release
@@ -367,8 +371,18 @@ class RetrieverService:
     ) -> list[Candidate]:
         selected: list[Candidate] = []
         counts: dict[str, int] = {}
+        documents_with_substantive_chunks = {
+            str(candidate.document.id)
+            for candidate in candidates
+            if not self._is_title_only_candidate(candidate)
+        }
         for candidate in candidates:
             document_id = str(candidate.document.id)
+            if (
+                document_id in documents_with_substantive_chunks
+                and self._is_title_only_candidate(candidate)
+            ):
+                continue
             if counts.get(document_id, 0) >= max_per_document:
                 continue
             selected.append(candidate)
@@ -376,6 +390,15 @@ class RetrieverService:
             if len(selected) == limit:
                 break
         return selected
+
+    def _is_title_only_candidate(self, candidate: Candidate) -> bool:
+        title = self._normalize_keyword_text(
+            str(getattr(candidate.document, "title", "") or "")
+        )
+        content = self._normalize_keyword_text(
+            str(getattr(candidate.chunk, "content", "") or "")
+        )
+        return bool(title and content == title)
 
     def _elapsed_ms(self, started: float) -> int:
         return int((time.perf_counter() - started) * 1000)

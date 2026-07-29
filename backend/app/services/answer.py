@@ -44,6 +44,7 @@ class AnswerService:
                 answer=warning,
                 citations=[],
                 retrieved_chunks=retrieval.results,
+                context_chunks=[],
                 metrics=AnswerMetrics(
                     embedding_ms=retrieval.metrics.embedding_ms,
                     retrieval_ms=retrieval.metrics.retrieval_ms,
@@ -55,6 +56,7 @@ class AnswerService:
         context_chunks = self._context_chunks(
             retrieval.results,
             max_tokens=min(request.max_context_tokens, settings.max_context_tokens),
+            prefer_document_diversity=self._requires_document_diversity(request),
         )
         context = self._build_context(context_chunks)
         llm_started = time.perf_counter()
@@ -65,13 +67,26 @@ class AnswerService:
                     "role": "system",
                     "content": (
                         "You analyze AI developer-tool documentation and dated product updates "
-                        "using only the provided context. Cite factual claims with bracketed "
-                        "citation IDs like [1]. Treat publication dates as part of the evidence. "
-                        "Never claim something is recent unless its date is present in context. "
+                        "using only the provided context, never prior knowledge or memory. "
+                        "Cite factual claims with bracketed citation IDs like [1], and use a "
+                        "citation only when that exact passage directly supports the claim. "
+                        "Treat publication dates as part of the evidence. Never claim something "
+                        "is recent unless its date is present in context. Never invent, estimate, "
+                        "or infer a requested number from a related metric. If the question asks "
+                        "for an exact metric and the context does not explicitly name that metric, "
+                        "state that the exact metric is not provided. For comparisons, address "
+                        "each named subject separately and do not substitute a broadly related "
+                        "article for the requested subject. If evidence is insufficient, lead "
+                        "with that limitation and state what evidence is missing instead of "
+                        "filling the answer with adjacent facts. Unless the user explicitly asks "
+                        "for exhaustive detail or code, answer directly in no more than 200 words "
+                        "and do not include code samples. Add citations as you make each supported "
+                        "claim rather than waiting until the end. "
                         "For period summaries, output exactly three bullets with no introduction "
                         "or conclusion. Each bullet must cover one distinct update in at most 30 "
                         "words and end with its citation. If fewer than three updates are supported, "
-                        "return only the supported bullets and then state what evidence is missing."
+                        "return only the supported bullets and then state what evidence is missing. "
+                        "Do not force the three-bullet format for other question types."
                     ),
                 },
                 {
@@ -84,6 +99,9 @@ class AnswerService:
         )
         llm_ms = self._elapsed_ms(llm_started)
         answer = response.choices[0].message.content or ""
+        generation_warnings = self._generation_warnings(
+            response.choices[0].finish_reason
+        )
 
         usage = response.usage
         context_tokens = self._count_tokens(context)
@@ -104,6 +122,7 @@ class AnswerService:
                 if index in citation_ids
             ],
             retrieved_chunks=retrieval.results,
+            context_chunks=context_chunks,
             metrics=AnswerMetrics(
                 embedding_ms=retrieval.metrics.embedding_ms,
                 retrieval_ms=retrieval.metrics.retrieval_ms,
@@ -115,6 +134,7 @@ class AnswerService:
             ),
             retrieval_warning=None,
             citation_warnings=citation_warnings,
+            generation_warnings=generation_warnings,
         )
 
     def _retrieval_warning(self, chunks, min_similarity: float) -> str | None:
@@ -135,19 +155,62 @@ class AnswerService:
 
         return None
 
-    def _context_chunks(self, chunks, max_tokens: int):
+    def _context_chunks(
+        self,
+        chunks,
+        max_tokens: int,
+        *,
+        prefer_document_diversity: bool = False,
+    ):
+        ordered_chunks = (
+            self._document_diverse_order(chunks)
+            if prefer_document_diversity
+            else list(chunks)
+        )
         selected = []
         total_tokens = 0
-        for chunk in chunks:
+        for chunk in ordered_chunks:
             block = self._context_block(chunk, len(selected) + 1)
             if selected:
                 block = "\n\n---\n\n" + block
             chunk_tokens = self._count_tokens(block)
             if selected and total_tokens + chunk_tokens > max_tokens:
-                break
+                continue
             selected.append(chunk)
             total_tokens += chunk_tokens
         return selected
+
+    def _document_diverse_order(self, chunks):
+        first_by_document = []
+        repeated_documents = []
+        seen: set[str] = set()
+        for chunk in chunks:
+            identity = self._context_document_identity(chunk)
+            if identity in seen:
+                repeated_documents.append(chunk)
+                continue
+            seen.add(identity)
+            first_by_document.append(chunk)
+        return [*first_by_document, *repeated_documents]
+
+    def _context_document_identity(self, chunk) -> str:
+        url = str(getattr(chunk, "url", "") or "").strip().lower().rstrip("/")
+        if url:
+            return url
+        return str(getattr(chunk, "document_id", ""))
+
+    def _requires_document_diversity(self, request: AskRequest) -> bool:
+        if request.retrieval_strategy == "source_balanced":
+            return True
+        if request.source_names and len(request.source_names) > 1:
+            return True
+        return bool(
+            re.search(
+                r"\b(?:compare|comparison|versus|vs\.?|across)\b",
+                request.question,
+                flags=re.IGNORECASE,
+            )
+        )
 
     def _build_context(self, chunks) -> str:
         parts = []
@@ -172,9 +235,29 @@ class AnswerService:
         valid = {value for value in referenced if 1 <= value <= context_count}
         invalid = sorted({value for value in referenced if value < 1 or value > context_count})
         warnings = [f"Answer referenced unknown citation [{value}]." for value in invalid]
-        if answer.strip() and not valid:
+        if answer.strip() and not valid and not self._is_insufficient_evidence_answer(answer):
             warnings.append("Answer did not reference any retrieved evidence.")
         return valid, warnings
+
+    def _is_insufficient_evidence_answer(self, answer: str) -> bool:
+        normalized = " ".join(answer.lower().split())
+        indicators = (
+            "context does not include",
+            "context does not provide",
+            "evidence is missing",
+            "insufficient evidence",
+            "not provided in the context",
+            "no information about",
+            "cannot be determined from the context",
+        )
+        return any(indicator in normalized for indicator in indicators)
+
+    def _generation_warnings(self, finish_reason: str | None) -> list[str]:
+        if finish_reason == "length":
+            return [
+                "Answer reached the completion-token limit and may be truncated."
+            ]
+        return []
 
     def _count_tokens(self, text: str) -> int:
         encoding = tiktoken.get_encoding("cl100k_base")

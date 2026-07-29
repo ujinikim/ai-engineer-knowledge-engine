@@ -20,3 +20,18 @@ def test_release_channels_distinguish_prereleases():
     assert collector._release_channel("v1.5.0-rc.2") == "prerelease"
     assert collector._release_channel("v2.0.0-beta1") == "prerelease"
     assert collector._release_channel("v3.0.0-dev.4") == "prerelease"
+
+
+def test_document_urls_normalize_trailing_slashes_without_losing_fragments():
+    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+
+    assert (
+        collector._normalize_document_url("https://example.com/releases/item/#details")
+        == "https://example.com/releases/item#details"
+    )
+    assert collector._document_url_candidates(
+        "https://example.com/releases/item/"
+    ) == [
+        "https://example.com/releases/item",
+        "https://example.com/releases/item/",
+    ]

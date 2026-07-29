@@ -1,0 +1,278 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-28T20:09:08.350156+00:00",
+  "questions_file": "/Users/jinkim/Documents/2026_Summer/ai-engineer-knowledge-engine/backend/data/eval/retrieval/updates_questions_2026-07-27.yml",
+  "snapshot_file": "/Users/jinkim/Documents/2026_Summer/ai-engineer-knowledge-engine/backend/data/eval/retrieval/updates_snapshot_2026-07-27.json",
+  "snapshot_corpus_hash": "d12684ca90a0651eb3d80638d12b17df745ac780b9c3fefac5b86737db5eda73",
+  "overrides": {
+    "split": "holdout",
+    "intent": "comparison",
+    "top_k": null,
+    "search_mode": "hybrid",
+    "retrieval_strategy": "standard"
+  },
+  "summary": {
+    "question_count": 2,
+    "recall_at_k": 1.0,
+    "precision_at_k": 0.3095,
+    "mean_reciprocal_rank": 0.75,
+    "all_relevant_documents_hit_rate": 1.0,
+    "all_required_sources_hit_rate": 1.0,
+    "filter_correct_rate": 1.0,
+    "minimum_results_met_rate": 1.0,
+    "required_text_coverage": 1.0,
+    "avg_embedding_ms": 894.5,
+    "avg_retrieval_ms": 781.5,
+    "avg_total_ms": 1676.5
+  },
+  "by_intent": {
+    "comparison": {
+      "question_count": 2,
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.3095,
+      "mean_reciprocal_rank": 0.75,
+      "all_relevant_documents_hit_rate": 1.0,
+      "all_required_sources_hit_rate": 1.0,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": 1.0,
+      "avg_embedding_ms": 894.5,
+      "avg_retrieval_ms": 781.5,
+      "avg_total_ms": 1676.5
+    }
+  },
+  "by_split": {
+    "holdout": {
+      "question_count": 2,
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.3095,
+      "mean_reciprocal_rank": 0.75,
+      "all_relevant_documents_hit_rate": 1.0,
+      "all_required_sources_hit_rate": 1.0,
+      "filter_correct_rate": 1.0,
+      "minimum_results_met_rate": 1.0,
+      "required_text_coverage": 1.0,
+      "avg_embedding_ms": 894.5,
+      "avg_retrieval_ms": 781.5,
+      "avg_total_ms": 1676.5
+    }
+  },
+  "questions": [
+    {
+      "id": "compare_gemini_36_flash_availability",
+      "question": "Compare Gemini 3.6 Flash availability from Google DeepMind and GitHub Copilot.",
+      "intent": "comparison",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Compare Gemini 3.6 Flash availability from Google DeepMind and GitHub Copilot.",
+        "top_k": 8,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "6281be38-bd0f-428b-ac00-fad6d4f3c48b",
+        "1482dead-9b32-4f1e-ae2b-0e413d2595c2"
+      ],
+      "required_source_names": [
+        "deepmind-blog",
+        "github-changelog"
+      ],
+      "required_text_terms": [
+        "Gemini 3.6 Flash",
+        "GitHub Copilot"
+      ],
+      "retrieved_document_ids": [
+        "1482dead-9b32-4f1e-ae2b-0e413d2595c2",
+        "6281be38-bd0f-428b-ac00-fad6d4f3c48b",
+        "a6fe0398-a632-41b3-905a-35956e3c8b42",
+        "6281be38-bd0f-428b-ac00-fad6d4f3c48b",
+        "a6fe0398-a632-41b3-905a-35956e3c8b42",
+        "f174086f-54bb-410d-87c2-2cd3659c6d90",
+        "8c069ff1-0965-4aa8-bee0-a4fafe706d45",
+        "d24d03cb-7a76-484c-a3b5-1b023ca7b9d6"
+      ],
+      "retrieved_chunk_ids": [
+        "e2d28821-69ab-4687-9989-a35f7c7c1654",
+        "9b0c1c7e-05bd-45fd-be60-4aa45b31ae88",
+        "2a623dd2-001a-425a-b746-077dc784c606",
+        "d961597f-4bdf-49ff-8bcf-108d17530676",
+        "f59971f0-ee6c-4b42-8bc6-47c7d2238c55",
+        "48301def-9a0e-40e9-a119-83c706fd6cd6",
+        "08e666a8-79eb-4158-9360-4cd3fcbbe024",
+        "bc2bd8b9-8d17-4a22-a291-43ce76c17278"
+      ],
+      "retrieved_sources": [
+        "github-changelog",
+        "deepmind-blog",
+        "deepmind-blog",
+        "deepmind-blog",
+        "deepmind-blog",
+        "deepmind-blog",
+        "deepmind-blog",
+        "github-changelog"
+      ],
+      "retrieved_titles": [
+        "Gemini 3.6 Flash is now available in GitHub Copilot",
+        "Introducing Gemini 3.6 Flash, 3.5 Flash-Lite, and 3.5 Flash Cyber",
+        "Introducing Gemini 3.5 Flash Cyber",
+        "Introducing Gemini 3.6 Flash, 3.5 Flash-Lite, and 3.5 Flash Cyber",
+        "Introducing Gemini 3.5 Flash Cyber",
+        "Fluid, natural voice translation with Gemini 3.5 Live Translate",
+        "Accelerating the frontiers of scientific discovery: Google\u2019s $40M commitment to the Genesis Mission",
+        "Claude Opus 5 is now available in GitHub Copilot"
+      ],
+      "scores": [
+        0.8144,
+        0.6624,
+        0.6125,
+        0.5873,
+        0.5651,
+        0.5366,
+        0.5318,
+        0.5283
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.3333,
+      "reciprocal_rank": 1.0,
+      "first_relevant_rank": 1,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "Gemini 3.6 Flash",
+        "GitHub Copilot"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 1339,
+      "retrieval_ms": 909,
+      "total_ms": 2248,
+      "notes": "Cross-source launch and integration comparison."
+    },
+    {
+      "id": "compare_agent_security_research",
+      "question": "Compare DeepMind's agent-security research with Hugging Face's MosaicLeaks findings.",
+      "intent": "comparison",
+      "split": "holdout",
+      "expected_outcome": "answerable",
+      "request": {
+        "query": "Compare DeepMind's agent-security research with Hugging Face's MosaicLeaks findings.",
+        "top_k": 10,
+        "source_names": null,
+        "tools": null,
+        "categories": null,
+        "event_types": null,
+        "source_types": null,
+        "maturities": null,
+        "collection": "updates",
+        "published_after": null,
+        "published_before": null,
+        "search_mode": "hybrid",
+        "retrieval_strategy": "standard"
+      },
+      "relevant_document_ids": [
+        "b35f1c85-6c51-4f90-bce5-859f517e5c4c",
+        "b52bca8f-222e-4427-aba2-dcec766b3724"
+      ],
+      "required_source_names": [
+        "deepmind-blog",
+        "huggingface-blog"
+      ],
+      "required_text_terms": [
+        "AI agents",
+        "MosaicLeaks"
+      ],
+      "retrieved_document_ids": [
+        "7beaf556-d388-4d67-8e8f-81fd48607a3d",
+        "b52bca8f-222e-4427-aba2-dcec766b3724",
+        "a0c77e52-b0ed-4b53-b13c-4dfbbbcde2da",
+        "a0c77e52-b0ed-4b53-b13c-4dfbbbcde2da",
+        "b52bca8f-222e-4427-aba2-dcec766b3724",
+        "5510d99f-4f59-44a4-bd1c-bb9d57a04e9e",
+        "b54e0a96-479f-4853-b36e-786917064854",
+        "b35f1c85-6c51-4f90-bce5-859f517e5c4c",
+        "b54e0a96-479f-4853-b36e-786917064854",
+        "4c71b7e2-bfcc-4bdf-bb72-27e2ff52c101"
+      ],
+      "retrieved_chunk_ids": [
+        "6791f399-a241-455a-b219-995938a8f3c3",
+        "962b5724-5751-4f57-bf14-b7fe0b0dd717",
+        "e7aec682-76cb-406c-a78b-8a85dbff9772",
+        "dbd2d8b1-5e07-4744-b2bd-330b08eae087",
+        "07b5cadf-8909-4174-a1df-846405546937",
+        "342a6003-8eaa-4f05-9054-ee6a324e555f",
+        "068d299f-ddcd-48ad-a7a2-b762572ee04d",
+        "3bfd2897-a538-4d57-a1a6-0d56bf05c251",
+        "8427b3f0-cc55-4162-b6db-9ea3bbb2f4db",
+        "cd2f282c-8a08-4577-a87b-ac5ed7e98285"
+      ],
+      "retrieved_sources": [
+        "openai-news",
+        "huggingface-blog",
+        "openai-news",
+        "openai-news",
+        "huggingface-blog",
+        "deepmind-blog",
+        "huggingface-blog",
+        "deepmind-blog",
+        "huggingface-blog",
+        "huggingface-blog"
+      ],
+      "retrieved_titles": [
+        "OpenAI and Hugging Face partner to address security incident during model evaluation",
+        "MosaicLeaks: Can your research agent keep a secret?",
+        "OpenAI and Hugging Face partner to address security incident during model evaluation",
+        "OpenAI and Hugging Face partner to address security incident during model evaluation",
+        "MosaicLeaks: Can your research agent keep a secret?",
+        "Investing in multi-agent AI safety research",
+        "How an Agent Built a 3D Paris Gallery by Chaining Two Hugging Face Spaces",
+        "Securing the future of AI agents",
+        "How an Agent Built a 3D Paris Gallery by Chaining Two Hugging Face Spaces",
+        "ScarfBench: Benchmarking AI Agents for Enterprise Java Framework Migration"
+      ],
+      "scores": [
+        0.6609,
+        0.6394,
+        0.6296,
+        0.6179,
+        0.5927,
+        0.484,
+        0.4597,
+        0.4575,
+        0.4515,
+        0.4068
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2857,
+      "reciprocal_rank": 0.5,
+      "first_relevant_rank": 2,
+      "all_relevant_documents_hit": true,
+      "all_required_sources_hit": true,
+      "required_text_hits": [
+        "AI agents",
+        "MosaicLeaks"
+      ],
+      "required_text_coverage": 1.0,
+      "filter_correct": true,
+      "filter_violations": [],
+      "minimum_results": 1,
+      "minimum_results_met": true,
+      "embedding_ms": 450,
+      "retrieval_ms": 654,
+      "total_ms": 1105,
+      "notes": "Cross-source security research comparison."
+    }
+  ]
+}

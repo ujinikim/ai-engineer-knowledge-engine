@@ -95,6 +95,7 @@ type AskResponse = {
   answer: string;
   citations: Array<{ id: number; title: string; url: string; chunk_id: string }>;
   retrieved_chunks: RetrievedChunk[];
+  context_chunks: RetrievedChunk[];
   metrics: {
     embedding_ms: number;
     retrieval_ms: number;
@@ -106,6 +107,7 @@ type AskResponse = {
   };
   retrieval_warning: string | null;
   citation_warnings: string[];
+  generation_warnings: string[];
 };
 
 function App() {
@@ -331,6 +333,7 @@ function App() {
           {answer?.retrieval_warning ? <p className="warning">{answer.retrieval_warning}</p> : null}
           {answer ? <div className="answer-text">{answer.answer}</div> : null}
           {answer?.citation_warnings.map((warning) => <p className="citation-warning" key={warning}>{warning}</p>)}
+          {answer?.generation_warnings.map((warning) => <p className="citation-warning" key={warning}>{warning}</p>)}
           {answer?.citations.length ? (
             <div className="citation-list">
               {answer.citations.map((citation) => (
@@ -351,11 +354,24 @@ function App() {
                 <dt>Cost</dt><dd>${answer.metrics.estimated_cost_usd.toFixed(5)}</dd>
               </dl>
               <details>
-                <summary>Retrieved evidence ({answer.retrieved_chunks.length})</summary>
+                <summary>Answer context ({answer.context_chunks.length})</summary>
+                <div className="evidence-list">
+                  {answer.context_chunks.map((chunk, index) => (
+                    <article key={chunk.chunk_id}>
+                      <strong>[{index + 1}] {chunk.tool ?? chunk.source_name}</strong>
+                      <span>{chunk.similarity.toFixed(3)}</span>
+                      <a href={chunk.url} target="_blank" rel="noreferrer">{chunk.document_title}</a>
+                      <p>{chunk.content}</p>
+                    </article>
+                  ))}
+                </div>
+              </details>
+              <details>
+                <summary>Retrieved candidates ({answer.retrieved_chunks.length})</summary>
                 <div className="evidence-list">
                   {answer.retrieved_chunks.map((chunk, index) => (
                     <article key={chunk.chunk_id}>
-                      <strong>[{index + 1}] {chunk.tool ?? chunk.source_name}</strong>
+                      <strong>Rank {index + 1} · {chunk.tool ?? chunk.source_name}</strong>
                       <span>{chunk.similarity.toFixed(3)}</span>
                       <a href={chunk.url} target="_blank" rel="noreferrer">{chunk.document_title}</a>
                       <p>{chunk.content}</p>

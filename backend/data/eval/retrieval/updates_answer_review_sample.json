@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "review_id": "updates-answer-review-2026-07-28-v1",
+  "reviewed_at": "2026-07-28",
+  "last_updated_at": "2026-07-29",
+  "purpose": "Human review of the Phase 3 end-to-end update answer path.",
+  "change_log": [
+    {
+      "date": "2026-07-28",
+      "change": "Created the review artifact with the first representative comparison case after separator normalization."
+    },
+    {
+      "date": "2026-07-29",
+      "change": "Preserved the original comparison failure and added post-fix judgments for document-diverse context packing, title-only chunk filtering, insufficient-evidence prompting, and concise answer generation."
+    }
+  ],
+  "configuration": {
+    "answer_model": "gpt-4.1-mini",
+    "embedding_model": "text-embedding-3-small",
+    "search_mode": "hybrid",
+    "retrieval_strategy": "standard",
+    "max_context_tokens": 3500,
+    "max_completion_tokens": 500
+  },
+  "cases": [
+    {
+      "id": "compare_agent_security_research",
+      "question": "Compare DeepMind's agent-security research with Hugging Face's MosaicLeaks findings.",
+      "expected_outcome": "answerable",
+      "relevant_document_ids": [
+        "b35f1c85-6c51-4f90-bce5-859f517e5c4c",
+        "b52bca8f-222e-4427-aba2-dcec766b3724"
+      ],
+      "required_source_names": [
+        "deepmind-blog",
+        "huggingface-blog"
+      ],
+      "retrieval": {
+        "all_relevant_documents_hit": true,
+        "first_relevant_rank": 2,
+        "judged_deepmind_document_rank": 8,
+        "ranked_documents": [
+          "OpenAI and Hugging Face partner to address security incident during model evaluation",
+          "MosaicLeaks: Can your research agent keep a secret?",
+          "OpenAI and Hugging Face partner to address security incident during model evaluation",
+          "OpenAI and Hugging Face partner to address security incident during model evaluation",
+          "MosaicLeaks: Can your research agent keep a secret?",
+          "Investing in multi-agent AI safety research",
+          "How an Agent Built a 3D Paris Gallery by Chaining Two Hugging Face Spaces",
+          "Securing the future of AI agents",
+          "How an Agent Built a 3D Paris Gallery by Chaining Two Hugging Face Spaces",
+          "ScarfBench: Benchmarking AI Agents for Enterprise Java Framework Migration"
+        ]
+      },
+      "answer": "- DeepMind focuses on multi-agent AI safety research, funding up to $10M to study large-scale multi-agent AI systems' behaviors, aiming to understand and mitigate risks from interactions among millions of AI agents across digital environments [6].\n\n- Hugging Face's MosaicLeaks research identifies privacy risks in deep research agents that combine private documents with external web queries, leading to mosaic leakage where adversaries infer sensitive information from query logs; they propose a privacy-aware RL training method to reduce leakage significantly [2][5].\n\n- DeepMind's work emphasizes systemic safety and predictability in multi-agent AI ecosystems, while Hugging Face's MosaicLeaks highlights privacy vulnerabilities in individual AI research agents' query behaviors, focusing on preventing information leakage through training rather than just prompting [6][2].\n\nEvidence is missing for a direct comparison of DeepMind's agent-security research with Hugging Face's MosaicLeaks findings beyond these points.",
+      "citations": [
+        {
+          "id": 2,
+          "title": "MosaicLeaks: Can your research agent keep a secret?",
+          "chunk_id": "962b5724-5751-4f57-bf14-b7fe0b0dd717"
+        },
+        {
+          "id": 5,
+          "title": "MosaicLeaks: Can your research agent keep a secret?",
+          "chunk_id": "07b5cadf-8909-4174-a1df-846405546937"
+        },
+        {
+          "id": 6,
+          "title": "Investing in multi-agent AI safety research",
+          "chunk_id": "342a6003-8eaa-4f05-9054-ee6a324e555f"
+        }
+      ],
+      "citation_warnings": [],
+      "retrieval_warning": null,
+      "metrics": {
+        "embedding_ms": 643,
+        "retrieval_ms": 720,
+        "llm_ms": 2625,
+        "total_ms": 4092,
+        "context_tokens": 3254,
+        "completion_tokens": 180,
+        "estimated_cost_usd": 0.001635
+      },
+      "human_review": {
+        "factual_grounding": "pass",
+        "required_fact_coverage": "fail",
+        "citation_correctness": "pass",
+        "comparison_balance": "partial",
+        "abstention_behavior": "not_applicable",
+        "overall": "needs_context_selection_fix",
+        "notes": "The answer's claims are supported by the cited chunks, and all citation IDs are valid. However, the intended DeepMind AI Control Roadmap document was retrieved at rank 8 but excluded from the 3,500-token answer context. The model therefore compared MosaicLeaks with a partially relevant multi-agent safety funding article instead of the judged agent-security research."
+      },
+      "post_fix_review": {
+        "reviewed_at": "2026-07-29",
+        "factual_grounding": "pass",
+        "required_fact_coverage": "pass",
+        "citation_correctness": "pass",
+        "comparison_balance": "pass",
+        "overall": "pass_with_supplementary_context",
+        "notes": "Document-diverse context packing included the judged DeepMind AI Control Roadmap chunk at citation position 5. The regenerated answer cited that document and MosaicLeaks, distinguished their threat models, and retained the alternate DeepMind funding article only as supplementary context."
+      }
+    }
+  ],
+  "targeted_follow_up_reviews": [
+    {
+      "id": "insufficient_qdrant_119",
+      "overall": "pass",
+      "notes": "The answer stated that v1.19.0 was absent and did not invent changes. An uncited abstention is no longer reported as a citation failure."
+    },
+    {
+      "id": "insufficient_vllm_026_latency",
+      "overall": "pass",
+      "notes": "The answer distinguished named optimizations from the missing exact production-latency reduction and did not infer a number."
+    },
+    {
+      "id": "insufficient_presence_incident_rate",
+      "initial_result": "fail",
+      "overall": "pass_after_prompt_fix",
+      "notes": "The initial answer invented a less-than-1% incident rate that was absent from context. After prompt hardening, the answer explicitly stated that no incident-rate metric was provided."
+    },
+    {
+      "id": "lookup_tensorrt_progress_cancel",
+      "overall": "pass",
+      "notes": "Filtering title-only chunks exposed the IProgressMonitor and step_complete evidence. The concise regenerated answer was complete, cited, and did not hit the completion-token limit."
+    },
+    {
+      "id": "temporal_batch_retrieval_research",
+      "overall": "pass",
+      "notes": "Filtering title-only chunks exposed both retrieval-failures and Hindi evidence, and the regenerated answer described the research with valid citations."
+    },
+    {
+      "id": "synthesis_monday_agents",
+      "overall": "partial",
+      "notes": "The answer became materially useful after substantive chunks replaced title-only chunks. Context covered SNS and EFS but not SQS, so deeper within-document architecture coverage remains a measured follow-up rather than a ranking-weight change."
+    }
+  ]
+}
