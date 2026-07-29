@@ -1,6 +1,6 @@
 # MVP Status
 
-Last validated: July 27, 2026
+Last validated: July 29, 2026
 
 ## Complete
 
@@ -25,7 +25,7 @@ Last validated: July 27, 2026
 
 ## Validation
 
-- Backend tests: 88 passed
+- Backend tests: 96 passed
 - Backend lint: Ruff passed
 - Frontend TypeScript and production build: passed
 - Desktop layout: validated at 1440 x 900 with no horizontal overflow
@@ -48,6 +48,10 @@ Last validated: July 27, 2026
 - Source-boundary remediation baseline: 184 pass, 10 warning, and 0 fail across 194 documents
 - Refreshed extraction review: 18 complete and 2 incomplete OpenAI previews across 20 sampled documents
 - Phase 2 summary/taxonomy calibration is complete for the MVP
+- Phase 3 retrieval closeout: 100% Recall@K, 98.2% MRR, 100% filter
+  correctness, and 98.8% required-text coverage across 30 questions
+- Phase 3 answer review: 11 pass, 1 partial, and 0 fail across 12 cases;
+  100% valid citation IDs and 3/3 insufficient-evidence cases passed
 
 ## Deliberately Deferred
 
@@ -55,18 +59,19 @@ Last validated: July 27, 2026
 - Cross-source story clustering and duplicate-event merging
 - User accounts, saved views, and personalization
 - Streaming answer transport
-- Learned reranking and formal retrieval-quality evaluation sets
+- Learned reranking
 
 See `ROADMAP.md` for the recommended order of follow-up work.
-The update-focused RAG benchmark is the next active phase; see
-`PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`. Deployment follows as Phase 4.
+The update-focused RAG benchmark is complete; see
+`PHASE3_CLOSEOUT_2026-07-29.md`. Deployment foundation is the active Phase 4.
 
-Phase 3 checkpoint:
+Phase 3 closeout:
 
 - Frozen 240-document/1,134-chunk update snapshot
 - 30 exact-document cases: 20 calibration and 10 holdout
 - Untouched vector, keyword, hybrid, and source-balanced baselines saved
-- Calibrated hybrid: 98.2% overall Recall@K, 95.4% MRR, and 100% filter correctness
-- Holdout: 94.4% Recall@K against an 85% initial target
+- Context-ready hybrid: 100% overall Recall@K, 98.2% MRR, and 100% filter correctness
+- Required-text coverage: 98.8%
 - Exact lookup at K=5: 100% recall and 0.938 MRR
-- Remaining work: 12-case answer grounding, citation, comparison, and abstention review
+- Answer review: 11 pass, 1 partial, 0 fail; all citation and abstention targets passed
+- Known partial: monday.com context contains SNS and EFS but omits SQS

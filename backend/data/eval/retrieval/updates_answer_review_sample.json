@@ -12,6 +12,10 @@
     {
       "date": "2026-07-29",
       "change": "Preserved the original comparison failure and added post-fix judgments for document-diverse context packing, title-only chunk filtering, insufficient-evidence prompting, and concise answer generation."
+    },
+    {
+      "date": "2026-07-29",
+      "change": "Completed the planned 12-case human answer review and recorded the Phase 3 closeout decision."
     }
   ],
   "configuration": {
@@ -21,6 +25,17 @@
     "retrieval_strategy": "standard",
     "max_context_tokens": 3500,
     "max_completion_tokens": 500
+  },
+  "summary": {
+    "reviewed_case_count": 12,
+    "pass_count": 11,
+    "partial_count": 1,
+    "fail_count": 0,
+    "valid_citation_id_rate": 1.0,
+    "insufficient_evidence_pass_rate": 1.0,
+    "comparison_source_coverage_rate": 1.0,
+    "within_document_expansion_decision": "deferred",
+    "decision_reason": "Only the monday.com synthesis remained partial, its answer was still materially useful, and no second reviewed long-document case established a repeated need for additional neighbor chunks."
   },
   "cases": [
     {
@@ -132,6 +147,48 @@
       "id": "synthesis_monday_agents",
       "overall": "partial",
       "notes": "The answer became materially useful after substantive chunks replaced title-only chunks. Context covered SNS and EFS but not SQS, so deeper within-document architecture coverage remains a measured follow-up rather than a ranking-weight change."
+    },
+    {
+      "id": "lookup_qdrant_shard_resharding",
+      "overall": "pass",
+      "factual_grounding": "pass",
+      "required_fact_coverage": "pass",
+      "citation_correctness": "pass",
+      "notes": "The answer identified v1.18.3 and cited the exact changelog line fixing query errors with shard keys during resharding."
+    },
+    {
+      "id": "compare_claude_opus_5_availability",
+      "overall": "pass",
+      "factual_grounding": "pass",
+      "required_fact_coverage": "pass",
+      "citation_correctness": "pass",
+      "comparison_balance": "pass",
+      "notes": "The answer separately represented Anthropic, AWS, and GitHub Copilot, distinguished their announcement emphasis, and cited all three judged sources."
+    },
+    {
+      "id": "compare_agentic_retrieval_findings",
+      "overall": "pass",
+      "factual_grounding": "pass",
+      "required_fact_coverage": "pass",
+      "citation_correctness": "pass",
+      "comparison_balance": "pass",
+      "notes": "The answer compared AWS agentic retrieval guidance with The Batch research findings, included both required concepts and sources, and used valid citations."
+    },
+    {
+      "id": "filter_recent_openai_security",
+      "overall": "pass",
+      "factual_grounding": "pass",
+      "required_fact_coverage": "pass",
+      "citation_correctness": "pass",
+      "notes": "The answer respected the OpenAI source and publication-date filters and identified the July 21 model-evaluation security incident."
+    },
+    {
+      "id": "synthesis_bedrock_guardrails",
+      "overall": "pass",
+      "factual_grounding": "pass",
+      "required_fact_coverage": "pass",
+      "citation_correctness": "pass",
+      "notes": "The answer explained checkpoint-based validation, the limits of continuous inline scanning, selective high-risk evaluation, and relevant Bedrock Guardrails safeguards using the judged AWS article."
     }
   ]
 }

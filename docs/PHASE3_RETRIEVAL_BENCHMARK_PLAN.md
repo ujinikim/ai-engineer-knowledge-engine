@@ -1,9 +1,9 @@
 # Phase 3 Retrieval Benchmark Plan
 
-**Status (July 27, 2026):** in progress. The 240-document snapshot, 30-question set,
-document-level evaluator, untouched four-configuration baseline, and first calibrated
-hybrid correction are complete. Findings are recorded in
-`PHASE3_RETRIEVAL_BASELINE_FINDINGS_2026-07-27.md`. Answer grounding review remains.
+**Status (July 29, 2026): complete.** The frozen 30-question retrieval benchmark and
+12-case human answer review satisfy every initial acceptance target. Findings are
+recorded in `PHASE3_RETRIEVAL_BASELINE_FINDINGS_2026-07-27.md`; the final decision and
+deployment handoff are in `PHASE3_CLOSEOUT_2026-07-29.md`.
 
 ## Goal
 

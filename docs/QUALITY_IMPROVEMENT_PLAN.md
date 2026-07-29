@@ -55,6 +55,8 @@ Status on July 27, 2026: complete for MVP quality calibration.
 
 ## Phase 3: Retrieval Benchmark
 
+**Status:** complete July 29, 2026. See `PHASE3_CLOSEOUT_2026-07-29.md`.
+
 - Versioned question and relevance judgments
 - Recall@K, Precision@K, MRR, filter correctness, and source coverage
 - Temporal, comparison, and insufficient-evidence questions

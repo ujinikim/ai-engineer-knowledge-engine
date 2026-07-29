@@ -22,16 +22,13 @@
 
 ## Next
 
-1. Build the frozen 240-document update snapshot and 30-question retrieval benchmark
-2. Save the unmodified retrieval baseline and review failures
-3. Tune only measured retrieval failures and save the Phase 3 closeout baseline
-4. Complete deployment readiness and deploy staging
-5. Rerun the frozen benchmark in staging and record hosted latency
-6. Launch the initial production MVP with backups, monitoring, and rollback
-7. Add story clustering and cross-source deduplication
-8. Add contextual `Brief me` synthesis over the active feed
-9. Add streaming responses and first-token latency
-10. Add followed topics/tools and read, saved, and learning-queue state
+1. Complete deployment readiness and deploy staging
+2. Rerun the frozen Phase 3 benchmark in staging and record hosted latency
+3. Launch the initial production MVP with backups, monitoring, and rollback
+4. Add story clustering and cross-source deduplication
+5. Add contextual `Brief me` synthesis over the active feed
+6. Add streaming responses and first-token latency
+7. Add followed topics/tools and read, saved, and learning-queue state
 
 ## Later
 
@@ -50,4 +47,6 @@ The longer-term personal digest and learning-dashboard direction is captured in 
 The ordered evaluation and product phases are captured in `QUALITY_IMPROVEMENT_PLAN.md`.
 Phase 3 question design, metrics, tuning order, and gates are captured in
 `PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
+The completed Phase 3 result and deployment handoff are in
+`PHASE3_CLOSEOUT_2026-07-29.md`.
 Deployment topology, sequencing, and launch gates are captured in `DEPLOYMENT_PLAN.md`.
