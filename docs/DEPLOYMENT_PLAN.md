@@ -240,6 +240,19 @@ broadly until every acceptance item passes.
 - Prove a read-only workflow can call `sts:GetCallerIdentity`.
 - Bootstrap encrypted/versioned Terraform state with S3 lockfile support.
 
+**Progress on August 1, 2026:** the public repository, GitHub OIDC provider, and
+trust-only IAM role are complete. The manually triggered
+`aws-oidc-smoke.yml` workflow successfully exchanged an OIDC token and called
+`sts:GetCallerIdentity`; the role still has no attached or inline permission policies.
+The official AWS credentials action is pinned to an immutable commit rather than a
+movable tag, and the role ARN and region are repository variables rather than secrets.
+
+GitHub repositories created after July 15, 2026 use immutable OIDC subjects containing
+the owner and repository IDs. The IAM trust uses that exact ID-bound subject plus the
+`main` branch and `sts.amazonaws.com` audience. The original name-only trust failed
+closed, and CloudTrail supplied the exact subject needed for the corrected policy. The
+next Gate 1 item is the Terraform-state bootstrap.
+
 ### Gate 2: Make the repository deployable
 
 - Add migrations, configuration validation, health endpoints, container packaging,
