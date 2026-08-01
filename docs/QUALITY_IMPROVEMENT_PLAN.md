@@ -66,8 +66,12 @@ Build and tune the benchmark locally against a frozen corpus snapshot. The detai
 question design, evaluation matrix, tuning order, and acceptance targets are in
 `PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
 
-## Phase 4: Deployment Foundation
+## Phase 4: Pre-Launch UI and Deployment
 
+- Complete the product hierarchy, responsive briefing workflow, readability, and
+  portfolio presentation locally
+- Close UI accessibility and acceptance gaps before creating the first hosted
+  environment
 - Package the frontend, API, collector, and Postgres deployment reproducibly
 - Replace production schema initialization with versioned migrations
 - Add health/readiness endpoints and environment validation
@@ -76,8 +80,9 @@ question design, evaluation matrix, tuning order, and acceptance targets are in
   hosted latency
 - Launch production with backups, monitoring, cost controls, and rollback procedures
 
-The detailed order, recommended Render topology, and acceptance criteria are in
-`DEPLOYMENT_PLAN.md`.
+The UI is completed first so the initial hosted validation represents the intended
+public product. The detailed order, recommended lean AWS topology, and acceptance
+criteria are in `UI_PRODUCT_PLAN.md` and `DEPLOYMENT_PLAN.md`.
 
 ## Phase 5: Content Structure
 
@@ -85,11 +90,11 @@ The detailed order, recommended Render topology, and acceptance criteria are in
 - Cluster cross-source coverage of the same event
 - Evaluate story boundaries and pairwise cluster precision and recall
 
-## Phase 6: Product-Focused UI
+## Phase 6: Personal Product Features
 
-- Contextual cited brief
-- Today, week, month, and since-last-visit views
+- Since-last-visit view
 - Followed topics and tools
 - Read, saved, and learning-queue states
+- Copy/share workflows and other usage-driven personal refinements
 
 Each phase requires a saved baseline, documented findings, and measurable completion criteria before the next phase begins.

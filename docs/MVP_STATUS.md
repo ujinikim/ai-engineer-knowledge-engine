@@ -63,7 +63,8 @@ Last validated: July 29, 2026
 
 See `ROADMAP.md` for the recommended order of follow-up work.
 The update-focused RAG benchmark is complete; see
-`PHASE3_CLOSEOUT_2026-07-29.md`. Deployment foundation is the active Phase 4.
+`PHASE3_CLOSEOUT_2026-07-29.md`. Phase 4 now closes the substantially completed
+pre-deployment UI before beginning deployment foundation work.
 
 Phase 3 closeout:
 

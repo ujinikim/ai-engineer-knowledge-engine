@@ -22,13 +22,19 @@
 
 ## Next
 
-1. Complete deployment readiness and deploy staging
-2. Rerun the frozen Phase 3 benchmark in staging and record hosted latency
-3. Launch the initial production MVP with backups, monitoring, and rollback
-4. Add story clustering and cross-source deduplication
-5. Add contextual `Brief me` synthesis over the active feed
+1. Close the remaining pre-deployment UI acceptance items in `UI_PRODUCT_PLAN.md`
+2. Complete deployment readiness
+3. Deploy staging and rerun the frozen Phase 3 benchmark with hosted latency
+4. Launch the initial production MVP with backups, monitoring, and rollback
+5. Add story clustering and cross-source deduplication
 6. Add streaming responses and first-token latency
 7. Add followed topics/tools and read, saved, and learning-queue state
+
+The main Phase 4 UI redesign, responsive hierarchy, briefing workspace, filter
+presentation, and technical-editorial theme are implemented locally. Remaining UI
+work is limited to acceptance and portfolio-presentation gaps; it is completed before
+the first hosted deployment. Deployment packaging and infrastructure follow that UI
+checkpoint.
 
 ## Later
 
@@ -50,3 +56,5 @@ Phase 3 question design, metrics, tuning order, and gates are captured in
 The completed Phase 3 result and deployment handoff are in
 `PHASE3_CLOSEOUT_2026-07-29.md`.
 Deployment topology, sequencing, and launch gates are captured in `DEPLOYMENT_PLAN.md`.
+The pre-launch interface hierarchy and personal-product direction are captured in
+`UI_PRODUCT_PLAN.md`.
