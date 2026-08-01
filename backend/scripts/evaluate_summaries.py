@@ -61,15 +61,12 @@ def preserved_rating(prior: dict, field: str) -> str:
 
 def build_review_sample(
     service: SummaryQualityService,
-    documents: list[Document],
     evaluations,
     sample_size: int,
     previous: dict[str, dict],
 ) -> list[dict]:
-    documents_by_id = {str(document.id): document for document in documents}
     items = []
     for evaluation in service.select_review_sample(evaluations, sample_size):
-        document = documents_by_id[evaluation.document_id]
         prior = previous.get(evaluation.review_key, {})
         items.append(
             {
@@ -82,7 +79,6 @@ def build_review_sample(
                 "generated_by": evaluation.generated_by,
                 "automated_status": evaluation.quality_status,
                 "warnings": evaluation.warnings,
-                "source_text": document.raw_text,
                 "generated_summary": {
                     "display_headline": evaluation.display_headline,
                     "summary": evaluation.summary,
@@ -199,13 +195,14 @@ def main() -> None:
             field: sorted(values) for field, values in HUMAN_RATINGS.items()
         },
         "instructions": (
-            "Compare source_text with generated_summary. Rate faithfulness, coverage, usefulness, "
-            "headline_quality, and taxonomy_accuracy using allowed_ratings. Add concise evidence "
-            "to human_notes. Ratings are preserved only when review_key is unchanged."
+            "Open url or use the locally stored document and compare it with generated_summary. "
+            "Rate faithfulness, coverage, usefulness, headline_quality, and taxonomy_accuracy "
+            "using allowed_ratings. Add concise evidence to human_notes. Full source text is "
+            "intentionally excluded from this public-safe artifact. Ratings are preserved only "
+            "when review_key is unchanged."
         ),
         "items": build_review_sample(
             service,
-            documents,
             evaluations,
             max(0, arguments.sample_size),
             existing_reviews(sample_path),

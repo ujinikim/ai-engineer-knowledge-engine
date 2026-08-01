@@ -51,12 +51,10 @@ def existing_reviews(path: Path) -> dict[str, dict]:
 
 def build_review_sample(
     service: ExtractionQualityService,
-    documents: list[Document],
     evaluations,
     sample_size: int,
     previous: dict[str, dict],
 ) -> list[dict]:
-    documents_by_id = {str(document.id): document for document in documents}
     sample = service.select_review_sample(evaluations, sample_size)
     items = []
     for evaluation in sample:
@@ -64,7 +62,6 @@ def build_review_sample(
         human_label = str(prior.get("human_label") or "not_reviewed")
         if human_label not in HUMAN_LABELS:
             human_label = "not_reviewed"
-        document = documents_by_id[evaluation.document_id]
         items.append(
             {
                 "document_id": evaluation.document_id,
@@ -74,7 +71,6 @@ def build_review_sample(
                 "automated_status": evaluation.quality_status,
                 "warnings": evaluation.warnings,
                 "failures": evaluation.failures,
-                "extracted_text": document.raw_text,
                 "human_label": human_label,
                 "human_notes": str(prior.get("human_notes") or ""),
             }
@@ -145,7 +141,6 @@ def main() -> None:
     }
     review_items = build_review_sample(
         service,
-        documents,
         evaluations,
         max(0, arguments.sample_size),
         existing_reviews(sample_path),
@@ -155,7 +150,9 @@ def main() -> None:
         "generated_at": generated_at,
         "allowed_human_labels": sorted(HUMAN_LABELS),
         "instructions": (
-            "Compare extracted_text with url, then set human_label and human_notes. "
+            "Open url and compare it with the locally stored document, then set human_label "
+            "and human_notes. Full source text is intentionally excluded from this public-safe "
+            "artifact. "
             "Rerunning the evaluator preserves reviews for documents that remain in the sample."
         ),
         "items": review_items,

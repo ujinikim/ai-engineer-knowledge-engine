@@ -9,7 +9,7 @@ backend/data/eval/summaries/taxonomy_review_sample.json
 It was generated after a fresh collection of all 17 configured sources. The artifact
 contains:
 
-- `items`: 43 full human-review records with source text and generated cards
+- `items`: 43 public-safe human-review records with source links and generated cards
 - `all_assignments`: a concise index of all 239 stored taxonomy assignments
 - `collection_summary`: collection-wide topic, event, maturity, and review-focus counts
 - `change_history`: every regeneration and the reason for it
@@ -18,6 +18,9 @@ The 43-item sample covers every source and every topic, event type, and maturity
 present in the refreshed collection. It prioritizes release-candidate mismatches,
 versioned libraries missing `library-release`, and libraries labeled as model
 launches.
+
+Full source text is deliberately excluded from the tracked artifact. Open each
+item's `url` or query the locally stored document when source verification is needed.
 
 ## Review Order
 

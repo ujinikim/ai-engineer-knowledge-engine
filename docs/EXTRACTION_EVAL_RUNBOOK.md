@@ -64,7 +64,8 @@ Thresholds are included in every report so results remain interpretable after co
 
 The review sample selects at least one document per source when the sample size permits, then prioritizes warnings, failures, shortest documents, and longest documents.
 
-For each item, compare `extracted_text` with `url` and set `human_label` to one of:
+For each item, open `url`, compare it with the locally stored extracted document, and
+set `human_label` to one of:
 
 ```text
 complete
@@ -75,6 +76,10 @@ wrong_content
 ```
 
 Use `human_notes` for missing sections, navigation text, date problems, or source-specific observations. Prefix observations with `Extraction`, `Relevance`, `Warning assessment`, or `Follow-up` when applicable. Rerunning the evaluator preserves labels for documents that remain in the sample.
+
+Full extracted text is deliberately excluded from tracked review artifacts. This
+keeps the repository publishable without changing the locally stored document used
+by the evaluator.
 
 ## Interpreting Findings
 

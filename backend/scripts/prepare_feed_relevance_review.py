@@ -458,7 +458,6 @@ def main() -> None:
                     "why_it_matters": metadata.get("why_it_matters"),
                     "key_points": list(metadata.get("key_points") or []),
                 },
-                "source_text": document.raw_text,
                 "relevance_review": review,
                 "reviewed_tier": prior.get("reviewed_tier"),
                 "reviewed_reasons": list(prior.get("reviewed_reasons") or []),

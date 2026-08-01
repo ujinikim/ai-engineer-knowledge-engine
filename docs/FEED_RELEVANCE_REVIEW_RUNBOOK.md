@@ -17,6 +17,10 @@ The completed calibration contains:
 - 5 reviewed `excluded` records
 - A lightweight recommendation index for all 240 collected documents
 
+The tracked review artifact keeps source links, generated cards, taxonomy, and
+decisions, but deliberately excludes full article text. Open `url` or use the local
+document store when source verification is needed.
+
 All 50 decisions are recorded in:
 
 ```text

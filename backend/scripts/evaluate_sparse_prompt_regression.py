@@ -118,7 +118,6 @@ def main() -> None:
                 "source_detail_level": summarizer._source_detail_level(
                     document.title, document.raw_text
                 ),
-                "source_text": document.raw_text,
                 "before": {
                     "generated_summary": {
                         field: before_metadata.get(field)

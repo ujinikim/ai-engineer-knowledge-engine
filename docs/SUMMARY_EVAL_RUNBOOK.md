@@ -61,7 +61,11 @@ These checks find candidates for review; they are not a semantic quality judgmen
 
 ## Human Review
 
-Open `data/eval/summaries/human_review_sample.json`. For every item, compare `source_text` with all fields under `generated_summary`, then replace each `not_reviewed` value.
+Open `data/eval/summaries/human_review_sample.json`. For every item, open `url` or
+query the locally stored document, compare it with all fields under
+`generated_summary`, then replace each `not_reviewed` value. Full source text is
+deliberately excluded from tracked review artifacts so the repository remains safe
+to publish.
 
 ### Faithfulness
 
