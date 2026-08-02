@@ -12,6 +12,20 @@ dist/
 build/
 coverage/
 *.pyc
+
+# Terraform local working data and generated state/plan files.
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.tfstate.lock.info
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
 backend/data/raw/*.jsonl
 !backend/data/raw/.gitkeep
 backend/data/eval/results*.jsonl
