@@ -31,6 +31,20 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16@sha256:131dcf7ff6a900545df8e7e092c270aa8c6db2f2c818e408cb45ec21316b74e6
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: knowledge_engine
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d knowledge_engine"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
 
     steps:
       - name: Check out repository
@@ -45,6 +59,24 @@ jobs:
 
       - name: Run backend tests
         run: uv run --project backend pytest backend/tests
+
+      - name: Verify database migration lifecycle
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/knowledge_engine
+        run: |
+          uv run --project backend alembic -c backend/alembic.ini upgrade head
+          uv run --project backend alembic -c backend/alembic.ini check
+          uv run --project backend python backend/scripts/verify_migration_adoption.py seed
+
+          # Simulate adopting the same schema before it had an Alembic version.
+          uv run --project backend alembic -c backend/alembic.ini stamp base
+          uv run --project backend alembic -c backend/alembic.ini upgrade head
+          uv run --project backend python backend/scripts/verify_migration_adoption.py verify
+
+          # Prove that the baseline can be rebuilt from zero.
+          uv run --project backend alembic -c backend/alembic.ini downgrade base
+          uv run --project backend alembic -c backend/alembic.ini upgrade head
+          uv run --project backend alembic -c backend/alembic.ini current --check-heads
 
       - name: Verify the production image builds
         run: |

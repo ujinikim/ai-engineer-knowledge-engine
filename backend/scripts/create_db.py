@@ -1,24 +1,19 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
-from sqlalchemy import text
+from alembic import command
+from alembic.config import Config
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from app.db.session import engine
-
-
-SQL_FILE = Path(__file__).resolve().parents[1] / "sql" / "init.sql"
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+ALEMBIC_CONFIG = BACKEND_DIR / "alembic.ini"
 
 
 def main() -> None:
-    sql = SQL_FILE.read_text(encoding="utf-8")
-    with engine.begin() as connection:
-        for statement in sql.split(";"):
-            statement = statement.strip()
-            if statement:
-                connection.execute(text(statement))
-    print("Database schema is ready.")
+    config = Config(str(ALEMBIC_CONFIG))
+    command.upgrade(config, "head")
+    print("Database schema is at the latest Alembic revision.")
 
 
 if __name__ == "__main__":

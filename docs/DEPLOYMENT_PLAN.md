@@ -240,24 +240,33 @@ broadly until every acceptance item passes.
 - Prove a read-only workflow can call `sts:GetCallerIdentity`.
 - Bootstrap encrypted/versioned Terraform state with S3 lockfile support.
 
-**Progress on August 1, 2026:** the public repository, GitHub OIDC provider, and
-trust-only IAM role are complete. The manually triggered
+**Progress on August 2, 2026:** the public repository, GitHub OIDC provider,
+repository-and-main-restricted role, remote Terraform state, and ECR repository are
+complete. The manually triggered
 `aws-oidc-smoke.yml` workflow successfully exchanged an OIDC token and called
-`sts:GetCallerIdentity`; the role still has no attached or inline permission policies.
-The official AWS credentials action is pinned to an immutable commit rather than a
-movable tag, and the role ARN and region are repository variables rather than secrets.
+`sts:GetCallerIdentity`. Terraform now manages a repository-scoped inline ECR policy,
+and the backend image workflow has used it to publish and scan an immutable image.
+The official GitHub actions are pinned to immutable commits, and the role ARN and
+region are repository variables rather than secrets.
 
 GitHub repositories created after July 15, 2026 use immutable OIDC subjects containing
 the owner and repository IDs. The IAM trust uses that exact ID-bound subject plus the
 `main` branch and `sts.amazonaws.com` audience. The original name-only trust failed
 closed, and CloudTrail supplied the exact subject needed for the corrected policy. The
-next Gate 1 item is the Terraform-state bootstrap.
+keyless delivery gate is complete.
 
 ### Gate 2: Make the repository deployable
 
 - Add migrations, configuration validation, health endpoints, container packaging,
   one-shot collector locking, structured logging, Terraform, and CI.
 - Pass tests, builds, Terraform validation/plan, and local migration checks.
+
+**Progress on August 2, 2026:** backend container packaging, immutable ECR publishing,
+scan gating, and the Alembic baseline are complete. CI exercises a clean pgvector
+database, legacy-schema adoption, downgrade/re-upgrade, tests, and the production
+container build. Production configuration validation, split health endpoints,
+collector locking, and structured logging remain before long-lived resources are
+created.
 
 Do not create long-lived application resources until Gate 2 passes.
 

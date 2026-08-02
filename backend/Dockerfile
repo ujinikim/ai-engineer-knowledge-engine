@@ -31,8 +31,9 @@ WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
 COPY app ./app
+COPY alembic.ini ./alembic.ini
+COPY migrations ./migrations
 COPY scripts ./scripts
-COPY sql ./sql
 COPY data/sources.yml data/update_sources.yml ./data/
 
 RUN addgroup -S app \
