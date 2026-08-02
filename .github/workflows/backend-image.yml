@@ -1,0 +1,174 @@
+name: Backend image
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-image.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-image.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: backend-image-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REPOSITORY: ai-engineer-knowledge-engine-backend
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  validate:
+    name: Test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.32"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      - name: Run backend tests
+        run: uv run --project backend pytest backend/tests
+
+      - name: Verify the production image builds
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            --build-arg "VCS_REF=${GITHUB_SHA}" \
+            --tag "backend:${GITHUB_SHA}" \
+            backend
+
+  publish:
+    name: Publish and scan
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Exchange GitHub OIDC token for AWS credentials
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        with:
+          role-to-assume: ${{ vars.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: backend-image-${{ github.run_id }}
+          mask-aws-account-id: true
+
+      - name: Build and publish immutable image
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          account_id="$(aws sts get-caller-identity --query Account --output text)"
+          registry="${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          image_uri="${registry}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+          if aws ecr describe-images \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-ids "imageTag=${IMAGE_TAG}" >/dev/null 2>&1; then
+            echo "The immutable image already exists; keeping and verifying it."
+          else
+            aws ecr get-login-password --region "${AWS_REGION}" \
+              | docker login --username AWS --password-stdin "${registry}"
+
+            docker build \
+              --platform linux/amd64 \
+              --build-arg "VCS_REF=${GITHUB_SHA}" \
+              --tag "${image_uri}" \
+              backend
+            docker push "${image_uri}"
+          fi
+
+          digest="$(aws ecr describe-images \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-ids "imageTag=${IMAGE_TAG}" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+
+          echo "image_uri=${image_uri}" >> "${GITHUB_OUTPUT}"
+          echo "digest=${digest}" >> "${GITHUB_OUTPUT}"
+
+      - name: Require a clean ECR scan
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          scan_status=""
+          for attempt in $(seq 1 30); do
+            scan_status="$(aws ecr describe-image-scan-findings \
+              --repository-name "${ECR_REPOSITORY}" \
+              --image-id "imageTag=${IMAGE_TAG}" \
+              --query 'imageScanStatus.status' \
+              --output text 2>/dev/null || true)"
+
+            if [[ "${scan_status}" == "COMPLETE" ]]; then
+              break
+            fi
+
+            case "${scan_status}" in
+              FAILED|UNSUPPORTED_IMAGE|FINDINGS_UNAVAILABLE|LIMIT_EXCEEDED|SCAN_ELIGIBILITY_EXPIRED)
+                echo "ECR scan ended with status ${scan_status}."
+                exit 1
+                ;;
+            esac
+
+            echo "Waiting for ECR scan (${attempt}/30); status: ${scan_status:-pending}"
+            sleep 5
+          done
+
+          if [[ "${scan_status}" != "COMPLETE" ]]; then
+            echo "ECR scan did not complete within 150 seconds."
+            exit 1
+          fi
+
+          critical="$(aws ecr describe-image-scan-findings \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-id "imageTag=${IMAGE_TAG}" \
+            --query 'imageScanFindings.findingSeverityCounts.CRITICAL || `0`' \
+            --output text)"
+          high="$(aws ecr describe-image-scan-findings \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-id "imageTag=${IMAGE_TAG}" \
+            --query 'imageScanFindings.findingSeverityCounts.HIGH || `0`' \
+            --output text)"
+          medium="$(aws ecr describe-image-scan-findings \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-id "imageTag=${IMAGE_TAG}" \
+            --query 'imageScanFindings.findingSeverityCounts.MEDIUM || `0`' \
+            --output text)"
+
+          {
+            echo "### Backend container image"
+            echo ""
+            echo "- Image: \`${{ steps.publish.outputs.image_uri }}\`"
+            echo "- Digest: \`${{ steps.publish.outputs.digest }}\`"
+            echo "- ECR scan: ${critical} critical, ${high} high, ${medium} medium"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          if (( critical > 0 || high > 0 )); then
+            echo "The image has critical or high ECR findings and cannot pass."
+            exit 1
+          fi

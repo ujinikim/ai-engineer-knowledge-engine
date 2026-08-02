@@ -6,8 +6,11 @@ bucket `ai-engineer-knowledge-engine-tfstate-422271169214-us-east-2` under the k
 `production/terraform.tfstate`.
 
 The application stack currently manages a private ECR repository for immutable,
-scan-on-push backend container images. Additional resources will be added by concern
-as the deployment progresses.
+scan-on-push backend container images. It also manages the existing GitHub OIDC
+role's least-privilege inline policy: the role can authenticate to ECR, push to this
+one repository, and inspect the resulting image scan. The role and its repository-
+and-branch-restricted trust policy were bootstrapped separately. Additional resources
+will be added by concern as the deployment progresses.
 
 The state bucket is intentionally not managed by this root module. Terraform needs
 the bucket to exist before it can initialize this module, so the bucket's bootstrap
