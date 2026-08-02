@@ -40,6 +40,6 @@ docker run --rm \
   ai-engineer-knowledge-engine-backend:local
 ```
 
-The runtime image installs dependencies from `uv.lock`, runs as a non-root user,
-and exposes `GET /health` as its Docker health check. Database and OpenAI settings
-must be supplied at runtime rather than copied into the image.
+The minimal Alpine-based runtime image installs dependencies from `uv.lock`, runs
+as a non-root user, and exposes `GET /health` as its Docker health check. Database
+and OpenAI settings must be supplied at runtime rather than copied into the image.
