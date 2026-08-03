@@ -7,3 +7,38 @@ output "backend_ecr_repository_url" {
   description = "Registry URL used to push and pull backend images."
   value       = aws_ecr_repository.backend.repository_url
 }
+
+output "vpc_id" {
+  description = "Application VPC containing the runtime and database subnets."
+  value       = aws_vpc.application.id
+}
+
+output "availability_zones" {
+  description = "Availability Zones selected deterministically for the initial network."
+  value       = local.availability_zones
+}
+
+output "public_subnet_id" {
+  description = "Public subnet reserved for the EC2 application runtime."
+  value       = aws_subnet.public.id
+}
+
+output "database_subnet_ids" {
+  description = "Private subnet IDs used by the future RDS DB subnet group."
+  value       = aws_subnet.database[*].id
+}
+
+output "ec2_security_group_id" {
+  description = "Security group for the future API and collector EC2 instance."
+  value       = aws_security_group.ec2.id
+}
+
+output "rds_security_group_id" {
+  description = "Security group allowing PostgreSQL only from the EC2 security group."
+  value       = aws_security_group.rds.id
+}
+
+output "cloudfront_origin_prefix_list_id" {
+  description = "AWS-managed CloudFront origin-facing prefix list used by the API ingress rule."
+  value       = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
+}

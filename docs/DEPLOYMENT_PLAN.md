@@ -280,6 +280,16 @@ Do not create long-lived application resources until Gate 2 passes.
 - Migrate, import the reviewed corpus, deploy, and run hosted smoke and retrieval tests.
 - Test redeploy, rollback, collector idempotency, alarms, and restore documentation.
 
+**Planning progress on August 3, 2026:** the application network is now defined in
+Terraform: one VPC, a public runtime subnet, two private database subnets across two
+Availability Zones, explicit route tables, an Internet Gateway, and narrowly scoped
+EC2/RDS security-group rules. Mock-provider tests cover address derivation, two-AZ
+placement, public routing, CloudFront-only API ingress, PostgreSQL-only database
+ingress, and invalid CIDRs. An authenticated plan against the remote production state
+reports 19 creates, 0 updates, and 0 destroys. No network resource has been applied;
+RDS, EC2/runtime, frontend/CDN, secrets, and observability remain to be added and
+reviewed before the first long-lived apply.
+
 ### Gate 4: Promote and observe
 
 - Approve actual displayed AWS costs and start continuous operation.

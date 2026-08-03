@@ -1,39 +1,82 @@
-# Terraform infrastructure
+# Application Terraform
 
-This directory defines the AWS infrastructure for the knowledge engine. Terraform
-stores its remote state in the separately bootstrapped, encrypted, versioned S3
-bucket `ai-engineer-knowledge-engine-tfstate-422271169214-us-east-2` under the key
-`production/terraform.tfstate`.
+This Terraform root owns the single AWS application stack in `us-east-2`. Its remote
+state is encrypted, versioned, and locked in the separately bootstrapped S3 bucket.
 
-The application stack currently manages a private ECR repository for immutable,
-scan-on-push backend container images. It also manages the existing GitHub OIDC
-role's least-privilege inline policy: the role can authenticate to ECR, push to this
-one repository, and inspect the resulting image scan. The role and its repository-
-and-branch-restricted trust policy were bootstrapped separately. Additional resources
-will be added by concern as the deployment progresses.
+## Current resources
 
-The state bucket is intentionally not managed by this root module. Terraform needs
-the bucket to exist before it can initialize this module, so the bucket's bootstrap
-lifecycle remains separate from the application stack.
+- Immutable, scan-on-push backend ECR repository
+- Repository-scoped GitHub Actions ECR policy
+- One application VPC
+- One public EC2 subnet
+- Two private database subnets in distinct Availability Zones
+- Public and private route tables with one Internet Gateway and no NAT Gateway
+- An EC2 runtime security group accepting API traffic only from AWS's managed
+  CloudFront origin-facing prefix list
+- An RDS security group accepting PostgreSQL only from the EC2 security group
 
-## Local workflow
+The network code does not yet create EC2, Elastic IP, RDS, S3, CloudFront, Parameter
+Store parameters, CloudWatch log groups, or alarms.
 
-Authenticate with temporary AWS Console credentials:
+## Address layout
 
-```sh
-aws login --profile ai-engineer-admin --region us-east-2
+The default `10.40.0.0/16` VPC derives its subnets rather than accepting three
+independent values:
+
+| Purpose | Default CIDR | Routing |
+|---|---|---|
+| EC2 public subnet | `10.40.0.0/24` | `0.0.0.0/0` through the Internet Gateway |
+| Database subnet AZ 1 | `10.40.10.0/24` | VPC-local only |
+| Database subnet AZ 2 | `10.40.11.0/24` | VPC-local only |
+
+Derivation guarantees that the three subnets are within the VPC and do not overlap.
+The first two sorted available Availability Zones are selected consistently.
+
+## Security-group flow
+
+```text
+CloudFront managed origin prefix list
+        | TCP 8000
+        v
+EC2 runtime security group
+        | TCP 5432
+        v
+RDS security group
 ```
 
-Initialize and inspect the configuration without making changes:
+EC2 has no SSH ingress. Its outbound rules permit HTTPS for ECR, AWS APIs, OpenAI, and
+configured sources; DNS inside the VPC; and PostgreSQL only to the RDS security group.
+The RDS security group has no general internet ingress or egress rule.
 
-```sh
-cd infra/terraform
-AWS_PROFILE=ai-engineer-admin terraform init
-terraform fmt -check
-AWS_PROFILE=ai-engineer-admin terraform validate
-AWS_PROFILE=ai-engineer-admin terraform plan
+## Validate and review
+
+Run from the repository root:
+
+```bash
+terraform -chdir=infra/terraform fmt -check -recursive
+terraform -chdir=infra/terraform init
+terraform -chdir=infra/terraform validate
+terraform -chdir=infra/terraform plan -out=network.tfplan
+terraform -chdir=infra/terraform show network.tfplan
 ```
 
-Do not commit `.terraform/`, state files, saved plan files, AWS credentials, or
-application secrets. Commit `.terraform.lock.hcl` so local and CI runs select the
-same provider versions.
+Plan files and local Terraform working data are ignored by Git. Do not commit a copied
+`terraform.tfvars` containing account-specific or sensitive values. The committed
+example contains only non-secret defaults.
+
+CI runs formatting, provider-lock, initialization-without-backend, validation, and
+mock-provider tests for CIDR derivation, two-AZ placement, ingress boundaries, and
+invalid input. It does not assume the production AWS role or apply infrastructure.
+Authenticated plan and apply will be added to a protected GitHub environment only
+after the deployment role receives separately reviewed infrastructure permissions.
+
+## Apply boundary
+
+Do not apply from this directory merely because validation succeeds. Before the first
+long-lived application apply:
+
+1. Review the saved plan and every replacement or deletion.
+2. Confirm the AWS estimate and promotional-credit balance.
+3. Add RDS, runtime, frontend/CDN, secrets, and observability resources to the same
+   reviewed candidate stack.
+4. Obtain owner approval for the displayed plan.
