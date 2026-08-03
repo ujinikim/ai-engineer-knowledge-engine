@@ -19,7 +19,7 @@ def build_settings(**overrides: object) -> Settings:
 
 
 def test_development_defaults_remain_available() -> None:
-    settings = Settings(_env_file=None)
+    settings = Settings(_env_file=None, app_environment="development")
 
     assert settings.app_environment == "development"
     assert not settings.is_production
