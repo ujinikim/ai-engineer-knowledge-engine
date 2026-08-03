@@ -35,20 +35,27 @@ uv run python scripts/collect_updates.py --max-items 12 \
 
 The collector:
 
-1. Registers or updates source records.
-2. Fetches official RSS, Atom, or configured HTML discovery pages.
-3. Applies configured relevance filters.
-4. Extracts source text and publication time. When configured full-article fetching
+1. Tries to acquire the PostgreSQL collector advisory lock. If another manual or
+   scheduled run owns it, the new run reports `collection_already_running` and exits
+   successfully without fetching or writing anything.
+2. Registers or updates source records.
+3. Fetches official RSS, Atom, or configured HTML discovery pages.
+4. Applies configured relevance filters.
+5. Extracts source text and publication time. When configured full-article fetching
    fails, it retains the source-entry excerpt and records structured fetch
    diagnostics rather than treating the whole collection as failed.
-5. Generates a structured article summary and taxonomy for new or changed content.
-6. Classifies source detail and stores default-feed visibility metadata. Sparse
+6. Generates a structured article summary and taxonomy for new or changed content.
+7. Classifies source detail and stores default-feed visibility metadata. Sparse
    records remain searchable but are suppressed from the default feed unless they
    represent an important operational event.
-7. Upserts by canonical URL.
-8. Skips summarization and embeddings when the content hash is unchanged.
-9. Replaces original-text chunks and embeddings when content changes.
-10. Records collection time and source errors.
+8. Upserts by canonical URL.
+9. Skips summarization and embeddings when the content hash is unchanged.
+10. Replaces original-text chunks and embeddings when content changes.
+11. Records collection time and source errors.
+
+The lock is held on a dedicated database connection for the whole run, so commits
+inside the collector do not release it. A normal completion unlocks explicitly; a
+crash or lost connection is cleaned up automatically by PostgreSQL.
 
 The Batch uses nested issue discovery to store individual stories. Import AI uses explicit newsletter delimiters to store independently retrievable stories. Parent issue and newsletter URLs are retained in document metadata.
 
@@ -105,7 +112,10 @@ compatibility. New code should use the structured extraction fields.
 uv run python scripts/collect_updates.py --max-items 12 --interval-minutes 60
 ```
 
-Run this as a separate worker process. The dashboard reads PostgreSQL and never waits for collection.
+The interval option remains useful for local development. Production uses a one-shot
+command started every six hours by a systemd timer. The advisory lock protects both
+forms as well as manual invocations. The dashboard reads PostgreSQL and never waits
+for collection.
 
 ## Inspect Data
 

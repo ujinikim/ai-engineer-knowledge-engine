@@ -81,6 +81,7 @@ jobs:
           uv run --project backend alembic -c backend/alembic.ini upgrade head
           uv run --project backend alembic -c backend/alembic.ini current --check-heads
           uv run --project backend python backend/scripts/verify_health_endpoints.py
+          uv run --project backend python backend/scripts/verify_collector_lock.py
 
       - name: Verify the production image builds
         run: |

@@ -9,7 +9,8 @@ import yaml
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from app.db.session import SessionLocal
+from app.db.session import SessionLocal, engine
+from app.services.collector_lock import collector_run_lock
 from app.services.update_collector import UpdateCollectorService
 
 
@@ -30,13 +31,19 @@ def load_sources(source_slugs: list[str] | None = None) -> list[dict]:
     return selected
 
 
-async def collect_once(max_items: int, source_slugs: list[str] | None = None) -> None:
-    with SessionLocal() as db:
-        result = await UpdateCollectorService(db).collect(
-            load_sources(source_slugs),
-            max_items_per_source=max_items,
-        )
-    print(json.dumps(asdict(result), indent=2))
+async def collect_once(max_items: int, source_slugs: list[str] | None = None) -> bool:
+    with collector_run_lock(engine) as acquired:
+        if not acquired:
+            print(json.dumps({"status": "skipped", "reason": "collection_already_running"}))
+            return False
+
+        with SessionLocal() as db:
+            result = await UpdateCollectorService(db).collect(
+                load_sources(source_slugs),
+                max_items_per_source=max_items,
+            )
+        print(json.dumps({"status": "completed", **asdict(result)}, indent=2))
+        return True
 
 
 async def main(
