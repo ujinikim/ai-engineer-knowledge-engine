@@ -1,13 +1,16 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas.ask import AskRequest, AskResponse
+from app.schemas.health import LivenessResponse, ReadinessResponse
 from app.schemas.search import SearchRequest, SearchResponse
 from app.schemas.updates import TimeWindow, UpdateListResponse, UpdateSourceItem
 from app.services.answer import AnswerService
+from app.services.health import DatabaseReadinessChecker, ReadinessCheckError
 from app.services.retriever import RetrieverService
 from app.services.updates import UpdateService
 
@@ -17,6 +20,32 @@ router = APIRouter()
 @router.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@router.get("/health/live", response_model=LivenessResponse)
+def health_live() -> LivenessResponse:
+    return LivenessResponse()
+
+
+def get_readiness_checker(db: Session = Depends(get_db)) -> DatabaseReadinessChecker:
+    return DatabaseReadinessChecker(db)
+
+
+@router.get(
+    "/health/ready",
+    response_model=ReadinessResponse,
+    responses={503: {"model": ReadinessResponse}},
+)
+def health_ready(
+    checker: DatabaseReadinessChecker = Depends(get_readiness_checker),
+) -> ReadinessResponse | JSONResponse:
+    try:
+        checks = checker.check()
+    except ReadinessCheckError as error:
+        response = ReadinessResponse(status="not_ready", checks=error.checks)
+        return JSONResponse(status_code=503, content=response.model_dump())
+
+    return ReadinessResponse(status="ready", checks=checks)
 
 
 @router.get("/update-sources", response_model=list[UpdateSourceItem])

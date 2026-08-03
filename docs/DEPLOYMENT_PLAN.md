@@ -262,11 +262,11 @@ keyless delivery gate is complete.
 - Pass tests, builds, Terraform validation/plan, and local migration checks.
 
 **Progress on August 3, 2026:** backend container packaging, immutable ECR publishing,
-scan gating, the Alembic baseline, and explicit production configuration validation
-are complete. CI exercises a clean pgvector database, legacy-schema adoption,
-downgrade/re-upgrade, tests, and the production container build. Split health
-endpoints, collector locking, and structured logging remain before long-lived
-resources are created.
+scan gating, the Alembic baseline, explicit production configuration validation, and
+split liveness/readiness endpoints are complete. CI exercises a clean pgvector
+database, legacy-schema adoption, downgrade/re-upgrade, real readiness checks, tests,
+and the production container build. Collector locking and structured logging remain
+before long-lived resources are created.
 
 Do not create long-lived application resources until Gate 2 passes.
 

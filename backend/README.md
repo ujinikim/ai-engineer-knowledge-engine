@@ -34,9 +34,17 @@ schema before adopting any unversioned copy.
 
 ## First Endpoints
 
-- `GET /health`
+- `GET /health/live`
+- `GET /health/ready`
 - `POST /search`
 - `POST /ask`
+
+`GET /health` remains available temporarily for compatibility. Liveness only confirms
+that FastAPI can respond; it never contacts PostgreSQL or OpenAI. Readiness returns
+`200` only when PostgreSQL is reachable, the database is at the packaged Alembic head,
+and pgvector is installed. Otherwise it returns `503` with safe check labels and no
+connection details. OpenAI is intentionally excluded so a provider outage does not
+cause the API process to restart.
 
 ## Production container
 
@@ -62,7 +70,7 @@ docker run --rm \
 
 The minimal Alpine-based runtime image installs dependencies from `uv.lock`, runs
 as a non-root user, defaults to strict `production` configuration, and exposes
-`GET /health` as its Docker health check. Database and OpenAI settings must be
+`GET /health/live` as its Docker health check. Database and OpenAI settings must be
 supplied at runtime rather than copied into the image.
 The image includes the Alembic configuration and revisions so the deployment workflow
 can migrate the database with the same immutable image that runs the API.

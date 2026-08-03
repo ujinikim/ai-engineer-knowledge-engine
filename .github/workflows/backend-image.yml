@@ -80,6 +80,7 @@ jobs:
           uv run --project backend alembic -c backend/alembic.ini downgrade base
           uv run --project backend alembic -c backend/alembic.ini upgrade head
           uv run --project backend alembic -c backend/alembic.ini current --check-heads
+          uv run --project backend python backend/scripts/verify_health_endpoints.py
 
       - name: Verify the production image builds
         run: |

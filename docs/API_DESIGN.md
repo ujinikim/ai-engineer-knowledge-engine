@@ -3,8 +3,29 @@
 ## Health
 
 ```http
-GET /health
+GET /health/live
+GET /health/ready
 ```
+
+`/health/live` is a dependency-free process check:
+
+```json
+{"status": "alive"}
+```
+
+`/health/ready` verifies PostgreSQL connectivity, the packaged Alembic head, and the
+pgvector extension. A ready instance returns `200`:
+
+```json
+{
+  "status": "ready",
+  "checks": {"database": "reachable", "schema": "current", "vector": "installed"}
+}
+```
+
+An unavailable dependency returns `503` and stable diagnostic labels without raw
+exception or connection details. OpenAI is not a readiness dependency. `GET /health`
+remains temporarily available for backward compatibility.
 
 ## Update Sources
 
