@@ -23,7 +23,8 @@ ARG VCS_REF=unknown
 LABEL org.opencontainers.image.source="https://github.com/ujinikim/ai-engineer-knowledge-engine" \
       org.opencontainers.image.revision="${VCS_REF}"
 
-ENV PATH="/app/.venv/bin:${PATH}" \
+ENV APP_ENVIRONMENT=production \
+    PATH="/app/.venv/bin:${PATH}" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 

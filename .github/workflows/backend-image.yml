@@ -58,10 +58,13 @@ jobs:
           cache-dependency-glob: backend/uv.lock
 
       - name: Run backend tests
+        env:
+          APP_ENVIRONMENT: test
         run: uv run --project backend pytest backend/tests
 
       - name: Verify database migration lifecycle
         env:
+          APP_ENVIRONMENT: test
           DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/knowledge_engine
         run: |
           uv run --project backend alembic -c backend/alembic.ini upgrade head
@@ -85,6 +88,21 @@ jobs:
             --build-arg "VCS_REF=${GITHUB_SHA}" \
             --tag "backend:${GITHUB_SHA}" \
             backend
+
+      - name: Verify production configuration gate
+        run: |
+          if docker run --rm "backend:${GITHUB_SHA}" \
+            python -c "from app.main import app" >/tmp/unsafe-production-start.log 2>&1; then
+            echo "The production image accepted missing required configuration."
+            exit 1
+          fi
+
+          docker run --rm \
+            --env OPENAI_API_KEY=ci-validation-key \
+            --env DATABASE_URL=postgresql+psycopg://app:secret@database.internal:5432/knowledge_engine \
+            --env 'CORS_ORIGINS=["https://example.cloudfront.net"]' \
+            "backend:${GITHUB_SHA}" \
+            python -c "from app.main import app; print(app.title)"
 
   publish:
     name: Publish and scan

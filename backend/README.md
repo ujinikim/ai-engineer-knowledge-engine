@@ -55,12 +55,37 @@ Run it locally without loading credentials into the image:
 ```bash
 docker run --rm \
   --platform linux/amd64 \
+  --env APP_ENVIRONMENT=development \
   --publish 8000:8000 \
   ai-engineer-knowledge-engine-backend:local
 ```
 
 The minimal Alpine-based runtime image installs dependencies from `uv.lock`, runs
-as a non-root user, and exposes `GET /health` as its Docker health check. Database
-and OpenAI settings must be supplied at runtime rather than copied into the image.
+as a non-root user, defaults to strict `production` configuration, and exposes
+`GET /health` as its Docker health check. Database and OpenAI settings must be
+supplied at runtime rather than copied into the image.
 The image includes the Alembic configuration and revisions so the deployment workflow
 can migrate the database with the same immutable image that runs the API.
+
+## Runtime configuration
+
+`APP_ENVIRONMENT` controls configuration strictness:
+
+- `development` is the default when running the source directly and permits local
+  database and frontend origins.
+- `test` permits isolated test configuration.
+- `production` refuses to start with missing or unsafe required values.
+
+Production requires:
+
+```text
+APP_ENVIRONMENT=production
+DATABASE_URL=postgresql+psycopg://<username>:<password>@<rds-host>:5432/knowledge_engine
+OPENAI_API_KEY=<production-scoped-key>
+CORS_ORIGINS=["https://<cloudfront-domain>"]
+```
+
+`APP_ENVIRONMENT` and the frontend origin are normal configuration. `DATABASE_URL`
+and `OPENAI_API_KEY` are secrets and will be supplied to the EC2 runtime from Systems
+Manager Parameter Store rather than committed, copied into the image, or stored in
+Terraform state.
