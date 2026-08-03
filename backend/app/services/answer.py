@@ -6,9 +6,14 @@ from openai import OpenAI
 from sqlalchemy.orm import Session
 
 from app.core.settings import settings
+from app.core.model_usage import estimate_chat_cost_usd
+from app.core.structured_logging import get_logger, log_event
 from app.schemas.ask import AnswerMetrics, AskRequest, AskResponse, Citation
 from app.schemas.search import SearchRequest
 from app.services.retriever import RetrieverService
+
+
+logger = get_logger("answer")
 
 
 class AnswerService:
@@ -40,6 +45,13 @@ class AnswerService:
 
         warning = self._retrieval_warning(retrieval.results, request.min_similarity)
         if warning:
+            log_event(
+                logger,
+                "answer_generation_skipped",
+                reason="weak_retrieval",
+                retrieved_chunks=len(retrieval.results),
+                total_ms=self._elapsed_ms(started),
+            )
             return AskResponse(
                 answer=warning,
                 citations=[],
@@ -109,7 +121,8 @@ class AnswerService:
         prompt_tokens = usage.prompt_tokens if usage else context_tokens
         citation_ids, citation_warnings = self._citation_ids(answer, len(context_chunks))
 
-        return AskResponse(
+        estimated_cost_usd = self._estimate_cost(prompt_tokens, completion_tokens)
+        result = AskResponse(
             answer=answer,
             citations=[
                 Citation(
@@ -130,12 +143,25 @@ class AnswerService:
                 total_ms=self._elapsed_ms(started),
                 context_tokens=context_tokens,
                 completion_tokens=completion_tokens,
-                estimated_cost_usd=self._estimate_cost(prompt_tokens, completion_tokens),
+                estimated_cost_usd=estimated_cost_usd or 0,
             ),
             retrieval_warning=None,
             citation_warnings=citation_warnings,
             generation_warnings=generation_warnings,
         )
+        log_event(
+            logger,
+            "answer_generated",
+            model=settings.chat_model,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            estimated_model_cost_usd=estimated_cost_usd,
+            retrieved_chunks=len(retrieval.results),
+            context_chunks=len(context_chunks),
+            citations=len(result.citations),
+            total_ms=result.metrics.total_ms,
+        )
+        return result
 
     def _retrieval_warning(self, chunks, min_similarity: float) -> str | None:
         if not chunks:
@@ -263,14 +289,11 @@ class AnswerService:
         encoding = tiktoken.get_encoding("cl100k_base")
         return len(encoding.encode(text))
 
-    def _estimate_cost(self, prompt_tokens: int, completion_tokens: int) -> float:
-        # Conservative placeholder for demo observability. Update when changing models.
-        input_cost_per_million = 0.40
-        output_cost_per_million = 1.60
-        return round(
-            (prompt_tokens / 1_000_000 * input_cost_per_million)
-            + (completion_tokens / 1_000_000 * output_cost_per_million),
-            6,
+    def _estimate_cost(self, prompt_tokens: int, completion_tokens: int) -> float | None:
+        return estimate_chat_cost_usd(
+            settings.chat_model,
+            prompt_tokens,
+            completion_tokens,
         )
 
     def _elapsed_ms(self, started: float) -> int:

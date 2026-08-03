@@ -1,6 +1,8 @@
 import hashlib
 import json
+import logging
 import re
+import time
 import unicodedata
 import uuid
 from dataclasses import dataclass
@@ -14,12 +16,18 @@ from bs4 import BeautifulSoup
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.core.model_usage import ModelUsage
+from app.core.settings import settings
+from app.core.structured_logging import get_logger, log_event
 from app.db.models import Chunk, Document, UpdateSource
 from app.services.article_summary import ArticleSummaryService
-from app.services.source_detail import classify_content_detail, sparse_visibility_metadata
 from app.services.chunking import ChunkingService
 from app.services.embedding import EmbeddingService
+from app.services.source_detail import classify_content_detail, sparse_visibility_metadata
 from app.services.taxonomy import infer_maturity, normalize_event_types
+
+
+logger = get_logger("collector")
 
 
 @dataclass(frozen=True)
@@ -28,22 +36,34 @@ class CollectionResult:
     updates_created: int = 0
     updates_changed: int = 0
     updates_unchanged: int = 0
+    chunks_written: int = 0
     errors: int = 0
+    chat_input_tokens: int = 0
+    chat_output_tokens: int = 0
+    embedding_tokens: int = 0
+    estimated_model_cost_usd: float | None = None
 
 
 class UpdateCollectorService:
     def __init__(self, db: Session) -> None:
         self.db = db
         self.chunker = ChunkingService()
-        self.embedder = EmbeddingService()
-        self.summarizer = ArticleSummaryService()
+        self.usage = ModelUsage()
+        self.embedder = EmbeddingService(usage=self.usage)
+        self.summarizer = ArticleSummaryService(usage=self.usage)
 
-    async def collect(self, source_configs: list[dict], max_items_per_source: int = 12) -> CollectionResult:
+    async def collect(
+        self,
+        source_configs: list[dict],
+        max_items_per_source: int = 12,
+        run_id: str | None = None,
+    ) -> CollectionResult:
         counts = {
             "sources_processed": 0,
             "updates_created": 0,
             "updates_changed": 0,
             "updates_unchanged": 0,
+            "chunks_written": 0,
             "errors": 0,
         }
         headers = {"User-Agent": "AI-Engineer-Update-Radar/0.1 (+local RAG project)"}
@@ -51,6 +71,8 @@ class UpdateCollectorService:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=headers) as client:
             for config in source_configs:
                 source = self._upsert_source(config)
+                source_started = time.perf_counter()
+                source_counts_before = counts.copy()
                 try:
                     response = await client.get(config["feed_url"])
                     response.raise_for_status()
@@ -87,8 +109,9 @@ class UpdateCollectorService:
                                 entry = await self._hydrate_html_entry(client, config, entry)
                             except (httpx.HTTPError, ValueError) as error:
                                 entry = self._full_article_fallback_entry(entry, error)
-                        status = self._upsert_entry(source, config, entry)
+                        status, chunks_written = self._upsert_entry(source, config, entry)
                         counts[f"updates_{status}"] += 1
+                        counts["chunks_written"] += chunks_written
                         matched_items += 1
                         if matched_items >= max_items_per_source:
                             break
@@ -97,6 +120,26 @@ class UpdateCollectorService:
                     source.last_error = None
                     counts["sources_processed"] += 1
                     self.db.commit()
+                    log_event(
+                        logger,
+                        "source_collection_completed",
+                        run_id=run_id,
+                        source_slug=config["slug"],
+                        matched_items=matched_items,
+                        updates_created=(
+                            counts["updates_created"] - source_counts_before["updates_created"]
+                        ),
+                        updates_changed=(
+                            counts["updates_changed"] - source_counts_before["updates_changed"]
+                        ),
+                        updates_unchanged=(
+                            counts["updates_unchanged"] - source_counts_before["updates_unchanged"]
+                        ),
+                        chunks_written=(
+                            counts["chunks_written"] - source_counts_before["chunks_written"]
+                        ),
+                        duration_ms=int((time.perf_counter() - source_started) * 1000),
+                    )
                 except Exception as error:
                     self.db.rollback()
                     source = self._upsert_source(config)
@@ -104,8 +147,26 @@ class UpdateCollectorService:
                     source.last_error = str(error)[:1000]
                     counts["errors"] += 1
                     self.db.commit()
+                    log_event(
+                        logger,
+                        "source_collection_failed",
+                        level=logging.ERROR,
+                        run_id=run_id,
+                        source_slug=config["slug"],
+                        exception_type=type(error).__name__,
+                        duration_ms=int((time.perf_counter() - source_started) * 1000),
+                    )
 
-        return CollectionResult(**counts)
+        return CollectionResult(
+            **counts,
+            chat_input_tokens=self.usage.chat_input_tokens,
+            chat_output_tokens=self.usage.chat_output_tokens,
+            embedding_tokens=self.usage.embedding_tokens,
+            estimated_model_cost_usd=self.usage.estimated_cost_usd(
+                settings.chat_model,
+                settings.embedding_model,
+            ),
+        )
 
     def _upsert_source(self, config: dict) -> UpdateSource:
         source = self.db.scalar(select(UpdateSource).where(UpdateSource.slug == config["slug"]))
@@ -136,7 +197,7 @@ class UpdateCollectorService:
         self.db.flush()
         return source
 
-    def _upsert_entry(self, source: UpdateSource, config: dict, entry) -> str:
+    def _upsert_entry(self, source: UpdateSource, config: dict, entry) -> tuple[str, int]:
         raw_url = str(entry.get("link") or entry.get("id") or "").strip()
         url = self._normalize_document_url(raw_url)
         canonical_url = self._normalize_document_url(
@@ -236,7 +297,7 @@ class UpdateCollectorService:
                     list(merged_metadata.get("event_types") or default_event_types),
                 ),
             }
-            return "unchanged"
+            return "unchanged", 0
 
         article = self.summarizer.summarize(
             title=title,
@@ -310,7 +371,7 @@ class UpdateCollectorService:
                     chunk_metadata={"collection": "updates"},
                 )
             )
-        return status
+        return status, len(chunks)
 
     def _normalize_document_url(self, value: str) -> str:
         parsed = urlparse(value.strip())

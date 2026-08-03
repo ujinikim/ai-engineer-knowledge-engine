@@ -1,10 +1,13 @@
 import json
+import logging
 import re
 from dataclasses import dataclass
 
 from openai import OpenAI
 
 from app.core.settings import settings
+from app.core.model_usage import ModelUsage
+from app.core.structured_logging import get_logger, log_event
 from app.services.taxonomy import (
     EVENT_TYPES,
     PRIMARY_TOPICS,
@@ -15,6 +18,9 @@ from app.services.taxonomy import (
     infer_maturity,
 )
 from app.services.source_detail import classify_content_detail
+
+
+logger = get_logger("summarization")
 
 
 def shorten_at_word_boundary(value: str, limit: int) -> str:
@@ -58,8 +64,9 @@ class ArticleSummary:
 
 
 class ArticleSummaryService:
-    def __init__(self) -> None:
+    def __init__(self, usage: ModelUsage | None = None) -> None:
         self.client = OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
+        self.usage = usage
 
     def summarize(
         self,
@@ -110,6 +117,11 @@ class ArticleSummaryService:
                 temperature=0.1,
                 max_completion_tokens=450,
             )
+            if self.usage and response.usage:
+                self.usage.record_chat(
+                    response.usage.prompt_tokens,
+                    response.usage.completion_tokens,
+                )
             payload = json.loads(response.choices[0].message.content or "{}")
             return self._validated(
                 payload,
@@ -118,7 +130,16 @@ class ArticleSummaryService:
                 title=title,
                 raw_text=raw_text,
             )
-        except Exception:
+        except Exception as error:
+            log_event(
+                logger,
+                "summary_generation_fallback",
+                level=logging.WARNING,
+                model=settings.chat_model,
+                source_type=source_type,
+                tool=tool,
+                exception_type=type(error).__name__,
+            )
             return fallback
 
     def _system_prompt(self) -> str:

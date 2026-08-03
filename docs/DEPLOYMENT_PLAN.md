@@ -263,11 +263,14 @@ keyless delivery gate is complete.
 
 **Progress on August 3, 2026:** backend container packaging, immutable ECR publishing,
 scan gating, the Alembic baseline, explicit production configuration validation,
-split liveness/readiness endpoints, and PostgreSQL advisory locking for collector
-overlap protection are complete. CI exercises a clean pgvector database,
-legacy-schema adoption, downgrade/re-upgrade, real readiness and collector-lock checks,
-tests, and the production container build. Structured logging remains before
-long-lived resources are created.
+split liveness/readiness endpoints, PostgreSQL advisory locking for collector overlap
+protection, and structured API/collector JSON logging are complete. Logs include safe
+request/run correlation, controlled failure types, document/chunk counts, returned
+token usage, and model-cost estimates without prompts, source bodies, credentials, or
+raw exceptions. CI exercises a clean pgvector database, legacy-schema adoption,
+downgrade/re-upgrade, real readiness and collector-lock checks, tests, and the
+production container build. Gate 2 is complete; long-lived application resources can
+now be planned and reviewed.
 
 Do not create long-lived application resources until Gate 2 passes.
 

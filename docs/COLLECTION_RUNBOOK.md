@@ -57,6 +57,10 @@ The lock is held on a dedicated database connection for the whole run, so commit
 inside the collector do not release it. A normal completion unlocks explicitly; a
 crash or lost connection is cleaned up automatically by PostgreSQL.
 
+Collector output is newline-delimited structured JSON. Each run has a `run_id` joining
+start, per-source, token/cost, completion, overlap, and failure events. See
+`OBSERVABILITY_RUNBOOK.md` for the event catalog and sensitive-data rules.
+
 The Batch uses nested issue discovery to store individual stories. Import AI uses explicit newsletter delimiters to store independently retrievable stories. Parent issue and newsletter URLs are retained in document metadata.
 
 ## Backfill Existing Updates

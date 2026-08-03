@@ -98,6 +98,7 @@ uv run python scripts/backfill_article_metadata.py --force
 - [Phase 3 retrieval benchmark plan](docs/PHASE3_RETRIEVAL_BENCHMARK_PLAN.md)
 - [Phase 3 retrieval and grounded-answer closeout](docs/PHASE3_CLOSEOUT_2026-07-29.md)
 - [Deployment plan](docs/DEPLOYMENT_PLAN.md)
+- [Observability runbook](docs/OBSERVABILITY_RUNBOOK.md)
 - [Extraction evaluation runbook](docs/EXTRACTION_EVAL_RUNBOOK.md)
 - [Summary evaluation runbook](docs/SUMMARY_EVAL_RUNBOOK.md)
 - [Collection runbook](docs/COLLECTION_RUNBOOK.md)

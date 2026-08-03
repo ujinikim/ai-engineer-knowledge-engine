@@ -74,6 +74,9 @@ as a non-root user, defaults to strict `production` configuration, and exposes
 supplied at runtime rather than copied into the image.
 The image includes the Alembic configuration and revisions so the deployment workflow
 can migrate the database with the same immutable image that runs the API.
+API and collector application events are emitted as newline-delimited JSON for
+CloudWatch ingestion. Uvicorn's duplicate request access log is disabled; see
+`../docs/OBSERVABILITY_RUNBOOK.md` for event fields and sensitive-data rules.
 
 ## Runtime configuration
 

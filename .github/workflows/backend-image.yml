@@ -106,6 +106,58 @@ jobs:
             "backend:${GITHUB_SHA}" \
             python -c "from app.main import app; print(app.title)"
 
+      - name: Verify packaged structured log safety
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          container_id="$(docker run --rm --detach \
+            --publish 127.0.0.1:18080:8000 \
+            --env OPENAI_API_KEY=ci-validation-key \
+            --env DATABASE_URL=postgresql+psycopg://app:secret@database.internal:5432/knowledge_engine \
+            --env 'CORS_ORIGINS=["https://example.cloudfront.net"]' \
+            "backend:${GITHUB_SHA}")"
+          cleanup() {
+            docker stop "${container_id}" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:18080/health/live >/dev/null; then
+              break
+            fi
+            if [[ "${attempt}" == "20" ]]; then
+              echo "The packaged API did not become live."
+              exit 1
+            fi
+            sleep 1
+          done
+
+          curl --fail --silent \
+            --header 'Authorization: Bearer packaged-header-secret' \
+            --header 'X-Request-ID: packaged-ci-check' \
+            'http://127.0.0.1:18080/health?api_key=sk-packaged-query-secret123' \
+            >/dev/null
+
+          container_logs="$(docker logs "${container_id}" 2>&1)"
+          if ! grep -F '"event":"api_request_completed"' <<<"${container_logs}" >/dev/null; then
+            echo "The packaged API did not emit its structured request event."
+            exit 1
+          fi
+          if ! grep -F '"request_id":"packaged-ci-check"' <<<"${container_logs}" >/dev/null; then
+            echo "The structured request event omitted its request ID."
+            exit 1
+          fi
+          if grep -E 'packaged-header-secret|packaged-query-secret123' \
+            <<<"${container_logs}" >/dev/null; then
+            echo "Sensitive request data appeared in packaged API logs."
+            exit 1
+          fi
+          if grep -F '"path":"/health/live"' <<<"${container_logs}" >/dev/null; then
+            echo "Successful liveness probes should not emit application request logs."
+            exit 1
+          fi
+
   publish:
     name: Publish and scan
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
