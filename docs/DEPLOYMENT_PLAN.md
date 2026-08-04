@@ -310,8 +310,10 @@ container isolation from metadata credentials, and finite-retention API/collecto
 migration, six-hour collector, and hourly credential-refresh services. Credentials
 live only in memory-backed mounted files, and the API restarts only when a retrieved
 secret changes. The runtime requires a full immutable ECR commit tag and has not been
-applied. Frontend/CDN, the OpenAI SecureString value, alarms, and deployment automation
-remain before the first long-lived apply.
+applied. The authenticated plan using the published and scanned `f1f929c` image reports
+31 creates, 0 updates, and 0 destroys for the complete stack. Frontend/CDN, the OpenAI
+SecureString value, alarms, and deployment automation remain before the first
+long-lived apply.
 
 ### Gate 4: Promote and observe
 
