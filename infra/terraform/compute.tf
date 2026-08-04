@@ -109,7 +109,9 @@ resource "aws_instance" "runtime" {
   vpc_security_group_ids = [aws_security_group.ec2.id]
   iam_instance_profile   = aws_iam_instance_profile.runtime.name
 
-  associate_public_ip_address = false
+  # AWS reports this as true once the explicitly managed Elastic IP is attached.
+  # Inbound access remains restricted by the EC2 security group to CloudFront.
+  associate_public_ip_address = true
   source_dest_check           = true
   monitoring                  = false
 

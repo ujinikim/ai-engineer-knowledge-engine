@@ -16,7 +16,7 @@ resource "aws_db_parameter_group" "postgresql" {
   parameter {
     name         = "rds.force_ssl"
     value        = "1"
-    apply_method = "immediate"
+    apply_method = "pending-reboot"
   }
 
   lifecycle {

@@ -45,7 +45,7 @@ run "runtime_is_hardened_and_uses_immutable_image" {
     condition = (
       aws_instance.runtime.ami == "ami-amazon-linux-2023-x86" &&
       aws_instance.runtime.instance_type == "t3.small" &&
-      aws_instance.runtime.associate_public_ip_address == false
+      aws_instance.runtime.associate_public_ip_address == true
     )
     error_message = "The runtime must use the reviewed x86 Amazon Linux instance configuration."
   }
