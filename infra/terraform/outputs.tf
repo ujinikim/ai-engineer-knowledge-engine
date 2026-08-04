@@ -105,3 +105,8 @@ output "application_url" {
   description = "Generated HTTPS URL for initial hosted validation before a custom domain is attached."
   value       = "https://${aws_cloudfront_distribution.application.domain_name}"
 }
+
+output "operational_alarm_topic_arn" {
+  description = "SNS topic receiving CloudWatch alarm and recovery notifications."
+  value       = aws_sns_topic.operational_alerts.arn
+}

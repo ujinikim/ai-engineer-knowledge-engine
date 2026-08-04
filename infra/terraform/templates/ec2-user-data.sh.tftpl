@@ -1,9 +1,39 @@
 #!/bin/bash
 set -euo pipefail
 
-dnf install -y docker jq
+dnf install -y amazon-cloudwatch-agent docker jq
 systemctl enable --now docker
 systemctl enable --now amazon-ssm-agent
+
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'CONFIG'
+{
+  "agent": {
+    "metrics_collection_interval": 60,
+    "run_as_user": "root"
+  },
+  "metrics": {
+    "namespace": "CWAgent",
+    "append_dimensions": {
+      "InstanceId": "$${aws:InstanceId}"
+    },
+    "aggregation_dimensions": [["InstanceId"]],
+    "metrics_collected": {
+      "disk": {
+        "measurement": ["used_percent"],
+        "metrics_collection_interval": 60,
+        "resources": ["/"],
+        "drop_device": true,
+        "drop_original_metrics": ["disk_used_percent"]
+      }
+    }
+  }
+}
+CONFIG
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config \
+  -m ec2 \
+  -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
 install -d -m 0755 /etc/knowledge-engine
 install -d -m 0750 -o root -g 10001 /run/knowledge-engine-secrets

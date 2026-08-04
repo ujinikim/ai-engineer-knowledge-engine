@@ -24,6 +24,10 @@ mock_provider "aws" {
 
 }
 
+mock_provider "aws" {
+  alias = "us_east_1"
+}
+
 variables {
   backend_image_tag = "0123456789abcdef0123456789abcdef01234567"
 }

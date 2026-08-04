@@ -205,3 +205,29 @@ variable "cloudfront_price_class" {
     error_message = "cloudfront_price_class must be PriceClass_100, PriceClass_200, or PriceClass_All."
   }
 }
+
+variable "alarm_notification_email" {
+  description = "Optional email address subscribed to operational alarm and recovery notifications."
+  type        = string
+  default     = null
+  nullable    = true
+
+  validation {
+    condition = (
+      var.alarm_notification_email == null ||
+      can(regex("^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$", var.alarm_notification_email))
+    )
+    error_message = "alarm_notification_email must be null or a valid email address."
+  }
+}
+
+variable "rds_connection_alarm_threshold" {
+  description = "Sustained PostgreSQL connection count that should trigger an operational alarm."
+  type        = number
+  default     = 60
+
+  validation {
+    condition     = var.rds_connection_alarm_threshold >= 10 && var.rds_connection_alarm_threshold <= 500
+    error_message = "rds_connection_alarm_threshold must be between 10 and 500."
+  }
+}

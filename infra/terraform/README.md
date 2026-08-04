@@ -26,10 +26,13 @@ state is encrypted, versioned, and locked in the separately bootstrapped S3 buck
 - A CloudFront distribution using signed OAC reads for S3 and an uncached `/api/*`
   route to the EC2 origin
 - A least-privilege GitHub Actions policy for frontend upload and invalidation
+- Eight CloudWatch alarms for public delivery, runtime health, collection freshness,
+  and database pressure
+- An encrypted SNS notification topic with an optional confirmed email subscription
 
-The code does not create the OpenAI Parameter Store value or alarms yet. Nothing
-listed above as application infrastructure is live until an authenticated plan is
-explicitly applied.
+The code does not create the OpenAI Parameter Store value yet. Nothing listed above
+as application infrastructure is live until an authenticated plan is explicitly
+applied.
 
 ## Address layout
 
@@ -123,6 +126,24 @@ repository variables:
 Hashed assets receive a one-year immutable browser cache. `index.html` receives
 `no-cache`, and the workflow invalidates only `/` and `/index.html` after upload.
 
+## Operational monitoring
+
+Amazon Linux installs the CloudWatch agent and publishes only the root filesystem's
+aggregated `disk_used_percent` metric. The instance role can publish only to the
+`CWAgent` namespace. Existing structured collector logs become failure and completion
+metrics through CloudWatch Logs metric filters.
+
+Eight alarms cover CloudFront 5xx responses, EC2 status checks, EC2 disk pressure,
+collector failure and 12-hour staleness, plus RDS free storage, CPU, and connections.
+The global CloudFront alarm is created in `us-east-1`, where AWS publishes CloudFront
+metrics; the application alarms remain in `us-east-2`. All alarm and recovery events
+publish to one encrypted SNS topic. Set `alarm_notification_email` before apply to
+request an email subscription, then confirm the message AWS sends. Without an email,
+the alarms are still visible in CloudWatch but do not notify a person.
+
+See `docs/AWS_OBSERVABILITY_RUNBOOK.md` for thresholds, console locations, verification,
+and first-response guidance.
+
 ## Validate and review
 
 Run from the repository root:
@@ -155,6 +176,6 @@ long-lived application apply:
 
 1. Review the saved plan and every replacement or deletion.
 2. Confirm the AWS estimate and promotional-credit balance.
-3. Create the external OpenAI SecureString and add the remaining observability
-   resources to the same reviewed candidate stack.
+3. Create the external OpenAI SecureString and decide whether to provide an optional
+   alarm-notification email.
 4. Obtain owner approval for the displayed plan.

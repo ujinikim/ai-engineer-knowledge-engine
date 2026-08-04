@@ -330,6 +330,16 @@ distribution outputs become GitHub variables. No frontend/CDN resource has been
 applied. The authenticated full-stack plan reports 41 creates, 0 updates, and 0
 destroys.
 
+**Observability planning progress on August 4, 2026:** Terraform now installs the
+CloudWatch agent with a single cost-bounded root-disk metric, derives collector failure
+and completion metrics from existing structured logs, and creates eight alarms for
+CloudFront 5xx rate, EC2 health/disk, collector failure/staleness, and RDS
+storage/CPU/connections. Alarm and recovery events publish to an encrypted SNS topic;
+an email subscription is optional and requires the normal AWS confirmation. The
+CloudFront alarm is correctly placed in `us-east-1`, while application alarms remain
+in Ohio. The authenticated full-stack plan now reports 53 creates, 0 updates, and 0
+destroys. Nothing in the application stack has been applied.
+
 ### Gate 4: Promote and observe
 
 - Approve actual displayed AWS costs and start continuous operation.
@@ -418,6 +428,9 @@ These are evidence-driven upgrades, not prerequisites for the first usable deplo
   https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html
 - AWS CloudFront origin-facing managed prefix list:
   https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html
+- AWS CloudWatch agent configuration and CloudFront metric region:
+  https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html
+  https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/monitoring-using-cloudwatch.html
 - GitHub OIDC for AWS:
   https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws
 - Terraform S3 backend and lockfile:

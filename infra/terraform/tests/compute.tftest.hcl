@@ -30,6 +30,10 @@ mock_provider "aws" {
 
 }
 
+mock_provider "aws" {
+  alias = "us_east_1"
+}
+
 variables {
   backend_image_tag = "0123456789abcdef0123456789abcdef01234567"
 }
@@ -95,9 +99,19 @@ run "runtime_is_hardened_and_uses_immutable_image" {
         openai_parameter_name    = "/ai-engineer-knowledge-engine/production/openai-api-key"
         api_log_group_name       = "/project/production/api"
         collector_log_group_name = "/project/production/collector"
-      }), "/run/knowledge-engine-secrets")
+      }), "/run/knowledge-engine-secrets") &&
+      strcontains(templatefile("${path.module}/templates/ec2-user-data.sh.tftpl", {
+        aws_region               = "us-east-2"
+        backend_image_uri        = "registry.example/backend:0123456789abcdef0123456789abcdef01234567"
+        database_name            = "knowledge_engine"
+        database_secret_arn      = "arn:aws:secretsmanager:us-east-2:123456789012:secret:database"
+        ecr_registry             = "registry.example"
+        openai_parameter_name    = "/ai-engineer-knowledge-engine/production/openai-api-key"
+        api_log_group_name       = "/project/production/api"
+        collector_log_group_name = "/project/production/collector"
+      }), "disk_used_percent")
     )
-    error_message = "Bootstrap must install API, collector, in-memory secrets, and the selected immutable image."
+    error_message = "Bootstrap must install API, collector, in-memory secrets, host metrics, and the selected immutable image."
   }
 
   assert {

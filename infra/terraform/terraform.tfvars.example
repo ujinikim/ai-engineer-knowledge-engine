@@ -23,5 +23,9 @@ runtime_log_retention_days = 14
 frontend_noncurrent_version_retention_days = 30
 cloudfront_price_class                       = "PriceClass_100"
 
+# Set an address to create an SNS email subscription; AWS requires confirmation.
+alarm_notification_email       = null
+rds_connection_alarm_threshold = 60
+
 # Create this SecureString outside Terraform before the first apply.
 openai_api_key_parameter_name = "/ai-engineer-knowledge-engine/production/openai-api-key"

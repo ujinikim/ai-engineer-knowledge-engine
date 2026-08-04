@@ -78,6 +78,17 @@ resource "aws_iam_role_policy" "runtime_application" {
           "${aws_cloudwatch_log_group.collector.arn}:*",
         ]
       },
+      {
+        Sid      = "PublishHostMetrics"
+        Effect   = "Allow"
+        Action   = ["cloudwatch:PutMetricData"]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "cloudwatch:namespace" = "CWAgent"
+          }
+        }
+      },
     ]
   })
 }
