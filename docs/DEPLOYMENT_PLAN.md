@@ -68,11 +68,14 @@ bucket keeps Block Public Access enabled. The API behavior disables caching, per
 the required HTTP methods, and forwards only the headers and query strings the API
 needs.
 
-For the first CloudFront-domain validation, CloudFront-to-EC2 traffic may use HTTP
-behind the CloudFront prefix-list restriction and an origin-only header. This is a
-documented bootstrap tradeoff, not the desired long-term public boundary. Before a
-custom public launch, attach a domain and terminate verified TLS at the API origin, or
-replace the public custom origin with a private/VPC-origin design.
+For the first CloudFront-domain validation, CloudFront-to-EC2 traffic uses HTTP behind
+the CloudFront origin-facing prefix-list restriction. The API is intentionally public
+through CloudFront, so an origin-verification token would not add authorization; it
+would only prove which distribution forwarded the request while placing that token in
+CloudFront configuration and Terraform state. Defer that extra check until origin
+rate limiting or a private-origin redesign makes it useful. Before a custom public
+launch, attach a domain and terminate verified TLS at the API origin, or replace the
+public custom origin with a private/VPC-origin design.
 
 ## Deliberate Exclusions
 
@@ -315,6 +318,18 @@ applied. The authenticated plan using the published and scanned `f1f929c` image 
 SecureString value, alarms, and deployment automation remain before the first
 long-lived apply.
 
+**Frontend/CDN planning progress on August 4, 2026:** Terraform now defines a private,
+encrypted, versioned S3 frontend bucket; CloudFront OAC with always-signed S3 reads;
+HTTPS viewer redirects and managed security headers; cached static delivery; and an
+uncached `/api/*` behavior to FastAPI. The backend keeps its existing local routes and
+also exposes `/api` aliases. A least-privilege, OIDC-based frontend workflow builds
+with `VITE_API_URL=/api`, publishes hashed assets with immutable cache headers,
+publishes `index.html` without caching, and invalidates only the entry paths. The
+publish job stays disabled until the reviewed stack is applied and its bucket and
+distribution outputs become GitHub variables. No frontend/CDN resource has been
+applied. The authenticated full-stack plan reports 41 creates, 0 updates, and 0
+destroys.
+
 ### Gate 4: Promote and observe
 
 - Approve actual displayed AWS costs and start continuous operation.
@@ -397,6 +412,10 @@ These are evidence-driven upgrades, not prerequisites for the first usable deplo
 
 - AWS CloudFront OAC for private S3 origins:
   https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html
+- AWS CloudFront managed cache, origin-request, and response-header policies:
+  https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+  https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html
+  https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html
 - AWS CloudFront origin-facing managed prefix list:
   https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html
 - GitHub OIDC for AWS:

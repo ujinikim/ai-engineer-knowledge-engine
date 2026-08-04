@@ -83,7 +83,10 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
                 )
             reset_request_id(request_token)
 
+    # Keep root routes for local/backward-compatible clients while exposing the
+    # same API behind CloudFront's unambiguous /api/* production behavior.
     application.include_router(router)
+    application.include_router(router, prefix="/api")
     return application
 
 

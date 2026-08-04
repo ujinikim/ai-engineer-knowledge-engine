@@ -19,5 +19,9 @@ runtime_instance_type      = "t3.small"
 runtime_root_volume_gib    = 20
 runtime_log_retention_days = 14
 
+# Retain old static-object versions briefly for rollback while limiting storage growth.
+frontend_noncurrent_version_retention_days = 30
+cloudfront_price_class                       = "PriceClass_100"
+
 # Create this SecureString outside Terraform before the first apply.
 openai_api_key_parameter_name = "/ai-engineer-knowledge-engine/production/openai-api-key"

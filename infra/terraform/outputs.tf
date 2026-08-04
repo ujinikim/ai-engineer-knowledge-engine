@@ -90,3 +90,18 @@ output "runtime_log_group_names" {
     collector = aws_cloudwatch_log_group.collector.name
   }
 }
+
+output "frontend_bucket_name" {
+  description = "Private S3 bucket targeted by the frontend deployment workflow."
+  value       = aws_s3_bucket.frontend.id
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution invalidated after frontend deployments."
+  value       = aws_cloudfront_distribution.application.id
+}
+
+output "application_url" {
+  description = "Generated HTTPS URL for initial hosted validation before a custom domain is attached."
+  value       = "https://${aws_cloudfront_distribution.application.domain_name}"
+}

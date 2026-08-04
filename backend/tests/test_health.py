@@ -52,6 +52,18 @@ def test_liveness_and_legacy_health_do_not_require_database() -> None:
     assert live_response.json() == {"status": "alive"}
 
 
+def test_api_prefix_preserves_health_routes_for_cloudfront() -> None:
+    application = create_app(Settings(_env_file=None, app_environment="test"))
+
+    legacy_response = get_response(application, "/api/health")
+    live_response = get_response(application, "/api/health/live")
+
+    assert legacy_response.status_code == 200
+    assert live_response.status_code == 200
+    assert "/api/updates" in application.openapi()["paths"]
+    assert "/api/ask" in application.openapi()["paths"]
+
+
 def test_ready_endpoint_returns_dependency_checks() -> None:
     application = create_app(Settings(_env_file=None, app_environment="test"))
     checker = StubReadinessChecker(

@@ -183,3 +183,25 @@ variable "runtime_log_retention_days" {
     error_message = "runtime_log_retention_days must be one of 7, 14, 30, 60, or 90."
   }
 }
+
+variable "frontend_noncurrent_version_retention_days" {
+  description = "Days to retain superseded frontend objects for deployment recovery."
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.frontend_noncurrent_version_retention_days >= 7 && var.frontend_noncurrent_version_retention_days <= 90
+    error_message = "frontend_noncurrent_version_retention_days must be between 7 and 90 days."
+  }
+}
+
+variable "cloudfront_price_class" {
+  description = "CloudFront edge-location class; PriceClass_100 limits the MVP to the lowest-cost regions."
+  type        = string
+  default     = "PriceClass_100"
+
+  validation {
+    condition     = contains(["PriceClass_100", "PriceClass_200", "PriceClass_All"], var.cloudfront_price_class)
+    error_message = "cloudfront_price_class must be PriceClass_100, PriceClass_200, or PriceClass_All."
+  }
+}

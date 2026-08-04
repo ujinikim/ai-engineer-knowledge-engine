@@ -22,10 +22,14 @@ state is encrypted, versioned, and locked in the separately bootstrapped S3 buck
 - A stable Elastic IP, an EC2 instance role, and Session Manager administration
 - API and collector systemd services plus collector and credential-refresh timers
 - Separate API and collector CloudWatch log groups with 14-day retention
+- A versioned, encrypted frontend S3 bucket with all public access blocked
+- A CloudFront distribution using signed OAC reads for S3 and an uncached `/api/*`
+  route to the EC2 origin
+- A least-privilege GitHub Actions policy for frontend upload and invalidation
 
-The code does not yet create S3, CloudFront, the OpenAI Parameter Store value, or
-alarms. Nothing listed above as application infrastructure is live until an
-authenticated plan is explicitly applied.
+The code does not create the OpenAI Parameter Store value or alarms yet. Nothing
+listed above as application infrastructure is live until an authenticated plan is
+explicitly applied.
 
 ## Address layout
 
@@ -90,9 +94,34 @@ At first boot, secret-free user data installs Docker and these systemd units:
   restarts the API only after a change.
 
 The credentials are written under `/run/knowledge-engine-secrets`, which is memory
-backed, readable only by the fixed unprivileged container UID, and mounted read-only at `/run/secrets` in containers.
+backed, readable only by the fixed unprivileged container UID, and mounted read-only
+at `/run/secrets` in containers.
 They do not appear in Terraform, EC2 user data, Docker environment metadata, or the
 container image. API and collector stdout use Docker's `awslogs` driver.
+
+## Frontend and CDN
+
+The Vite production build uses `/api`, so browser traffic stays on one CloudFront
+hostname. CloudFront's default behavior reads static files from S3, while the ordered
+`/api/*` behavior forwards the request except for the viewer's `Host` header to
+FastAPI and disables caching. FastAPI exposes both its original root routes for local
+compatibility and the `/api` aliases required by CloudFront.
+
+The bucket is not an S3 website: public access is fully blocked, object ownership is
+enforced, and CloudFront OAC signs every read. Versioning and a 30-day noncurrent
+object lifecycle give short rollback coverage without unbounded storage. CloudFront
+uses its generated HTTPS domain for initial validation and the low-cost
+`PriceClass_100` edge footprint.
+
+The frontend workflow always runs a clean production build. Its publish job remains
+gated until the stack is applied and these Terraform outputs are copied to GitHub
+repository variables:
+
+- `FRONTEND_BUCKET_NAME` from `frontend_bucket_name`
+- `CLOUDFRONT_DISTRIBUTION_ID` from `cloudfront_distribution_id`
+
+Hashed assets receive a one-year immutable browser cache. `index.html` receives
+`no-cache`, and the workflow invalidates only `/` and `/index.html` after upload.
 
 ## Validate and review
 
@@ -126,6 +155,6 @@ long-lived application apply:
 
 1. Review the saved plan and every replacement or deletion.
 2. Confirm the AWS estimate and promotional-credit balance.
-3. Add frontend/CDN, the OpenAI SecureString, and remaining observability resources to the same
-   reviewed candidate stack.
+3. Create the external OpenAI SecureString and add the remaining observability
+   resources to the same reviewed candidate stack.
 4. Obtain owner approval for the displayed plan.
