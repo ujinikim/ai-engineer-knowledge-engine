@@ -33,6 +33,32 @@ def test_valid_production_configuration_uses_only_explicit_cors_origins() -> Non
     assert allowed_cors_origins(settings) == ["https://example.cloudfront.net"]
 
 
+def test_production_can_disable_cross_origin_access() -> None:
+    settings = build_settings(cors_origins=[])
+
+    assert allowed_cors_origins(settings) == []
+
+
+def test_production_reads_runtime_secret_files(tmp_path) -> None:
+    (tmp_path / "openai_api_key").write_text("runtime-openai-key", encoding="utf-8")
+    (tmp_path / "database_url").write_text(
+        "postgresql+psycopg://app:secret@database.internal:5432/knowledge_engine",
+        encoding="utf-8",
+    )
+
+    settings = Settings(
+        _env_file=None,
+        _secrets_dir=tmp_path,
+        app_environment="production",
+        cors_origins=[],
+    )
+
+    assert settings.openai_api_key == "runtime-openai-key"
+    assert settings.database_url == (
+        "postgresql+psycopg://app:secret@database.internal:5432/knowledge_engine"
+    )
+
+
 @pytest.mark.parametrize("openai_api_key", ["", "replace_me", "changeme"])
 def test_production_rejects_missing_or_placeholder_openai_key(openai_api_key: str) -> None:
     with pytest.raises(ValidationError, match="OPENAI_API_KEY must be set"):
@@ -55,7 +81,6 @@ def test_production_rejects_unsafe_database_url(database_url: str) -> None:
 @pytest.mark.parametrize(
     "cors_origins",
     [
-        [],
         ["*"],
         ["http://app.example.com"],
         ["https://localhost:5173"],

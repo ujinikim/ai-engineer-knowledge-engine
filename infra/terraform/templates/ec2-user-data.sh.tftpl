@@ -1,0 +1,199 @@
+#!/bin/bash
+set -euo pipefail
+
+dnf install -y docker jq
+systemctl enable --now docker
+systemctl enable --now amazon-ssm-agent
+
+install -d -m 0755 /etc/knowledge-engine
+install -d -m 0750 -o root -g 10001 /run/knowledge-engine-secrets
+
+cat > /etc/knowledge-engine/runtime.conf <<'CONFIG'
+AWS_REGION=${aws_region}
+BACKEND_IMAGE=${backend_image_uri}
+DATABASE_NAME=${database_name}
+DATABASE_SECRET_ARN=${database_secret_arn}
+ECR_REGISTRY=${ecr_registry}
+OPENAI_PARAMETER_NAME=${openai_parameter_name}
+API_LOG_GROUP=${api_log_group_name}
+COLLECTOR_LOG_GROUP=${collector_log_group_name}
+CONFIG
+chmod 0600 /etc/knowledge-engine/runtime.conf
+
+cat > /usr/local/bin/knowledge-engine-load-secrets <<'SCRIPT'
+#!/bin/bash
+set -euo pipefail
+source /etc/knowledge-engine/runtime.conf
+umask 077
+
+retry() {
+  local attempt output
+  for attempt in $(seq 1 12); do
+    if output=$("$@" 2>/dev/null); then
+      printf '%s' "$output"
+      return 0
+    fi
+    sleep 5
+  done
+  return 1
+}
+
+secret_json=$(retry aws secretsmanager get-secret-value \
+  --region "$AWS_REGION" \
+  --secret-id "$DATABASE_SECRET_ARN" \
+  --query SecretString \
+  --output text)
+
+username=$(printf '%s' "$secret_json" | jq -er '.username')
+password=$(printf '%s' "$secret_json" | jq -er '.password')
+host=$(printf '%s' "$secret_json" | jq -er '.host')
+port=$(printf '%s' "$secret_json" | jq -er '.port')
+encoded_username=$(jq -rn --arg value "$username" '$value | @uri')
+encoded_password=$(jq -rn --arg value "$password" '$value | @uri')
+
+openai_key=$(retry aws ssm get-parameter \
+  --region "$AWS_REGION" \
+  --name "$OPENAI_PARAMETER_NAME" \
+  --with-decryption \
+  --query Parameter.Value \
+  --output text)
+
+temporary_directory=$(mktemp -d /run/knowledge-engine-secrets.XXXXXX)
+trap 'rm -r -- "$temporary_directory"' EXIT
+
+printf 'postgresql+psycopg://%s:%s@%s:%s/%s?sslmode=require' \
+  "$encoded_username" "$encoded_password" "$host" "$port" "$DATABASE_NAME" \
+  > "$temporary_directory/database_url"
+printf '%s' "$openai_key" > "$temporary_directory/openai_api_key"
+
+install -m 0400 -o 10001 -g 10001 "$temporary_directory/database_url" /run/knowledge-engine-secrets/database_url
+install -m 0400 -o 10001 -g 10001 "$temporary_directory/openai_api_key" /run/knowledge-engine-secrets/openai_api_key
+SCRIPT
+chmod 0755 /usr/local/bin/knowledge-engine-load-secrets
+
+cat > /usr/local/bin/knowledge-engine-pull-image <<'SCRIPT'
+#!/bin/bash
+set -euo pipefail
+source /etc/knowledge-engine/runtime.conf
+
+aws ecr get-login-password --region "$AWS_REGION" \
+  | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+trap 'docker logout "$ECR_REGISTRY" >/dev/null 2>&1 || true' EXIT
+docker pull "$BACKEND_IMAGE"
+SCRIPT
+chmod 0755 /usr/local/bin/knowledge-engine-pull-image
+
+cat > /usr/local/bin/knowledge-engine-migrate <<'SCRIPT'
+#!/bin/bash
+set -euo pipefail
+source /etc/knowledge-engine/runtime.conf
+
+docker run --rm \
+  --mount type=bind,source=/run/knowledge-engine-secrets,target=/run/secrets,readonly \
+  --env APP_ENVIRONMENT=production \
+  --env 'CORS_ORIGINS=[]' \
+  --log-driver awslogs \
+  --log-opt "awslogs-region=$AWS_REGION" \
+  --log-opt "awslogs-group=$API_LOG_GROUP" \
+  --log-opt awslogs-stream=migration \
+  "$BACKEND_IMAGE" \
+  alembic -c alembic.ini upgrade head
+SCRIPT
+chmod 0755 /usr/local/bin/knowledge-engine-migrate
+
+cat > /usr/local/bin/knowledge-engine-refresh-secrets <<'SCRIPT'
+#!/bin/bash
+set -euo pipefail
+
+before=$(sha256sum /run/knowledge-engine-secrets/database_url \
+  /run/knowledge-engine-secrets/openai_api_key 2>/dev/null || true)
+/usr/local/bin/knowledge-engine-load-secrets
+after=$(sha256sum /run/knowledge-engine-secrets/database_url \
+  /run/knowledge-engine-secrets/openai_api_key)
+
+if [[ "$before" != "$after" ]]; then
+  systemctl try-restart knowledge-engine-api.service
+fi
+SCRIPT
+chmod 0755 /usr/local/bin/knowledge-engine-refresh-secrets
+
+cat > /etc/systemd/system/knowledge-engine-api.service <<'UNIT'
+[Unit]
+Description=AI Engineer Knowledge Engine API
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=10
+TimeoutStartSec=300
+ExecStartPre=/usr/local/bin/knowledge-engine-load-secrets
+ExecStartPre=/usr/local/bin/knowledge-engine-pull-image
+ExecStartPre=/usr/local/bin/knowledge-engine-migrate
+ExecStartPre=-/usr/bin/docker rm -f knowledge-engine-api
+ExecStart=/usr/bin/docker run --name knowledge-engine-api --publish 8000:8000 --mount type=bind,source=/run/knowledge-engine-secrets,target=/run/secrets,readonly --env APP_ENVIRONMENT=production --env CORS_ORIGINS=[] --log-driver awslogs --log-opt awslogs-region=${aws_region} --log-opt awslogs-group=${api_log_group_name} --log-opt awslogs-stream=api ${backend_image_uri}
+ExecStop=/usr/bin/docker stop --time 30 knowledge-engine-api
+ExecStopPost=-/usr/bin/docker rm -f knowledge-engine-api
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+cat > /etc/systemd/system/knowledge-engine-collector.service <<'UNIT'
+[Unit]
+Description=AI Engineer Knowledge Engine one-shot collector
+After=network-online.target docker.service knowledge-engine-api.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+TimeoutStartSec=1800
+ExecStartPre=/usr/local/bin/knowledge-engine-load-secrets
+ExecStartPre=/usr/local/bin/knowledge-engine-pull-image
+ExecStartPre=-/usr/bin/docker rm -f knowledge-engine-collector
+ExecStart=/usr/bin/docker run --rm --name knowledge-engine-collector --mount type=bind,source=/run/knowledge-engine-secrets,target=/run/secrets,readonly --env APP_ENVIRONMENT=production --env CORS_ORIGINS=[] --log-driver awslogs --log-opt awslogs-region=${aws_region} --log-opt awslogs-group=${collector_log_group_name} --log-opt awslogs-stream=collector ${backend_image_uri} python scripts/collect_updates.py --max-items 12
+UNIT
+
+cat > /etc/systemd/system/knowledge-engine-collector.timer <<'UNIT'
+[Unit]
+Description=Collect knowledge-engine updates every six hours
+
+[Timer]
+OnCalendar=*-*-* 00/6:00:00
+RandomizedDelaySec=15m
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+UNIT
+
+cat > /etc/systemd/system/knowledge-engine-secret-refresh.service <<'UNIT'
+[Unit]
+Description=Refresh knowledge-engine runtime secrets
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/knowledge-engine-refresh-secrets
+UNIT
+
+cat > /etc/systemd/system/knowledge-engine-secret-refresh.timer <<'UNIT'
+[Unit]
+Description=Check for rotated knowledge-engine credentials hourly
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=10m
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now knowledge-engine-api.service
+systemctl enable --now knowledge-engine-collector.timer
+systemctl enable --now knowledge-engine-secret-refresh.timer

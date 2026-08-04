@@ -129,3 +129,57 @@ variable "database_backup_retention_days" {
     error_message = "database_backup_retention_days must be between 1 and 35 days."
   }
 }
+
+variable "backend_image_tag" {
+  description = "Immutable 40-character Git commit tag of the backend image to boot on EC2."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9a-f]{40}$", var.backend_image_tag))
+    error_message = "backend_image_tag must be a full lowercase 40-character Git commit SHA."
+  }
+}
+
+variable "runtime_instance_type" {
+  description = "x86 EC2 instance type used by the API and scheduled collector."
+  type        = string
+  default     = "t3.small"
+
+  validation {
+    condition     = startswith(var.runtime_instance_type, "t3.")
+    error_message = "runtime_instance_type must use the x86 t3 family while the backend image is linux/amd64."
+  }
+}
+
+variable "runtime_root_volume_gib" {
+  description = "Encrypted gp3 root-volume size for the EC2 runtime."
+  type        = number
+  default     = 20
+
+  validation {
+    condition     = var.runtime_root_volume_gib >= 12 && var.runtime_root_volume_gib <= 100
+    error_message = "runtime_root_volume_gib must be between 12 and 100 GiB."
+  }
+}
+
+variable "openai_api_key_parameter_name" {
+  description = "Name of the externally created SecureString containing the production OpenAI API key."
+  type        = string
+  default     = "/ai-engineer-knowledge-engine/production/openai-api-key"
+
+  validation {
+    condition     = startswith(var.openai_api_key_parameter_name, "/ai-engineer-knowledge-engine/")
+    error_message = "openai_api_key_parameter_name must stay inside this application's Parameter Store path."
+  }
+}
+
+variable "runtime_log_retention_days" {
+  description = "CloudWatch retention for API and collector container logs."
+  type        = number
+  default     = 14
+
+  validation {
+    condition     = contains([7, 14, 30, 60, 90], var.runtime_log_retention_days)
+    error_message = "runtime_log_retention_days must be one of 7, 14, 30, 60, or 90."
+  }
+}

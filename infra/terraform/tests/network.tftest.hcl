@@ -13,6 +13,17 @@ mock_provider "aws" {
       name = "com.amazonaws.global.cloudfront.origin-facing"
     }
   }
+
+  override_data {
+    target = data.aws_caller_identity.current
+    values = {
+      account_id = "123456789012"
+    }
+  }
+}
+
+variables {
+  backend_image_tag = "0123456789abcdef0123456789abcdef01234567"
 }
 
 run "default_network_is_segmented" {

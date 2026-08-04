@@ -151,7 +151,9 @@ public review, not an obsolete dashboard.
 
 ### Runtime configuration and secrets
 
-- Require `DATABASE_URL`, `OPENAI_API_KEY`, and explicit production `CORS_ORIGINS`.
+- Require `DATABASE_URL` and `OPENAI_API_KEY`. Disable cross-origin access for the
+  single-hostname CloudFront deployment; require exact HTTPS origins if that topology
+  changes later.
 - Store the OpenAI key as a Parameter Store `SecureString` created outside Terraform.
   Let RDS generate and rotate its master password in Secrets Manager; Terraform stores
   only the secret ARN, while the runtime retrieves the value and constructs
@@ -300,6 +302,16 @@ no password value enters Terraform configuration, plans, or state. The complete
 authenticated stack plan reports 22 creates, 0 updates, and 0 destroys. It has not
 been applied. Runtime credential refresh, EC2, frontend/CDN, remaining secrets, and
 observability are still required before the first long-lived apply.
+
+**Runtime planning progress on August 4, 2026:** Terraform now defines the x86 Amazon
+Linux 2023 EC2 host, stable Elastic IP, encrypted gp3 root disk, IMDSv2 enforcement,
+Session Manager role, repository-scoped ECR pull access, resource-scoped secret reads,
+container isolation from metadata credentials, and finite-retention API/collector log groups. Secret-free bootstrap installs the API,
+migration, six-hour collector, and hourly credential-refresh services. Credentials
+live only in memory-backed mounted files, and the API restarts only when a retrieved
+secret changes. The runtime requires a full immutable ECR commit tag and has not been
+applied. Frontend/CDN, the OpenAI SecureString value, alarms, and deployment automation
+remain before the first long-lived apply.
 
 ### Gate 4: Promote and observe
 

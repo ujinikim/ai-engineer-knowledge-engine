@@ -93,6 +93,11 @@ jobs:
 
       - name: Verify production configuration gate
         run: |
+          if [[ "$(docker run --rm --entrypoint id "backend:${GITHUB_SHA}" -u)" != "10001" ]]; then
+            echo "The production container is not using the fixed unprivileged runtime UID."
+            exit 1
+          fi
+
           if docker run --rm "backend:${GITHUB_SHA}" \
             python -c "from app.main import app" >/tmp/unsafe-production-start.log 2>&1; then
             echo "The production image accepted missing required configuration."

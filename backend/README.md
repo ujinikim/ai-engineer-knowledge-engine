@@ -93,7 +93,7 @@ Production requires:
 APP_ENVIRONMENT=production
 DATABASE_URL=postgresql+psycopg://<username>:<password>@<rds-host>:5432/knowledge_engine
 OPENAI_API_KEY=<production-scoped-key>
-CORS_ORIGINS=["https://<cloudfront-domain>"]
+CORS_ORIGINS=[]
 ```
 
 `APP_ENVIRONMENT` and the frontend origin are normal configuration. `OPENAI_API_KEY`
@@ -101,3 +101,11 @@ will be supplied from Systems Manager Parameter Store. The RDS master credential
 generated and rotated by RDS in Secrets Manager; the EC2 runtime will retrieve them
 and construct `DATABASE_URL` in memory. Neither secret is committed, copied into the
 image, written into user data, or stored as a Terraform value.
+
+Production uses a single CloudFront hostname for both the frontend and `/api`, so
+cross-origin access is disabled with an empty `CORS_ORIGINS` list. If a separate
+frontend origin is introduced later, list its exact HTTPS origin explicitly.
+
+The container also supports Docker-style secret files named `database_url` and
+`openai_api_key` under `/run/secrets`. Normal environment variables retain higher
+priority for local development and CI.

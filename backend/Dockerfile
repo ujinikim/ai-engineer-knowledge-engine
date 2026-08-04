@@ -37,8 +37,8 @@ COPY migrations ./migrations
 COPY scripts ./scripts
 COPY data/sources.yml data/update_sources.yml ./data/
 
-RUN addgroup -S app \
-    && adduser -S -G app -h /app app \
+RUN addgroup -S -g 10001 app \
+    && adduser -S -D -u 10001 -G app -h /app app \
     && mkdir -p /app/data/raw \
     && chown -R app:app /app
 

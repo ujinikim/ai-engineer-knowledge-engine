@@ -62,3 +62,31 @@ output "database_master_secret_arn" {
   description = "Secrets Manager ARN containing the RDS-managed master credentials; the secret value is never stored in Terraform."
   value       = aws_db_instance.postgresql.master_user_secret[0].secret_arn
 }
+
+output "runtime_instance_id" {
+  description = "EC2 instance ID used with Systems Manager Session Manager and Run Command."
+  value       = aws_instance.runtime.id
+}
+
+output "runtime_public_ip" {
+  description = "Stable Elastic IP used by the future CloudFront API origin."
+  value       = aws_eip.runtime.public_ip
+}
+
+output "runtime_role_name" {
+  description = "Least-privilege IAM role assumed by the EC2 runtime."
+  value       = aws_iam_role.runtime.name
+}
+
+output "backend_image_uri" {
+  description = "Immutable backend image selected for the initial runtime boot."
+  value       = local.backend_image_uri
+}
+
+output "runtime_log_group_names" {
+  description = "CloudWatch log groups receiving API and collector container output."
+  value = {
+    api       = aws_cloudwatch_log_group.api.name
+    collector = aws_cloudwatch_log_group.collector.name
+  }
+}

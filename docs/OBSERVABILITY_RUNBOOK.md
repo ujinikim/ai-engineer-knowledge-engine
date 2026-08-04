@@ -2,8 +2,8 @@
 
 ## Log format
 
-The API and production collector emit one JSON object per stdout line. The future EC2
-runtime sends container and systemd stdout to CloudWatch Logs; the application does
+The API and production collector emit one JSON object per stdout line. The planned EC2
+runtime sends container stdout to separate finite-retention CloudWatch log groups; the application does
 not call the CloudWatch API directly.
 
 Every event includes `timestamp`, `level`, `logger`, and `event`. API events include a

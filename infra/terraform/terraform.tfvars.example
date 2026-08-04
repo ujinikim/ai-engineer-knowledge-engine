@@ -12,3 +12,12 @@ database_instance_class        = "db.t4g.micro"
 database_allocated_storage_gib = 20
 database_max_storage_gib       = 50
 database_backup_retention_days = 7
+
+# Use a full immutable Git commit tag that already exists in ECR.
+backend_image_tag          = "0123456789abcdef0123456789abcdef01234567"
+runtime_instance_type      = "t3.small"
+runtime_root_volume_gib    = 20
+runtime_log_retention_days = 14
+
+# Create this SecureString outside Terraform before the first apply.
+openai_api_key_parameter_name = "/ai-engineer-knowledge-engine/production/openai-api-key"

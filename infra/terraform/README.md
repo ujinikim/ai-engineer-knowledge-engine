@@ -18,10 +18,14 @@ state is encrypted, versioned, and locked in the separately bootstrapped S3 buck
 - A two-AZ DB subnet group and a PostgreSQL parameter group requiring TLS
 - Seven days of automated backups, deletion protection, and a required final snapshot
 - An RDS-generated master password managed in AWS Secrets Manager
+- One Amazon Linux 2023 `t3.small` EC2 runtime with encrypted gp3 storage
+- A stable Elastic IP, an EC2 instance role, and Session Manager administration
+- API and collector systemd services plus collector and credential-refresh timers
+- Separate API and collector CloudWatch log groups with 14-day retention
 
-The code does not yet create EC2, Elastic IP, S3, CloudFront, Parameter Store
-parameters, CloudWatch log groups, or alarms. Nothing listed above as application
-infrastructure is live until an authenticated plan is explicitly applied.
+The code does not yet create S3, CloudFront, the OpenAI Parameter Store value, or
+alarms. Nothing listed above as application infrastructure is live until an
+authenticated plan is explicitly applied.
 
 ## Address layout
 
@@ -66,7 +70,29 @@ asks RDS to generate the password and keep it in Secrets Manager; Terraform reco
 only the resulting secret ARN. The future runtime must retrieve the current secret
 value and assemble `DATABASE_URL` without logging or persisting it. Because RDS-managed
 credentials rotate, the runtime deployment must also include a safe credential-refresh
-or service-restart mechanism before the database is applied.
+mechanism. The hourly timer reloads both secrets and restarts the API only when their
+contents change.
+
+## EC2 runtime
+
+The runtime uses the current Amazon Linux 2023 x86 AMI discovered through AWS's public
+Parameter Store path. The x86 `t3.small` matches the published `linux/amd64` backend
+image and uses standard CPU credits to avoid unlimited-burst charges. It has no SSH
+rule; administration and future deployments use Systems Manager. Containers use
+Docker bridge networking and cannot reach the instance metadata credentials.
+
+At first boot, secret-free user data installs Docker and these systemd units:
+
+- `knowledge-engine-api.service` loads secrets, pulls the selected immutable ECR
+  image, runs Alembic, and starts FastAPI with a restart policy.
+- `knowledge-engine-collector.timer` starts the one-shot collector every six hours.
+- `knowledge-engine-secret-refresh.timer` checks hourly for credential changes and
+  restarts the API only after a change.
+
+The credentials are written under `/run/knowledge-engine-secrets`, which is memory
+backed, readable only by the fixed unprivileged container UID, and mounted read-only at `/run/secrets` in containers.
+They do not appear in Terraform, EC2 user data, Docker environment metadata, or the
+container image. API and collector stdout use Docker's `awslogs` driver.
 
 ## Validate and review
 
@@ -76,7 +102,9 @@ Run from the repository root:
 terraform -chdir=infra/terraform fmt -check -recursive
 terraform -chdir=infra/terraform init
 terraform -chdir=infra/terraform validate
-terraform -chdir=infra/terraform plan -out=deployment.tfplan
+terraform -chdir=infra/terraform plan \
+  -var='backend_image_tag=<full-existing-git-sha>' \
+  -out=deployment.tfplan
 terraform -chdir=infra/terraform show deployment.tfplan
 ```
 
@@ -98,6 +126,6 @@ long-lived application apply:
 
 1. Review the saved plan and every replacement or deletion.
 2. Confirm the AWS estimate and promotional-credit balance.
-3. Add runtime, frontend/CDN, remaining secrets, and observability resources to the same
+3. Add frontend/CDN, the OpenAI SecureString, and remaining observability resources to the same
    reviewed candidate stack.
 4. Obtain owner approval for the displayed plan.

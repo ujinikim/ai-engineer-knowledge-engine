@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
@@ -10,10 +11,15 @@ ApplicationEnvironment = Literal["development", "test", "production"]
 PLACEHOLDER_OPENAI_KEYS = {"", "replace_me", "changeme"}
 LOCAL_DATABASE_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0", "::1", "postgres"}
 LOCAL_CORS_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0", "::1"}
+RUNTIME_SECRETS_DIRECTORY = Path("/run/secrets")
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=(".env", "../.env"), extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(".env", "../.env"),
+        secrets_dir=RUNTIME_SECRETS_DIRECTORY if RUNTIME_SECRETS_DIRECTORY.is_dir() else None,
+        extra="ignore",
+    )
 
     app_environment: ApplicationEnvironment = "development"
     openai_api_key: str = ""
@@ -51,8 +57,6 @@ class Settings(BaseSettings):
             if not database_url.username or not database_url.password:
                 problems.append("DATABASE_URL must include a database username and password")
 
-        if not self.cors_origins:
-            problems.append("CORS_ORIGINS must contain at least one HTTPS frontend origin")
         for origin in self.cors_origins:
             parsed_origin = urlsplit(origin)
             if "*" in origin:
