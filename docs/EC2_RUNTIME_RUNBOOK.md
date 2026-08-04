@@ -8,7 +8,7 @@ immutable backend image:
 ```text
 systemd
 ├── knowledge-engine-api.service       -> FastAPI, continuously restarted
-├── knowledge-engine-collector.timer   -> one-shot collector every six hours
+├── knowledge-engine-collector.timer   -> six-hour schedule, initially disabled
 └── knowledge-engine-secret-refresh.timer -> credential check every hour
 ```
 
@@ -68,6 +68,18 @@ Run collection manually:
 sudo systemctl start knowledge-engine-collector.service
 sudo systemctl status knowledge-engine-collector.service
 ```
+
+After the reviewed corpus is loaded and that manual run succeeds, activate the
+recurring schedule:
+
+```bash
+sudo systemctl enable --now knowledge-engine-collector.timer
+sudo systemctl list-timers knowledge-engine-collector.timer
+```
+
+The collector-stale CloudWatch alarm is expected to remain in `ALARM` before this
+first successful collection; that makes the incomplete deployment visible instead
+of silently treating it as healthy.
 
 Container application output is in CloudWatch Logs. The system journal primarily
 records Docker startup, image-pull, migration, and service-control failures.

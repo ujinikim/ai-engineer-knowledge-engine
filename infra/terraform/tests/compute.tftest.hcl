@@ -115,6 +115,20 @@ run "runtime_is_hardened_and_uses_immutable_image" {
   }
 
   assert {
+    condition = !strcontains(templatefile("${path.module}/templates/ec2-user-data.sh.tftpl", {
+      aws_region               = "us-east-2"
+      backend_image_uri        = "registry.example/backend:0123456789abcdef0123456789abcdef01234567"
+      database_name            = "knowledge_engine"
+      database_secret_arn      = "arn:aws:secretsmanager:us-east-2:123456789012:secret:database"
+      ecr_registry             = "registry.example"
+      openai_parameter_name    = "/ai-engineer-knowledge-engine/production/openai-api-key"
+      api_log_group_name       = "/project/production/api"
+      collector_log_group_name = "/project/production/collector"
+    }), "enable --now knowledge-engine-collector.timer")
+    error_message = "The first boot must not schedule ingestion before production data validation."
+  }
+
+  assert {
     condition = (
       aws_eip.runtime.domain == "vpc" &&
       aws_instance.runtime.credit_specification[0].cpu_credits == "standard" &&

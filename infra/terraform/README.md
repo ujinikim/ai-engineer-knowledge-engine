@@ -92,7 +92,8 @@ At first boot, secret-free user data installs Docker and these systemd units:
 
 - `knowledge-engine-api.service` loads secrets, pulls the selected immutable ECR
   image, runs Alembic, and starts FastAPI with a restart policy.
-- `knowledge-engine-collector.timer` starts the one-shot collector every six hours.
+- `knowledge-engine-collector.timer` defines the six-hour schedule but remains disabled
+  during the first deployment. Enable it only after a reviewed manual collection succeeds.
 - `knowledge-engine-secret-refresh.timer` checks hourly for credential changes and
   restarts the API only after a change.
 

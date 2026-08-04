@@ -225,5 +225,7 @@ UNIT
 
 systemctl daemon-reload
 systemctl enable --now knowledge-engine-api.service
-systemctl enable --now knowledge-engine-collector.timer
+# Keep scheduled ingestion off during the first deployment. After the reviewed
+# corpus is loaded and one manual collector run succeeds, an operator enables
+# this timer explicitly through Session Manager.
 systemctl enable --now knowledge-engine-secret-refresh.timer
