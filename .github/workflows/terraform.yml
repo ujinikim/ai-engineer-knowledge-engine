@@ -52,5 +52,5 @@ jobs:
       - name: Validate configuration
         run: terraform validate
 
-      - name: Test network invariants with a mocked AWS provider
+      - name: Test infrastructure invariants with a mocked AWS provider
         run: terraform test
