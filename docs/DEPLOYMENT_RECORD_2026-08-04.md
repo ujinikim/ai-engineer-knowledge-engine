@@ -108,14 +108,19 @@ protection.
 - The default feed contained 263 visible updates after collection; the remaining
   stored release records are subject to the reviewed visibility/sparse policy.
 
+## Pinned next task — not started
+
+Run the frozen Phase 3 retrieval benchmark against the hosted AWS application and
+compare relevance, exact recall, answer behavior, latency, and cost with the frozen
+local baseline. Do not begin this benchmark until the deployment walkthrough is
+complete and the owner explicitly resumes it.
+
 ## Non-blocking follow-ups
 
 - Add and confirm email subscriptions for both SNS topics if direct alert delivery is
   desired. The alarms are live but currently have no human subscriber.
 - Update GitHub Actions' Node runtime from 20 to 24; GitHub currently performs the
   compatibility upgrade automatically and emits a deprecation annotation.
-- Run the frozen Phase 3 hosted retrieval benchmark and compare it with the local
-  baseline.
 - Add the protected Terraform plan/apply workflow after the first local apply has been
   fully reviewed.
 - Consider a custom domain and ACM certificate later; the generated CloudFront domain
