@@ -120,9 +120,9 @@ variable "database_max_storage_gib" {
 }
 
 variable "database_backup_retention_days" {
-  description = "Number of days RDS retains automated backups for point-in-time recovery."
+  description = "Number of days RDS retains automated backups for point-in-time recovery; the AWS Free plan currently permits one day."
   type        = number
-  default     = 7
+  default     = 1
 
   validation {
     condition     = var.database_backup_retention_days >= 1 && var.database_backup_retention_days <= 35

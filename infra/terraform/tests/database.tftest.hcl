@@ -79,11 +79,11 @@ run "database_is_private_encrypted_and_recoverable" {
 
   assert {
     condition = (
-      aws_db_instance.postgresql.backup_retention_period == 7 &&
+      aws_db_instance.postgresql.backup_retention_period == 1 &&
       aws_db_instance.postgresql.deletion_protection == true &&
       aws_db_instance.postgresql.skip_final_snapshot == false
     )
-    error_message = "Backups, deletion protection, and a final snapshot must remain enabled."
+    error_message = "Free-plan backups, deletion protection, and a final snapshot must remain enabled."
   }
 
   assert {

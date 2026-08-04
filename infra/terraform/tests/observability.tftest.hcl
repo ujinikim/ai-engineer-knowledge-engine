@@ -21,6 +21,7 @@ mock_provider "aws" {
     target = data.aws_caller_identity.current
     values = { account_id = "123456789012" }
   }
+
 }
 
 mock_provider "aws" {
@@ -37,9 +38,11 @@ run "operational_alarms_cover_public_runtime_collector_and_database" {
   assert {
     condition = (
       aws_sns_topic.operational_alerts.kms_master_key_id == "alias/aws/sns" &&
-      length(aws_sns_topic_subscription.operational_email) == 0
+      aws_sns_topic.global_operational_alerts.kms_master_key_id == "alias/aws/sns" &&
+      length(aws_sns_topic_subscription.operational_email) == 0 &&
+      length(aws_sns_topic_subscription.global_operational_email) == 0
     )
-    error_message = "Operational notifications must be encrypted and email must remain optional."
+    error_message = "Regional and global notifications must be encrypted and email must remain optional."
   }
 
   assert {
@@ -92,7 +95,7 @@ run "operational_alarms_cover_public_runtime_collector_and_database" {
         aws_cloudwatch_metric_alarm.rds_connections.alarm_actions,
       ] : length(actions) == 1
     ])
-    error_message = "Every operational alarm must publish to the shared alert topic."
+    error_message = "Every operational alarm must publish to one regional alert topic."
   }
 }
 

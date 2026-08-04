@@ -107,6 +107,11 @@ output "application_url" {
 }
 
 output "operational_alarm_topic_arn" {
-  description = "SNS topic receiving CloudWatch alarm and recovery notifications."
+  description = "Regional SNS topic receiving us-east-2 CloudWatch alarm and recovery notifications."
   value       = aws_sns_topic.operational_alerts.arn
+}
+
+output "global_operational_alarm_topic_arn" {
+  description = "Global SNS topic receiving the us-east-1 CloudFront alarm and recovery notifications."
+  value       = aws_sns_topic.global_operational_alerts.arn
 }

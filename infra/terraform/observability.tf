@@ -1,6 +1,7 @@
 locals {
   operational_metric_namespace = "${var.project_name}/Operational"
-  alarm_actions                = [aws_sns_topic.operational_alerts.arn]
+  regional_alarm_actions       = [aws_sns_topic.operational_alerts.arn]
+  global_alarm_actions         = [aws_sns_topic.global_operational_alerts.arn]
 }
 
 resource "aws_sns_topic" "operational_alerts" {
@@ -68,6 +69,79 @@ resource "aws_sns_topic_subscription" "operational_email" {
   endpoint  = var.alarm_notification_email
 }
 
+# CloudFront metrics and their alarms exist only in us-east-1. CloudWatch alarm
+# actions must target a topic in the alarm's Region, so global delivery uses a
+# second topic rather than the us-east-2 application topic.
+resource "aws_sns_topic" "global_operational_alerts" {
+  provider = aws.us_east_1
+
+  name              = "${local.resource_name_prefix}-global-operational-alerts"
+  kms_master_key_id = "alias/aws/sns"
+}
+
+data "aws_iam_policy_document" "global_operational_alerts" {
+  provider = aws.us_east_1
+
+  statement {
+    sid = "AllowAccountAdministration"
+    actions = [
+      "sns:AddPermission",
+      "sns:DeleteTopic",
+      "sns:GetTopicAttributes",
+      "sns:ListSubscriptionsByTopic",
+      "sns:Publish",
+      "sns:RemovePermission",
+      "sns:SetTopicAttributes",
+      "sns:Subscribe",
+    ]
+    resources = [aws_sns_topic.global_operational_alerts.arn]
+
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+  }
+
+  statement {
+    sid       = "AllowCloudWatchAlarmPublish"
+    actions   = ["sns:Publish"]
+    resources = [aws_sns_topic.global_operational_alerts.arn]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudwatch.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+
+    condition {
+      test     = "ArnLike"
+      variable = "AWS:SourceArn"
+      values   = ["arn:aws:cloudwatch:us-east-1:${data.aws_caller_identity.current.account_id}:alarm:${local.resource_name_prefix}-*"]
+    }
+  }
+}
+
+resource "aws_sns_topic_policy" "global_operational_alerts" {
+  provider = aws.us_east_1
+
+  arn    = aws_sns_topic.global_operational_alerts.arn
+  policy = data.aws_iam_policy_document.global_operational_alerts.json
+}
+
+resource "aws_sns_topic_subscription" "global_operational_email" {
+  provider = aws.us_east_1
+  count    = var.alarm_notification_email == null ? 0 : 1
+
+  topic_arn = aws_sns_topic.global_operational_alerts.arn
+  protocol  = "email"
+  endpoint  = var.alarm_notification_email
+}
+
 resource "aws_cloudwatch_log_metric_filter" "collector_failure" {
   name           = "${local.resource_name_prefix}-collector-failure"
   log_group_name = aws_cloudwatch_log_group.collector.name
@@ -111,8 +185,8 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_5xx" {
   threshold           = 5
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
+  alarm_actions       = local.global_alarm_actions
+  ok_actions          = local.global_alarm_actions
 }
 
 resource "aws_cloudwatch_metric_alarm" "ec2_status" {
@@ -128,8 +202,8 @@ resource "aws_cloudwatch_metric_alarm" "ec2_status" {
   threshold           = 0
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "breaching"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
+  alarm_actions       = local.regional_alarm_actions
+  ok_actions          = local.regional_alarm_actions
 }
 
 resource "aws_cloudwatch_metric_alarm" "ec2_root_disk" {
@@ -145,8 +219,8 @@ resource "aws_cloudwatch_metric_alarm" "ec2_root_disk" {
   threshold           = 85
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "breaching"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
+  alarm_actions       = local.regional_alarm_actions
+  ok_actions          = local.regional_alarm_actions
 }
 
 resource "aws_cloudwatch_metric_alarm" "collector_failure" {
@@ -161,8 +235,8 @@ resource "aws_cloudwatch_metric_alarm" "collector_failure" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
+  alarm_actions       = local.regional_alarm_actions
+  ok_actions          = local.regional_alarm_actions
 
   depends_on = [aws_cloudwatch_log_metric_filter.collector_failure]
 }
@@ -179,8 +253,8 @@ resource "aws_cloudwatch_metric_alarm" "collector_stale" {
   threshold           = 1
   comparison_operator = "LessThanThreshold"
   treat_missing_data  = "breaching"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
+  alarm_actions       = local.regional_alarm_actions
+  ok_actions          = local.regional_alarm_actions
 
   depends_on = [aws_cloudwatch_log_metric_filter.collector_completion]
 }
@@ -198,8 +272,8 @@ resource "aws_cloudwatch_metric_alarm" "rds_free_storage" {
   threshold           = 5 * 1024 * 1024 * 1024
   comparison_operator = "LessThanThreshold"
   treat_missing_data  = "breaching"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
+  alarm_actions       = local.regional_alarm_actions
+  ok_actions          = local.regional_alarm_actions
 }
 
 resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
@@ -215,8 +289,8 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
   threshold           = 90
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "breaching"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
+  alarm_actions       = local.regional_alarm_actions
+  ok_actions          = local.regional_alarm_actions
 }
 
 resource "aws_cloudwatch_metric_alarm" "rds_connections" {
@@ -232,6 +306,6 @@ resource "aws_cloudwatch_metric_alarm" "rds_connections" {
   threshold           = var.rds_connection_alarm_threshold
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "breaching"
-  alarm_actions       = local.alarm_actions
-  ok_actions          = local.alarm_actions
+  alarm_actions       = local.regional_alarm_actions
+  ok_actions          = local.regional_alarm_actions
 }

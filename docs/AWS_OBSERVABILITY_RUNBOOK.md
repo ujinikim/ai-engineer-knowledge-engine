@@ -2,9 +2,7 @@
 
 ## Scope and current state
 
-This runbook covers the first single-stack CloudWatch and SNS monitoring layer. The
-Terraform is planned but not applied. No application alarm, metric filter, or
-notification topic is live yet.
+This runbook covers the first single-stack CloudWatch and SNS monitoring layer.
 
 The design deliberately uses AWS's included service metrics plus three custom metrics:
 
@@ -28,9 +26,10 @@ Performance Insights, a synthetic canary, or a custom dashboard for the first re
 | `rds-cpu` | RDS `CPUUtilization` | Above 90% for 15 minutes | Queries, collector overlap, and retrieval load |
 | `rds-connections` | RDS `DatabaseConnections` | Above 60 for 15 minutes | API processes, leaked sessions, and collector overlap |
 
-Every alarm sends both `ALARM` and recovery (`OK`) transitions to the shared encrypted
-SNS topic. Missing data is treated as a problem for runtime, collector freshness, and
-RDS signals; CloudFront missing data is acceptable when the site has no traffic.
+Every alarm sends both `ALARM` and recovery (`OK`) transitions to an encrypted SNS
+topic in the alarm's Region. Missing data is treated as a problem for runtime,
+collector freshness, and RDS signals; CloudFront missing data is acceptable when the
+site has no traffic.
 
 ## Regions and console locations
 
@@ -42,7 +41,9 @@ Most resources are in `us-east-2`:
 - SNS > Topics > `ai-engineer-knowledge-engine-production-operational-alerts`
 
 CloudFront metrics and `cloudfront-5xx` are in `us-east-1`, because AWS publishes
-global CloudFront metrics only in Northern Virginia.
+global CloudFront metrics only in Northern Virginia. Its actions use the separate
+`ai-engineer-knowledge-engine-production-global-operational-alerts` topic in that
+Region because a CloudWatch alarm cannot target an SNS topic in another Region.
 
 ## Optional email notification
 
@@ -53,11 +54,12 @@ address:
 alarm_notification_email = "owner@example.com"
 ```
 
-After apply, AWS sends a confirmation message. The subscription remains pending and
-delivers no alarms until the confirmation link is accepted. The address is ordinary
-configuration rather than a credential, but it will be stored in Terraform state.
+After apply, AWS sends one confirmation message for each regional topic. Both
+subscriptions remain pending and deliver no alarms until both confirmation links are
+accepted. The address is ordinary configuration rather than a credential, but it
+will be stored in Terraform state.
 
-Leaving the value `null` creates the alarms and SNS topic without a human subscriber.
+Leaving the value `null` creates the alarms and SNS topics without a human subscriber.
 This is acceptable for the initial infrastructure review, but an address should be
 confirmed before the stack is shared publicly.
 
@@ -92,6 +94,10 @@ aws sns publish \
   --topic-arn "$(terraform -chdir=infra/terraform output -raw operational_alarm_topic_arn)" \
   --subject "Knowledge engine alert test" \
   --message "Operational SNS delivery test"
+
+aws sns list-subscriptions-by-topic \
+  --region us-east-1 \
+  --topic-arn "$(terraform -chdir=infra/terraform output -raw global_operational_alarm_topic_arn)"
 ```
 
 Verify the agent through Session Manager:
