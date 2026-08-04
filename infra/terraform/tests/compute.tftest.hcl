@@ -73,7 +73,9 @@ run "runtime_is_hardened_and_uses_immutable_image" {
       strcontains(templatefile("${path.module}/templates/ec2-user-data.sh.tftpl", {
         aws_region               = "us-east-2"
         backend_image_uri        = "registry.example/backend:0123456789abcdef0123456789abcdef01234567"
+        database_host            = "database.example"
         database_name            = "knowledge_engine"
+        database_port            = 5432
         database_secret_arn      = "arn:aws:secretsmanager:us-east-2:123456789012:secret:database"
         ecr_registry             = "registry.example"
         openai_parameter_name    = "/ai-engineer-knowledge-engine/production/openai-api-key"
@@ -83,7 +85,9 @@ run "runtime_is_hardened_and_uses_immutable_image" {
       strcontains(templatefile("${path.module}/templates/ec2-user-data.sh.tftpl", {
         aws_region               = "us-east-2"
         backend_image_uri        = "registry.example/backend:0123456789abcdef0123456789abcdef01234567"
+        database_host            = "database.example"
         database_name            = "knowledge_engine"
+        database_port            = 5432
         database_secret_arn      = "arn:aws:secretsmanager:us-east-2:123456789012:secret:database"
         ecr_registry             = "registry.example"
         openai_parameter_name    = "/ai-engineer-knowledge-engine/production/openai-api-key"
@@ -93,7 +97,9 @@ run "runtime_is_hardened_and_uses_immutable_image" {
       strcontains(templatefile("${path.module}/templates/ec2-user-data.sh.tftpl", {
         aws_region               = "us-east-2"
         backend_image_uri        = "registry.example/backend:0123456789abcdef0123456789abcdef01234567"
+        database_host            = "database.example"
         database_name            = "knowledge_engine"
+        database_port            = 5432
         database_secret_arn      = "arn:aws:secretsmanager:us-east-2:123456789012:secret:database"
         ecr_registry             = "registry.example"
         openai_parameter_name    = "/ai-engineer-knowledge-engine/production/openai-api-key"
@@ -103,7 +109,9 @@ run "runtime_is_hardened_and_uses_immutable_image" {
       strcontains(templatefile("${path.module}/templates/ec2-user-data.sh.tftpl", {
         aws_region               = "us-east-2"
         backend_image_uri        = "registry.example/backend:0123456789abcdef0123456789abcdef01234567"
+        database_host            = "database.example"
         database_name            = "knowledge_engine"
+        database_port            = 5432
         database_secret_arn      = "arn:aws:secretsmanager:us-east-2:123456789012:secret:database"
         ecr_registry             = "registry.example"
         openai_parameter_name    = "/ai-engineer-knowledge-engine/production/openai-api-key"
@@ -118,7 +126,9 @@ run "runtime_is_hardened_and_uses_immutable_image" {
     condition = !strcontains(templatefile("${path.module}/templates/ec2-user-data.sh.tftpl", {
       aws_region               = "us-east-2"
       backend_image_uri        = "registry.example/backend:0123456789abcdef0123456789abcdef01234567"
+      database_host            = "database.example"
       database_name            = "knowledge_engine"
+      database_port            = 5432
       database_secret_arn      = "arn:aws:secretsmanager:us-east-2:123456789012:secret:database"
       ecr_registry             = "registry.example"
       openai_parameter_name    = "/ai-engineer-knowledge-engine/production/openai-api-key"

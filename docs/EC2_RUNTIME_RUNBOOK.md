@@ -19,9 +19,10 @@ to the two application log groups, and use Systems Manager.
 
 ## Secret lifecycle
 
-`knowledge-engine-load-secrets` retrieves the current RDS JSON secret and the OpenAI
-SecureString. It URL-encodes the database credentials, requires PostgreSQL TLS, and
-writes two mode-`0600` files beneath `/run/knowledge-engine-secrets`:
+`knowledge-engine-load-secrets` retrieves the RDS-managed username/password and the
+OpenAI SecureString. It combines the credentials with the non-secret RDS host and port
+provided by Terraform, URL-encodes the credentials, requires PostgreSQL TLS, and writes
+two mode-`0600` files beneath `/run/knowledge-engine-secrets`:
 
 ```text
 database_url

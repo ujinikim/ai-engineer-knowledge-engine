@@ -41,7 +41,9 @@ install -d -m 0750 -o root -g 10001 /run/knowledge-engine-secrets
 cat > /etc/knowledge-engine/runtime.conf <<'CONFIG'
 AWS_REGION=${aws_region}
 BACKEND_IMAGE=${backend_image_uri}
+DATABASE_HOST=${database_host}
 DATABASE_NAME=${database_name}
+DATABASE_PORT=${database_port}
 DATABASE_SECRET_ARN=${database_secret_arn}
 ECR_REGISTRY=${ecr_registry}
 OPENAI_PARAMETER_NAME=${openai_parameter_name}
@@ -76,8 +78,6 @@ secret_json=$(retry aws secretsmanager get-secret-value \
 
 username=$(printf '%s' "$secret_json" | jq -er '.username')
 password=$(printf '%s' "$secret_json" | jq -er '.password')
-host=$(printf '%s' "$secret_json" | jq -er '.host')
-port=$(printf '%s' "$secret_json" | jq -er '.port')
 encoded_username=$(jq -rn --arg value "$username" '$value | @uri')
 encoded_password=$(jq -rn --arg value "$password" '$value | @uri')
 
@@ -92,7 +92,7 @@ temporary_directory=$(mktemp -d /run/knowledge-engine-secrets.XXXXXX)
 trap 'rm -r -- "$temporary_directory"' EXIT
 
 printf 'postgresql+psycopg://%s:%s@%s:%s/%s?sslmode=require' \
-  "$encoded_username" "$encoded_password" "$host" "$port" "$DATABASE_NAME" \
+  "$encoded_username" "$encoded_password" "$DATABASE_HOST" "$DATABASE_PORT" "$DATABASE_NAME" \
   > "$temporary_directory/database_url"
 printf '%s' "$openai_key" > "$temporary_directory/openai_api_key"
 

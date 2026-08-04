@@ -116,7 +116,9 @@ resource "aws_instance" "runtime" {
   user_data = templatefile("${path.module}/templates/ec2-user-data.sh.tftpl", {
     aws_region               = var.aws_region
     backend_image_uri        = local.backend_image_uri
+    database_host            = aws_db_instance.postgresql.address
     database_name            = var.database_name
+    database_port            = var.postgresql_port
     database_secret_arn      = aws_db_instance.postgresql.master_user_secret[0].secret_arn
     ecr_registry             = split("/", aws_ecr_repository.backend.repository_url)[0]
     openai_parameter_name    = var.openai_api_key_parameter_name
