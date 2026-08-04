@@ -42,3 +42,23 @@ output "cloudfront_origin_prefix_list_id" {
   description = "AWS-managed CloudFront origin-facing prefix list used by the API ingress rule."
   value       = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
 }
+
+output "database_endpoint" {
+  description = "Private RDS hostname and port used by the future EC2 runtime."
+  value       = aws_db_instance.postgresql.endpoint
+}
+
+output "database_name" {
+  description = "Initial application database name."
+  value       = aws_db_instance.postgresql.db_name
+}
+
+output "database_master_username" {
+  description = "Administrative username whose password is managed by RDS."
+  value       = aws_db_instance.postgresql.username
+}
+
+output "database_master_secret_arn" {
+  description = "Secrets Manager ARN containing the RDS-managed master credentials; the secret value is never stored in Terraform."
+  value       = aws_db_instance.postgresql.master_user_secret[0].secret_arn
+}

@@ -14,9 +14,14 @@ state is encrypted, versioned, and locked in the separately bootstrapped S3 buck
 - An EC2 runtime security group accepting API traffic only from AWS's managed
   CloudFront origin-facing prefix list
 - An RDS security group accepting PostgreSQL only from the EC2 security group
+- A private single-AZ RDS for PostgreSQL 16 instance with encrypted gp3 storage
+- A two-AZ DB subnet group and a PostgreSQL parameter group requiring TLS
+- Seven days of automated backups, deletion protection, and a required final snapshot
+- An RDS-generated master password managed in AWS Secrets Manager
 
-The network code does not yet create EC2, Elastic IP, RDS, S3, CloudFront, Parameter
-Store parameters, CloudWatch log groups, or alarms.
+The code does not yet create EC2, Elastic IP, S3, CloudFront, Parameter Store
+parameters, CloudWatch log groups, or alarms. Nothing listed above as application
+infrastructure is live until an authenticated plan is explicitly applied.
 
 ## Address layout
 
@@ -48,6 +53,21 @@ EC2 has no SSH ingress. Its outbound rules permit HTTPS for ECR, AWS APIs, OpenA
 configured sources; DNS inside the VPC; and PostgreSQL only to the RDS security group.
 The RDS security group has no general internet ingress or egress rule.
 
+## Database configuration
+
+The initial database is deliberately small: PostgreSQL `16.14` on `db.t4g.micro`,
+20 GiB of gp3 storage, and a 50 GiB autoscaling ceiling. It is single-AZ to control
+cost, but its subnet group includes two Availability Zones so RDS can place or recover
+the instance within the VPC. `pgvector` is supplied by RDS and enabled later by the
+existing Alembic migration, not by Terraform.
+
+Terraform never receives a database password. `manage_master_user_password = true`
+asks RDS to generate the password and keep it in Secrets Manager; Terraform records
+only the resulting secret ARN. The future runtime must retrieve the current secret
+value and assemble `DATABASE_URL` without logging or persisting it. Because RDS-managed
+credentials rotate, the runtime deployment must also include a safe credential-refresh
+or service-restart mechanism before the database is applied.
+
 ## Validate and review
 
 Run from the repository root:
@@ -56,8 +76,8 @@ Run from the repository root:
 terraform -chdir=infra/terraform fmt -check -recursive
 terraform -chdir=infra/terraform init
 terraform -chdir=infra/terraform validate
-terraform -chdir=infra/terraform plan -out=network.tfplan
-terraform -chdir=infra/terraform show network.tfplan
+terraform -chdir=infra/terraform plan -out=deployment.tfplan
+terraform -chdir=infra/terraform show deployment.tfplan
 ```
 
 Plan files and local Terraform working data are ignored by Git. Do not commit a copied
@@ -65,8 +85,9 @@ Plan files and local Terraform working data are ignored by Git. Do not commit a 
 example contains only non-secret defaults.
 
 CI runs formatting, provider-lock, initialization-without-backend, validation, and
-mock-provider tests for CIDR derivation, two-AZ placement, ingress boundaries, and
-invalid input. It does not assume the production AWS role or apply infrastructure.
+mock-provider tests for network boundaries plus database privacy, encryption, storage,
+credentials, TLS, backup, and deletion safeguards. It does not assume the production
+AWS role or apply infrastructure.
 Authenticated plan and apply will be added to a protected GitHub environment only
 after the deployment role receives separately reviewed infrastructure permissions.
 
@@ -77,6 +98,6 @@ long-lived application apply:
 
 1. Review the saved plan and every replacement or deletion.
 2. Confirm the AWS estimate and promotional-credit balance.
-3. Add RDS, runtime, frontend/CDN, secrets, and observability resources to the same
+3. Add runtime, frontend/CDN, remaining secrets, and observability resources to the same
    reviewed candidate stack.
 4. Obtain owner approval for the displayed plan.

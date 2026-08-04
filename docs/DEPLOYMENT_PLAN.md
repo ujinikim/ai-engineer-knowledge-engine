@@ -152,8 +152,10 @@ public review, not an obsolete dashboard.
 ### Runtime configuration and secrets
 
 - Require `DATABASE_URL`, `OPENAI_API_KEY`, and explicit production `CORS_ORIGINS`.
-- Store secrets as Parameter Store `SecureString` values created outside Terraform;
-  Terraform manages only names and IAM access.
+- Store the OpenAI key as a Parameter Store `SecureString` created outside Terraform.
+  Let RDS generate and rotate its master password in Secrets Manager; Terraform stores
+  only the secret ARN, while the runtime retrieves the value and constructs
+  `DATABASE_URL` in memory.
 - Give the EC2 instance role read access only to this application's parameter path,
   ECR pull access, CloudWatch publishing, and Session Manager.
 - Set frontend `VITE_API_URL` to `/api` at build time.
@@ -287,8 +289,17 @@ EC2/RDS security-group rules. Mock-provider tests cover address derivation, two-
 placement, public routing, CloudFront-only API ingress, PostgreSQL-only database
 ingress, and invalid CIDRs. An authenticated plan against the remote production state
 reports 19 creates, 0 updates, and 0 destroys. No network resource has been applied;
-RDS, EC2/runtime, frontend/CDN, secrets, and observability remain to be added and
+EC2/runtime, frontend/CDN, remaining secrets, and observability remain to be added and
 reviewed before the first long-lived apply.
+
+**Database planning progress on August 4, 2026:** Terraform now defines the private
+single-AZ PostgreSQL 16.14 instance, two-AZ DB subnet group, TLS parameter group,
+encrypted bounded gp3 storage, seven-day backups, deletion protection, and required
+final snapshot. RDS generates and rotates the master password in Secrets Manager, so
+no password value enters Terraform configuration, plans, or state. The complete
+authenticated stack plan reports 22 creates, 0 updates, and 0 destroys. It has not
+been applied. Runtime credential refresh, EC2, frontend/CDN, remaining secrets, and
+observability are still required before the first long-lived apply.
 
 ### Gate 4: Promote and observe
 

@@ -96,7 +96,8 @@ OPENAI_API_KEY=<production-scoped-key>
 CORS_ORIGINS=["https://<cloudfront-domain>"]
 ```
 
-`APP_ENVIRONMENT` and the frontend origin are normal configuration. `DATABASE_URL`
-and `OPENAI_API_KEY` are secrets and will be supplied to the EC2 runtime from Systems
-Manager Parameter Store rather than committed, copied into the image, or stored in
-Terraform state.
+`APP_ENVIRONMENT` and the frontend origin are normal configuration. `OPENAI_API_KEY`
+will be supplied from Systems Manager Parameter Store. The RDS master credentials are
+generated and rotated by RDS in Secrets Manager; the EC2 runtime will retrieve them
+and construct `DATABASE_URL` in memory. Neither secret is committed, copied into the
+image, written into user data, or stored as a Terraform value.
