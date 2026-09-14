@@ -225,6 +225,23 @@ jobs:
         run: |
           set -euo pipefail
 
+          image_uri="${{ steps.publish.outputs.image_uri }}"
+          registry="${image_uri%%/*}"
+          aws ecr get-login-password --region "${AWS_REGION}" \
+            | docker login --username AWS --password-stdin "${registry}" >/dev/null
+          docker pull "${image_uri}" >/dev/null
+
+          # Alpine's libuuid package is built from the util-linux source package, so
+          # ECR can attribute mount/nsenter CVEs to it even when those util-linux
+          # programs are absent. Keep the exception valid only while the runtime
+          # contains libuuid, not util-linux, and BusyBox owns nsenter.
+          docker run --rm --entrypoint sh "${image_uri}" -ec '
+            apk info -e libuuid >/dev/null
+            ! apk info -e util-linux >/dev/null 2>&1
+            nsenter_path="$(readlink -f "$(command -v nsenter)")"
+            apk info -W "${nsenter_path}" | grep -q "owned by busybox-"
+          '
+
           scan_status=""
           for attempt in $(seq 1 30); do
             scan_status="$(aws ecr describe-image-scan-findings \
@@ -253,21 +270,64 @@ jobs:
             exit 1
           fi
 
-          critical="$(aws ecr describe-image-scan-findings \
+          findings="$(aws ecr describe-image-scan-findings \
             --repository-name "${ECR_REPOSITORY}" \
             --image-id "imageTag=${IMAGE_TAG}" \
-            --query 'imageScanFindings.findingSeverityCounts.CRITICAL || `0`' \
-            --output text)"
-          high="$(aws ecr describe-image-scan-findings \
-            --repository-name "${ECR_REPOSITORY}" \
-            --image-id "imageTag=${IMAGE_TAG}" \
-            --query 'imageScanFindings.findingSeverityCounts.HIGH || `0`' \
-            --output text)"
-          medium="$(aws ecr describe-image-scan-findings \
-            --repository-name "${ECR_REPOSITORY}" \
-            --image-id "imageTag=${IMAGE_TAG}" \
-            --query 'imageScanFindings.findingSeverityCounts.MEDIUM || `0`' \
-            --output text)"
+            --output json)"
+
+          approved_util_linux_cves='[
+            "CVE-2026-27456",
+            "CVE-2026-76642",
+            "CVE-2026-78408",
+            "CVE-2026-78409",
+            "CVE-2026-78410"
+          ]'
+          reviewed_exceptions="$(jq \
+            --argjson approved "${approved_util_linux_cves}" '
+              def attr($key):
+                ((.attributes // [])
+                  | map(select((.key | ascii_downcase) == $key))
+                  | first
+                  | .value) // "";
+              [
+                .imageScanFindings.findings[]?
+                | select(.severity == "HIGH" or .severity == "CRITICAL")
+                | select(.name as $cve | $approved | index($cve))
+                | select(
+                    (attr("package_name") == "util-linux"
+                      or attr("package_name") == "libuuid")
+                    and attr("package_version") == "2.42.1-r0"
+                  )
+              ]
+            ' <<<"${findings}")"
+          blocking_findings="$(jq \
+            --argjson approved "${approved_util_linux_cves}" '
+              def attr($key):
+                ((.attributes // [])
+                  | map(select((.key | ascii_downcase) == $key))
+                  | first
+                  | .value) // "";
+              [
+                .imageScanFindings.findings[]?
+                | select(.severity == "HIGH" or .severity == "CRITICAL")
+                | select(
+                    ((.name as $cve | $approved | index($cve)) != null
+                      and (attr("package_name") == "util-linux"
+                        or attr("package_name") == "libuuid")
+                      and attr("package_version") == "2.42.1-r0")
+                    | not
+                  )
+              ]
+            ' <<<"${findings}")"
+
+          critical="$(jq '.imageScanFindings.findingSeverityCounts.CRITICAL // 0' \
+            <<<"${findings}")"
+          high="$(jq '.imageScanFindings.findingSeverityCounts.HIGH // 0' \
+            <<<"${findings}")"
+          medium="$(jq '.imageScanFindings.findingSeverityCounts.MEDIUM // 0' \
+            <<<"${findings}")"
+          exception_count="$(jq 'length' <<<"${reviewed_exceptions}")"
+          blocking_count="$(jq 'length' <<<"${blocking_findings}")"
 
           {
             echo "### Backend container image"
@@ -275,9 +335,12 @@ jobs:
             echo "- Image: \`${{ steps.publish.outputs.image_uri }}\`"
             echo "- Digest: \`${{ steps.publish.outputs.digest }}\`"
             echo "- ECR scan: ${critical} critical, ${high} high, ${medium} medium"
+            echo "- Reviewed libuuid exceptions: ${exception_count}"
+            echo "- Blocking critical/high findings: ${blocking_count}"
           } >> "${GITHUB_STEP_SUMMARY}"
 
-          if (( critical > 0 || high > 0 )); then
-            echo "The image has critical or high ECR findings and cannot pass."
+          if (( blocking_count > 0 )); then
+            echo "The image has unapproved critical or high ECR findings:"
+            jq -r '.[] | "- \(.name): \(.severity)"' <<<"${blocking_findings}"
             exit 1
           fi
