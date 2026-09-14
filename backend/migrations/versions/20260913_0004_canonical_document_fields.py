@@ -7,9 +7,7 @@ Create Date: 2026-09-13
 
 from collections.abc import Sequence
 
-import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects import postgresql
 
 
 revision: str = "20260913_0004"
@@ -32,30 +30,21 @@ EVENT_TYPES = ("release-update", "research", "guide", "analysis", "alert")
 def upgrade() -> None:
     # Keep doc_metadata during the rolling migration. Readers can fall back to it
     # until every writer populates the typed columns directly.
-    op.add_column(
-        "documents",
-        sa.Column("ingestion_status", sa.String(length=32), nullable=True),
+    # IF NOT EXISTS preserves the baseline migration's legacy-schema adoption
+    # contract when an existing application schema is stamped and upgraded.
+    op.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS ingestion_status VARCHAR(32)")
+    op.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS evidence_level VARCHAR(32)")
+    op.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS relevance_tier VARCHAR(32)")
+    op.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS relevance_reason TEXT")
+    op.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS primary_topic VARCHAR(80)")
+    op.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS event_type VARCHAR(32)")
+    op.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS summary TEXT")
+    op.execute(
+        "ALTER TABLE documents ADD COLUMN IF NOT EXISTS "
+        "processing_metadata JSONB NOT NULL DEFAULT '{}'::jsonb"
     )
-    op.add_column(
-        "documents",
-        sa.Column("evidence_level", sa.String(length=32), nullable=True),
-    )
-    op.add_column("documents", sa.Column("relevance_tier", sa.String(length=32)))
-    op.add_column("documents", sa.Column("relevance_reason", sa.Text()))
-    op.add_column("documents", sa.Column("primary_topic", sa.String(length=80)))
-    op.add_column("documents", sa.Column("event_type", sa.String(length=32)))
-    op.add_column("documents", sa.Column("summary", sa.Text()))
-    op.add_column(
-        "documents",
-        sa.Column(
-            "processing_metadata",
-            postgresql.JSONB(astext_type=sa.Text()),
-            nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
-        ),
-    )
-    op.add_column("chunks", sa.Column("embedding_model", sa.String(length=120)))
-    op.add_column("chunks", sa.Column("chunking_version", sa.String(length=80)))
+    op.execute("ALTER TABLE chunks ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(120)")
+    op.execute("ALTER TABLE chunks ADD COLUMN IF NOT EXISTS chunking_version VARCHAR(80)")
 
     op.execute(
         """
@@ -153,46 +142,60 @@ def upgrade() -> None:
     )
 
     op.drop_index("documents_ingestion_status_idx", table_name="documents")
-    op.create_index(
-        "documents_ingestion_status_idx", "documents", ["ingestion_status"]
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS documents_ingestion_status_idx "
+        "ON documents (ingestion_status)"
     )
-    op.create_index("documents_relevance_tier_idx", "documents", ["relevance_tier"])
-    op.create_index("documents_primary_topic_idx", "documents", ["primary_topic"])
-    op.create_index("documents_event_type_idx", "documents", ["event_type"])
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS documents_relevance_tier_idx "
+        "ON documents (relevance_tier)"
+    )
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS documents_primary_topic_idx "
+        "ON documents (primary_topic)"
+    )
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS documents_event_type_idx "
+        "ON documents (event_type)"
+    )
     op.execute(
         """
-        CREATE INDEX documents_feed_scope_idx
+        CREATE INDEX IF NOT EXISTS documents_feed_scope_idx
         ON documents (ingestion_status, relevance_tier, source_name, published_at DESC)
         """
     )
 
-    op.create_check_constraint(
-        "ck_documents_ingestion_status",
-        "documents",
-        "ingestion_status IN ('published', 'quarantined')",
-    )
-    op.create_check_constraint(
-        "ck_documents_evidence_level",
-        "documents",
-        "evidence_level IN ('full_article', 'source_entry', 'official_feed_excerpt')",
-    )
-    op.create_check_constraint(
-        "ck_documents_relevance_tier",
-        "documents",
-        "relevance_tier IS NULL OR relevance_tier IN ('core', 'contextual', 'excluded')",
-    )
-    op.create_check_constraint(
-        "ck_documents_primary_topic",
-        "documents",
-        "primary_topic IS NULL OR primary_topic IN "
-        f"{PRIMARY_TOPICS!r}",
-    )
-    op.create_check_constraint(
-        "ck_documents_event_type",
-        "documents",
-        "event_type IS NULL OR event_type IN "
-        f"{EVENT_TYPES!r}",
-    )
+    constraints = {
+        "ck_documents_ingestion_status": (
+            "ingestion_status IN ('published', 'quarantined')"
+        ),
+        "ck_documents_evidence_level": (
+            "evidence_level IN ('full_article', 'source_entry', 'official_feed_excerpt')"
+        ),
+        "ck_documents_relevance_tier": (
+            "relevance_tier IS NULL OR relevance_tier IN ('core', 'contextual', 'excluded')"
+        ),
+        "ck_documents_primary_topic": (
+            "primary_topic IS NULL OR primary_topic IN " f"{PRIMARY_TOPICS!r}"
+        ),
+        "ck_documents_event_type": (
+            "event_type IS NULL OR event_type IN " f"{EVENT_TYPES!r}"
+        ),
+    }
+    for name, condition in constraints.items():
+        op.execute(
+            f"""
+            DO $$
+            BEGIN
+              IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint WHERE conname = '{name}'
+              ) THEN
+                ALTER TABLE documents ADD CONSTRAINT {name} CHECK ({condition});
+              END IF;
+            END
+            $$
+            """
+        )
 
 
 def downgrade() -> None:

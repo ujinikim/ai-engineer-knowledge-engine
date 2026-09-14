@@ -13,19 +13,9 @@ def test_canonical_field_migration_is_non_destructive_and_backfills_compatibilit
 
     migration.upgrade()
 
-    added_document_columns = {
-        call.args[1].name
-        for call in operation.add_column.call_args_list
-        if call.args[0] == "documents"
-    }
-    added_chunk_columns = {
-        call.args[1].name
-        for call in operation.add_column.call_args_list
-        if call.args[0] == "chunks"
-    }
     executed_sql = "\n".join(call.args[0] for call in operation.execute.call_args_list)
 
-    assert added_document_columns == {
+    for column in (
         "ingestion_status",
         "evidence_level",
         "relevance_tier",
@@ -34,8 +24,10 @@ def test_canonical_field_migration_is_non_destructive_and_backfills_compatibilit
         "event_type",
         "summary",
         "processing_metadata",
-    }
-    assert added_chunk_columns == {"embedding_model", "chunking_version"}
+    ):
+        assert f"ALTER TABLE documents ADD COLUMN IF NOT EXISTS {column}" in executed_sql
+    for column in ("embedding_model", "chunking_version"):
+        assert f"ALTER TABLE chunks ADD COLUMN IF NOT EXISTS {column}" in executed_sql
     assert "doc_metadata->>'feed_relevance_tier'" in executed_sql
     assert "doc_metadata->'event_types'->>0" in executed_sql
     assert "doc_metadata->>'summary'" in executed_sql
