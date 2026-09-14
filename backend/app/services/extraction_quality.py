@@ -46,6 +46,7 @@ class ExtractionEvaluation:
     word_count: int
     line_count: int
     paragraph_count: int
+    chunks_expected: bool
     chunk_count: int
     embedded_chunk_count: int
     total_chunk_tokens: int
@@ -92,6 +93,26 @@ class ExtractionQualityService:
         words = re.findall(r"\b\w+[+#.-]*\b", raw_text)
         source_category = str(metadata.get("source_type") or document.source_type or "unknown")
         extraction_method = str(metadata.get("source_kind") or "unknown")
+        ingestion_status = str(
+            getattr(document, "ingestion_status", None)
+            or metadata.get("ingestion_status")
+            or "published"
+        )
+        evidence_level = str(
+            getattr(document, "evidence_level", None)
+            or metadata.get("evidence_level")
+            or "source_entry"
+        )
+        relevance_tier = str(
+            getattr(document, "relevance_tier", None)
+            or metadata.get("relevance_tier")
+            or "core"
+        )
+        chunks_expected = (
+            ingestion_status == "published"
+            and evidence_level != "official_feed_excerpt"
+            and relevance_tier != "excluded"
+        )
         warnings: list[str] = []
         failures: list[str] = []
 
@@ -134,9 +155,9 @@ class ExtractionQualityService:
             failures.append("invalid_canonical_url")
         if raw_text and not content_hash_valid:
             failures.append("content_hash_mismatch")
-        if not chunks:
+        if chunks_expected and not chunks:
             failures.append("missing_chunks")
-        else:
+        elif chunks:
             if not chunk_indexes_sequential:
                 failures.append("nonsequential_chunk_indexes")
             if not chunks_nonempty:
@@ -182,6 +203,7 @@ class ExtractionQualityService:
             word_count=len(words),
             line_count=len(lines),
             paragraph_count=len(paragraphs),
+            chunks_expected=chunks_expected,
             chunk_count=len(chunks),
             embedded_chunk_count=embedded_chunk_count,
             total_chunk_tokens=total_chunk_tokens,

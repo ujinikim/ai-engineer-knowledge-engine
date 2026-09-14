@@ -40,12 +40,17 @@ def test_summary_service_records_api_usage_without_recording_prompt_text() -> No
         organization="Example",
         tool="Example SDK",
         source_type="official-release",
-        default_topic="developer-tools",
-        default_event_types=["library-release"],
+        default_topic="ai-products-engineering-infrastructure",
+        default_event_types=["release-update"],
     )
 
     assert usage.chat_input_tokens == 120
     assert usage.chat_output_tokens == 30
+    response_format = service.client.chat.completions.create.call_args.kwargs["response_format"]
+    assert response_format["type"] == "json_schema"
+    assert response_format["json_schema"]["strict"] is True
+    event_schema = response_format["json_schema"]["schema"]["properties"]["event_type"]
+    assert event_schema["enum"] == ["release-update", "research", "guide", "analysis", "alert"]
 
 
 def test_embedding_service_records_api_usage() -> None:

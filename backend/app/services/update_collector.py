@@ -8,23 +8,37 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from time import struct_time
-from urllib.parse import unquote, urljoin, urlparse
+from urllib.parse import parse_qsl, unquote, urlencode, urljoin, urlparse
 
 import feedparser
 import httpx
 from bs4 import BeautifulSoup
-from sqlalchemy import delete, select
+from sqlalchemy import and_, delete, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.model_usage import ModelUsage
 from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event
 from app.db.models import Chunk, Document, UpdateSource
+from app.services.article_relevance import (
+    RELEVANCE_POLICY_VERSION,
+    RELEVANCE_TIERS,
+    ArticleRelevanceService,
+)
 from app.services.article_summary import ArticleSummaryService
 from app.services.chunking import ChunkingService
 from app.services.embedding import EmbeddingService
+from app.services.ingestion_policy import (
+    evaluate_ingestion_candidate,
+)
 from app.services.source_detail import classify_content_detail, sparse_visibility_metadata
-from app.services.taxonomy import infer_maturity, normalize_event_types
+from app.services.taxonomy import (
+    TAXONOMY_POLICY_VERSION,
+    classify_topic_with_method,
+    infer_event_types,
+    infer_maturity,
+    normalize_event_types,
+)
 
 
 logger = get_logger("collector")
@@ -36,6 +50,7 @@ class CollectionResult:
     updates_created: int = 0
     updates_changed: int = 0
     updates_unchanged: int = 0
+    updates_quarantined: int = 0
     chunks_written: int = 0
     errors: int = 0
     chat_input_tokens: int = 0
@@ -51,6 +66,7 @@ class UpdateCollectorService:
         self.usage = ModelUsage()
         self.embedder = EmbeddingService(usage=self.usage)
         self.summarizer = ArticleSummaryService(usage=self.usage)
+        self.relevance = ArticleRelevanceService(usage=self.usage)
 
     async def collect(
         self,
@@ -63,6 +79,7 @@ class UpdateCollectorService:
             "updates_created": 0,
             "updates_changed": 0,
             "updates_unchanged": 0,
+            "updates_quarantined": 0,
             "chunks_written": 0,
             "errors": 0,
         }
@@ -135,6 +152,10 @@ class UpdateCollectorService:
                         updates_unchanged=(
                             counts["updates_unchanged"] - source_counts_before["updates_unchanged"]
                         ),
+                        updates_quarantined=(
+                            counts["updates_quarantined"]
+                            - source_counts_before["updates_quarantined"]
+                        ),
                         chunks_written=(
                             counts["chunks_written"] - source_counts_before["chunks_written"]
                         ),
@@ -182,7 +203,7 @@ class UpdateCollectorService:
             "enabled": bool(config.get("enabled", True)),
             "source_metadata": {
                 "source_type": config.get("source_type", "official-release"),
-                "default_event_types": config.get("default_event_types", ["library-release"]),
+                "default_event_types": config.get("default_event_types", ["analysis"]),
                 "include_terms": config.get("include_terms", []),
                 "quality_tier": config.get("quality_tier", "primary"),
             },
@@ -213,10 +234,10 @@ class UpdateCollectorService:
         content_detail = classify_content_detail(title, raw_text)
         content_hash = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
         published_at = self._entry_datetime(entry)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         default_topic = config.get("default_primary_topic", config["category"])
         source_type = config.get("source_type", "official-release")
-        default_event_types = config.get("default_event_types", ["library-release"])
+        default_event_types = config.get("default_event_types", ["analysis"])
         hydration_status = str(entry.get("_hydration_status") or "not_requested")
         extraction_status = str(
             entry.get("_extraction_status")
@@ -271,33 +292,270 @@ class UpdateCollectorService:
             base_metadata["parent_title"] = str(entry["_parent_title"])
         if entry.get("_section_index") is not None:
             base_metadata["section_index"] = int(entry["_section_index"])
-        document = self.db.scalar(
-            select(Document).where(
-                Document.url.in_(self._document_url_candidates(raw_url))
+        provisional_events = normalize_event_types(
+            source.slug,
+            infer_event_types(raw_text, default_event_types),
+        )
+        provisional_topic, provisional_topic_method = classify_topic_with_method(
+            f"{title}\n{title}\n{raw_text}",
+            default_topic,
+        )
+        ingestion = evaluate_ingestion_candidate(
+            content_detail=content_detail,
+            hydration_status=hydration_status,
+            extraction_status=extraction_status,
+            event_types=provisional_events,
+            publish_feed_excerpt=bool(config.get("publish_feed_excerpt", False)),
+        )
+        base_metadata = {
+            **base_metadata,
+            **ingestion.metadata(),
+            **sparse_visibility_metadata(content_detail, provisional_events),
+        }
+        if ingestion.default_feed_eligible:
+            base_metadata["default_feed_eligible"] = True
+            base_metadata["default_feed_exclusion_reason"] = None
+        else:
+            base_metadata["default_feed_eligible"] = False
+            base_metadata["default_feed_exclusion_reason"] = "ingestion_quarantined"
+
+        document = self._find_existing_document(
+            source_slug=source.slug,
+            raw_url=raw_url,
+            canonical_url=canonical_url,
+            title=title,
+            content_hash=content_hash,
+        )
+        existing_has_full_evidence = bool(
+            document
+            and (
+                document.doc_metadata.get("rag_eligible") is True
+                or document.doc_metadata.get("evidence_level") == "full_article"
+                or document.doc_metadata.get("extraction_status") == "full_article"
+                or document.doc_metadata.get("content_detail") == "detailed"
             )
         )
+        if document and not ingestion.rag_eligible and existing_has_full_evidence:
+            document.fetched_at = now
+            document.doc_metadata = {
+                **document.doc_metadata,
+                "last_ingestion_attempt_status": ingestion.status,
+                "last_ingestion_failure_codes": list(ingestion.failure_codes),
+                "last_ingestion_warning_codes": list(ingestion.warning_codes),
+                "last_ingestion_evidence_level": ingestion.evidence_level,
+                "last_ingestion_attempted_at": now.isoformat(),
+            }
+            return "unchanged", 0
+
+        if ingestion.publishable:
+            existing_relevance = dict(document.doc_metadata) if document else {}
+            if (
+                document
+                and document.content_hash == content_hash
+                and existing_relevance.get("relevance_policy_version")
+                == RELEVANCE_POLICY_VERSION
+                and existing_relevance.get("relevance_tier") in RELEVANCE_TIERS
+            ):
+                relevance_metadata = {
+                    key: existing_relevance[key]
+                    for key in (
+                        "relevance_tier",
+                        "relevance_reason",
+                        "relevance_generated_by",
+                        "relevance_policy_version",
+                        "relevance_classification_status",
+                    )
+                    if key in existing_relevance
+                }
+            else:
+                relevance_metadata = self.relevance.classify(
+                    title=title,
+                    raw_text=raw_text,
+                ).metadata()
+            base_metadata = {**base_metadata, **relevance_metadata}
+            relevance_tier = str(base_metadata["relevance_tier"])
+            base_metadata["rag_eligible"] = bool(
+                ingestion.rag_eligible and relevance_tier != "excluded"
+            )
+            base_metadata["default_feed_eligible"] = relevance_tier == "core"
+            base_metadata["default_feed_exclusion_reason"] = (
+                None if relevance_tier == "core" else f"relevance_{relevance_tier}"
+            )
+
+        if ingestion.publishable and base_metadata.get("relevance_tier") == "excluded":
+            excluded_metadata = {
+                **base_metadata,
+                "category": provisional_topic,
+                "primary_topic": provisional_topic,
+                "display_headline": title[:90],
+                "summary": str(base_metadata["excerpt"]),
+                "why_it_matters": "",
+                "key_points": [],
+                "topic_tags": [],
+                "event_types": provisional_events,
+                "entity_tags": [],
+                "maturity": infer_maturity(title, raw_text, provisional_events),
+                "summary_generated_by": "relevance-excluded",
+                "taxonomy_generated_by": provisional_topic_method,
+                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
+            }
+            status = "changed" if document and document.content_hash != content_hash else "unchanged"
+            if document:
+                document.source_name = source.slug
+                document.source_type = "release"
+                document.title = title[:500]
+                document.canonical_url = canonical_url
+                document.raw_text = raw_text
+                document.content_hash = content_hash
+                document.fetched_at = now
+                document.published_at = published_at
+                document.doc_metadata = excluded_metadata
+                self._sync_canonical_fields(document, excluded_metadata)
+                self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
+            else:
+                status = "created"
+                document = Document(
+                    id=uuid.uuid4(),
+                    source_name=source.slug,
+                    source_type="release",
+                    title=title[:500],
+                    url=url,
+                    canonical_url=canonical_url,
+                    raw_text=raw_text,
+                    content_hash=content_hash,
+                    fetched_at=now,
+                    published_at=published_at,
+                    doc_metadata=excluded_metadata,
+                )
+                self._sync_canonical_fields(document, excluded_metadata)
+                self.db.add(document)
+                self.db.flush()
+            return status, 0
+
+        if ingestion.publishable and not ingestion.rag_eligible:
+            excerpt_metadata = {
+                **base_metadata,
+                "category": provisional_topic,
+                "primary_topic": provisional_topic,
+                "display_headline": title[:90],
+                "summary": str(base_metadata["excerpt"]),
+                "why_it_matters": "",
+                "key_points": [],
+                "topic_tags": [],
+                "event_types": provisional_events,
+                "entity_tags": [],
+                "maturity": infer_maturity(title, raw_text, provisional_events),
+                "summary_generated_by": "source-excerpt",
+                "taxonomy_generated_by": provisional_topic_method,
+                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
+            }
+            status = "changed" if document and document.content_hash != content_hash else "unchanged"
+            if document:
+                document.source_name = source.slug
+                document.source_type = "release"
+                document.title = title[:500]
+                document.canonical_url = canonical_url
+                document.raw_text = raw_text
+                document.content_hash = content_hash
+                document.fetched_at = now
+                document.published_at = published_at
+                document.doc_metadata = excerpt_metadata
+                self._sync_canonical_fields(document, excerpt_metadata)
+                self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
+            else:
+                status = "created"
+                document = Document(
+                    id=uuid.uuid4(),
+                    source_name=source.slug,
+                    source_type="release",
+                    title=title[:500],
+                    url=url,
+                    canonical_url=canonical_url,
+                    raw_text=raw_text,
+                    content_hash=content_hash,
+                    fetched_at=now,
+                    published_at=published_at,
+                    doc_metadata=excerpt_metadata,
+                )
+                self._sync_canonical_fields(document, excerpt_metadata)
+                self.db.add(document)
+                self.db.flush()
+            return status, 0
+
         if document and document.content_hash == content_hash:
             document.fetched_at = now
             document.published_at = published_at
+            existing_taxonomy = {
+                key: document.doc_metadata.get(key)
+                for key in (
+                    "category",
+                    "primary_topic",
+                    "topic_tags",
+                    "event_types",
+                    "maturity",
+                    "taxonomy_policy_version",
+                )
+                if key in document.doc_metadata
+            }
             merged_metadata = {**document.doc_metadata, **base_metadata}
-            normalized_events = normalize_event_types(
-                source.slug,
-                list(merged_metadata.get("event_types") or default_event_types),
-            )
+            merged_metadata = {**merged_metadata, **existing_taxonomy}
             merged_metadata = {
                 **merged_metadata,
-                "event_types": normalized_events,
-                "maturity": infer_maturity(title, raw_text, normalized_events),
-                "taxonomy_policy_version": "2026-07-26-v1",
-            }
-            document.doc_metadata = {
-                **merged_metadata,
+                **ingestion.metadata(),
                 **sparse_visibility_metadata(
                     content_detail,
                     list(merged_metadata.get("event_types") or default_event_types),
                 ),
             }
+            if not ingestion.publishable:
+                merged_metadata["default_feed_eligible"] = False
+                merged_metadata["default_feed_exclusion_reason"] = "ingestion_quarantined"
+                self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
+            document.doc_metadata = merged_metadata
+            self._sync_canonical_fields(document, merged_metadata)
+            if not ingestion.publishable:
+                return "quarantined", 0
             return "unchanged", 0
+
+        if not ingestion.publishable:
+            quarantine_metadata = {
+                **base_metadata,
+                "event_types": provisional_events,
+                "maturity": infer_maturity(title, raw_text, provisional_events),
+                "taxonomy_generated_by": provisional_topic_method,
+                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
+            }
+            if document:
+                document.source_name = source.slug
+                document.source_type = "release"
+                document.title = title[:500]
+                document.url = self._normalize_document_url(raw_url)
+                document.canonical_url = canonical_url
+                document.raw_text = raw_text
+                document.content_hash = content_hash
+                document.fetched_at = now
+                document.published_at = published_at
+                document.doc_metadata = quarantine_metadata
+                self._sync_canonical_fields(document, quarantine_metadata)
+                self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
+            else:
+                document = Document(
+                    id=uuid.uuid4(),
+                    source_name=source.slug,
+                    source_type="release",
+                    title=title[:500],
+                    url=self._normalize_document_url(raw_url),
+                    canonical_url=canonical_url,
+                    raw_text=raw_text,
+                    content_hash=content_hash,
+                    fetched_at=now,
+                    published_at=published_at,
+                    doc_metadata=quarantine_metadata,
+                )
+                self._sync_canonical_fields(document, quarantine_metadata)
+                self.db.add(document)
+                self.db.flush()
+            return "quarantined", 0
 
         article = self.summarizer.summarize(
             title=title,
@@ -309,6 +567,7 @@ class UpdateCollectorService:
             default_event_types=default_event_types,
         )
         metadata = {**base_metadata, **article.metadata()}
+        metadata["category"] = article.primary_topic
         normalized_events = normalize_event_types(
             source.slug,
             list(metadata.get("event_types") or default_event_types),
@@ -317,10 +576,11 @@ class UpdateCollectorService:
             **metadata,
             "event_types": normalized_events,
             "maturity": infer_maturity(title, raw_text, normalized_events),
-            "taxonomy_policy_version": "2026-07-26-v1",
+            "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
         }
         metadata = {
             **metadata,
+            **ingestion.metadata(),
             **sparse_visibility_metadata(
                 content_detail,
                 list(metadata.get("event_types") or default_event_types),
@@ -338,6 +598,7 @@ class UpdateCollectorService:
             document.fetched_at = now
             document.published_at = published_at
             document.doc_metadata = metadata
+            self._sync_canonical_fields(document, metadata)
             self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
         else:
             document = Document(
@@ -353,6 +614,7 @@ class UpdateCollectorService:
                 published_at=published_at,
                 doc_metadata=metadata,
             )
+            self._sync_canonical_fields(document, metadata)
             self.db.add(document)
             self.db.flush()
 
@@ -373,12 +635,77 @@ class UpdateCollectorService:
             )
         return status, len(chunks)
 
+    @staticmethod
+    def _sync_canonical_fields(document: Document, metadata: dict) -> None:
+        """Dual-write typed columns while JSON metadata remains rollout-compatible."""
+        document.ingestion_status = str(metadata.get("ingestion_status") or "published")
+        document.evidence_level = str(metadata.get("evidence_level") or "source_entry")
+        document.relevance_tier = metadata.get("relevance_tier")
+        document.relevance_reason = metadata.get("relevance_reason")
+        document.primary_topic = metadata.get("primary_topic") or metadata.get("category")
+        events = list(metadata.get("event_types") or [])
+        document.event_type = events[0] if events else None
+        document.summary = metadata.get("summary")
+        processing_metadata = dict(getattr(document, "processing_metadata", None) or {})
+        processing_metadata["relevance"] = {
+            "generated_by": metadata.get("relevance_generated_by"),
+            "policy_version": metadata.get("relevance_policy_version"),
+            "classification_status": metadata.get("relevance_classification_status"),
+        }
+        document.processing_metadata = processing_metadata
+
+    def _find_existing_document(
+        self,
+        *,
+        source_slug: str,
+        raw_url: str,
+        canonical_url: str,
+        title: str,
+        content_hash: str,
+    ) -> Document | None:
+        raw_candidates = self._document_url_candidates(raw_url)
+        conditions = [Document.url.in_(raw_candidates)]
+        if not urlparse(raw_url).fragment:
+            conditions.append(
+                and_(
+                    Document.source_name == source_slug,
+                    Document.canonical_url.in_(self._document_url_candidates(canonical_url)),
+                )
+            )
+        conditions.append(
+            and_(
+                Document.source_name == source_slug,
+                Document.title == title[:500],
+                Document.content_hash == content_hash,
+            )
+        )
+        return self.db.scalar(select(Document).where(or_(*conditions)).limit(1))
+
     def _normalize_document_url(self, value: str) -> str:
         parsed = urlparse(value.strip())
+        scheme = parsed.scheme.lower()
+        hostname = (parsed.hostname or "").lower()
+        port = parsed.port
+        if port and not ((scheme == "http" and port == 80) or (scheme == "https" and port == 443)):
+            hostname = f"{hostname}:{port}"
         path = parsed.path
         if path and path != "/":
             path = path.rstrip("/")
-        return parsed._replace(path=path).geturl()
+        tracking_parameters = {"fbclid", "gclid", "mc_cid", "mc_eid"}
+        query = urlencode(
+            sorted(
+                (key, item)
+                for key, item in parse_qsl(parsed.query, keep_blank_values=True)
+                if not key.lower().startswith("utm_") and key.lower() not in tracking_parameters
+            ),
+            doseq=True,
+        )
+        return parsed._replace(
+            scheme=scheme,
+            netloc=hostname,
+            path=path,
+            query=query,
+        ).geturl()
 
     def _document_url_candidates(self, value: str) -> list[str]:
         normalized = self._normalize_document_url(value)

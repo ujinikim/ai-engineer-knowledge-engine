@@ -43,15 +43,23 @@ GET /updates?window=week&categories=inference-serving&event_types=library-releas
 
 Supported windows are `day`, `week`, `month`, and `all`. Optional repeated query parameters filter `source_names`, `tools`, `categories` (primary topics), `event_types`, `source_types`, and `maturities`. `start` and `end` accept explicit ISO timestamps.
 
-Low-detail records remain stored and searchable but are excluded from the default
-dashboard response. Set `include_sparse=true` to include them. An explicit
-`source_names` or `tools` filter also includes sparse records because the caller has
-requested a focused release stream. Sparse security issues, breaking changes,
-deprecations, and incidents remain visible by default.
+Quarantined records remain stored for diagnosis but are never returned by the
+dashboard or RAG retrieval. Successful sparse security issues, breaking changes,
+deprecations, and incidents can be published and remain visible when their relevance
+tier is `core`. The legacy `include_sparse` option never bypasses ingestion quarantine
+or relevance routing.
+
+A source may explicitly publish a trusted official-feed description as
+`evidence_level = official_feed_excerpt`. Core items use the source wording directly
+and may appear on the dashboard, but their evidence level keeps them out of search
+results and generated-answer context.
 
 Update items expose `content_detail`, `default_feed_eligible`, and
-`default_feed_exclusion_reason`. The `low_lexical_grounding` evaluation warning never
-controls product visibility.
+`default_feed_exclusion_reason`. Publication eligibility is recorded separately as
+`ingestion_status`, `evidence_level`, and `relevance_tier` in canonical document
+columns. `rag_eligible` and `default_feed_eligible` are derived compatibility outputs,
+not independent policy inputs. The
+`low_lexical_grounding` evaluation warning never controls product visibility.
 
 The response contains ranked article items, structured summaries, the resolved time range, summary statistics, and available facets.
 

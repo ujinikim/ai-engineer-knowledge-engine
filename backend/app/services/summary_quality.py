@@ -7,7 +7,14 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from app.services.source_detail import classify_content_detail
-from app.services.taxonomy import EVENT_TYPES, MATURITY_LEVELS, PRIMARY_TOPICS
+from app.services.taxonomy import (
+    EVENT_TYPES,
+    LEGACY_EVENT_TYPES,
+    LEGACY_PRIMARY_TOPICS,
+    MATURITY_LEVELS,
+    PRIMARY_TOPICS,
+    TAXONOMY_POLICY_VERSION,
+)
 
 
 STOPWORDS = {
@@ -172,10 +179,17 @@ class SummaryQualityService:
         )
         if generated_text and grounding_overlap < grounding_threshold:
             warnings.append("low_lexical_grounding")
-        if primary_topic and primary_topic not in PRIMARY_TOPICS:
+        is_v2 = metadata.get("taxonomy_policy_version") == TAXONOMY_POLICY_VERSION
+        allowed_topics = PRIMARY_TOPICS if is_v2 else PRIMARY_TOPICS + LEGACY_PRIMARY_TOPICS
+        allowed_events = EVENT_TYPES if is_v2 else EVENT_TYPES + LEGACY_EVENT_TYPES
+        if primary_topic and primary_topic not in allowed_topics:
             failures.append("invalid_primary_topic")
-        if event_types and any(event not in EVENT_TYPES for event in event_types):
+        if event_types and any(event not in allowed_events for event in event_types):
             failures.append("invalid_event_type")
+        if is_v2 and len(event_types) > 1:
+            failures.append("multiple_event_types")
+        if is_v2 and topic_tags:
+            failures.append("unexpected_topic_tags")
         if maturity and maturity not in MATURITY_LEVELS:
             failures.append("invalid_maturity")
         if generated_by == "deterministic-fallback":

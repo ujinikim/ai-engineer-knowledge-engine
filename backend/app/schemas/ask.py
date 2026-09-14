@@ -15,6 +15,7 @@ class AskRequest(BaseModel):
     event_types: list[str] | None = None
     source_types: list[str] | None = None
     maturities: list[str] | None = None
+    include_contextual: bool = False
     collection: Literal["all", "docs", "updates"] = "all"
     published_after: datetime | None = None
     published_before: datetime | None = None

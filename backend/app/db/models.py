@@ -5,6 +5,7 @@ from typing import Any
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     DateTime,
     Float,
     ForeignKey,
@@ -30,6 +31,41 @@ class Document(Base):
         Index("documents_content_hash_idx", "content_hash"),
         Index("documents_source_type_idx", "source_type"),
         Index("documents_published_at_idx", literal_column("published_at DESC")),
+        Index("documents_ingestion_status_idx", "ingestion_status"),
+        Index("documents_relevance_tier_idx", "relevance_tier"),
+        Index("documents_primary_topic_idx", "primary_topic"),
+        Index("documents_event_type_idx", "event_type"),
+        Index(
+            "documents_feed_scope_idx",
+            "ingestion_status",
+            "relevance_tier",
+            "source_name",
+            literal_column("published_at DESC"),
+        ),
+        CheckConstraint(
+            "ingestion_status IN ('published', 'quarantined')",
+            name="ck_documents_ingestion_status",
+        ),
+        CheckConstraint(
+            "evidence_level IN ('full_article', 'source_entry', 'official_feed_excerpt')",
+            name="ck_documents_evidence_level",
+        ),
+        CheckConstraint(
+            "relevance_tier IS NULL OR relevance_tier IN ('core', 'contextual', 'excluded')",
+            name="ck_documents_relevance_tier",
+        ),
+        CheckConstraint(
+            "primary_topic IS NULL OR primary_topic IN "
+            "('agentic-generative-ai', 'machine-learning-classical-ai', "
+            "'vision-speech-robotics', 'data-search-retrieval', "
+            "'ai-products-engineering-infrastructure', 'safety-evaluation-governance')",
+            name="ck_documents_primary_topic",
+        ),
+        CheckConstraint(
+            "event_type IS NULL OR event_type IN "
+            "('release-update', 'research', 'guide', 'analysis', 'alert')",
+            name="ck_documents_event_type",
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -44,6 +80,20 @@ class Document(Base):
         DateTime, default=datetime.utcnow, server_default=func.now()
     )
     published_at: Mapped[datetime | None] = mapped_column(DateTime)
+    ingestion_status: Mapped[str] = mapped_column(
+        String(32), default="published", server_default="published"
+    )
+    evidence_level: Mapped[str] = mapped_column(
+        String(32), default="source_entry", server_default="source_entry"
+    )
+    relevance_tier: Mapped[str | None] = mapped_column(String(32))
+    relevance_reason: Mapped[str | None] = mapped_column(Text)
+    primary_topic: Mapped[str | None] = mapped_column(String(80))
+    event_type: Mapped[str | None] = mapped_column(String(32))
+    summary: Mapped[str | None] = mapped_column(Text)
+    processing_metadata: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default=text("'{}'::jsonb")
+    )
     doc_metadata: Mapped[dict[str, Any]] = mapped_column(
         JSONB, default=dict, server_default=text("'{}'::jsonb")
     )
@@ -103,6 +153,8 @@ class Chunk(Base):
     embedding: Mapped[list[float]] = mapped_column(Vector(1536))
     token_count: Mapped[int] = mapped_column(Integer)
     content_hash: Mapped[str] = mapped_column(String(128))
+    embedding_model: Mapped[str | None] = mapped_column(String(120))
+    chunking_version: Mapped[str | None] = mapped_column(String(80))
     chunk_metadata: Mapped[dict[str, Any]] = mapped_column(
         JSONB, default=dict, server_default=text("'{}'::jsonb")
     )

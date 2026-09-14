@@ -1,7 +1,27 @@
 import re
 
 
+TAXONOMY_POLICY_VERSION = "2026-09-12-v2"
+
 PRIMARY_TOPICS = (
+    "agentic-generative-ai",
+    "machine-learning-classical-ai",
+    "vision-speech-robotics",
+    "data-search-retrieval",
+    "ai-products-engineering-infrastructure",
+    "safety-evaluation-governance",
+)
+
+EVENT_TYPES = (
+    "release-update",
+    "research",
+    "guide",
+    "analysis",
+    "alert",
+)
+
+# Existing rows remain readable while taxonomy v2 is rolled out by backfill.
+LEGACY_PRIMARY_TOPICS = (
     "models-apis",
     "agents-orchestration",
     "inference-serving",
@@ -13,7 +33,7 @@ PRIMARY_TOPICS = (
     "safety-security",
 )
 
-EVENT_TYPES = (
+LEGACY_EVENT_TYPES = (
     "model-launch",
     "product-release",
     "library-release",
@@ -51,25 +71,7 @@ MATURITY_LEVELS = (
     "deprecated",
 )
 
-VERSIONED_LIBRARY_SOURCES = frozenset(
-    {
-        "langgraph",
-        "litellm",
-        "qdrant",
-        "transformers",
-        "vllm",
-    }
-)
-
-RELEASE_EVENT_TYPES = frozenset(
-    {
-        "model-launch",
-        "product-release",
-        "library-release",
-        "api-change",
-        "integration",
-    }
-)
+RELEASE_EVENT_TYPES = frozenset({"release-update"})
 
 RC_VERSION_PATTERN = re.compile(
     r"(?<![a-z0-9])v?\d+(?:\.\d+)+(?:[-_.]?rc(?:[.-]?\d+)?)(?![a-z0-9])",
@@ -78,131 +80,167 @@ RC_VERSION_PATTERN = re.compile(
 
 
 TOPIC_KEYWORDS = {
-    "models-apis": (
-        "model",
-        "multimodal",
-        "embedding",
-        "api",
-        "context window",
-        "function calling",
-    ),
-    "agents-orchestration": (
+    "agentic-generative-ai": (
         "agent",
+        "agentic",
+        "foundation model",
+        "generative ai",
+        "language model",
+        "llm",
         "mcp",
+        "prompt",
         "tool calling",
         "orchestration",
-        "workflow",
-        "memory",
     ),
-    "inference-serving": (
-        "inference",
-        "serving",
-        "quantization",
-        "kv cache",
-        "batching",
-        "prefill",
-        "throughput",
-        "latency",
-    ),
-    "retrieval-data": (
-        "retrieval",
-        "rag",
-        "rerank",
-        "vector",
-        "dataset",
-        "indexing",
-    ),
-    "training-fine-tuning": (
+    "machine-learning-classical-ai": (
+        "machine learning",
+        "deep learning",
         "training",
         "fine-tun",
         "distillation",
         "reinforcement learning",
-        "post-training",
-        "lora",
+        "neural network",
+        "optimization",
+        "recommendation system",
+        "forecasting",
+        "symbolic ai",
     ),
-    "evaluation-observability": (
-        "evaluation",
-        "eval",
-        "benchmark",
-        "observability",
-        "tracing",
-        "monitoring",
+    "vision-speech-robotics": (
+        "computer vision",
+        "image generation",
+        "video generation",
+        "speech recognition",
+        "text-to-speech",
+        "audio model",
+        "multimodal",
+        "robot",
+        "embodied ai",
     ),
-    "developer-tools": (
-        "coding agent",
-        "copilot",
-        "ide",
+    "data-search-retrieval": (
+        "retrieval",
+        "rag",
+        "rerank",
+        "embedding",
+        "vector database",
+        "knowledge graph",
+        "dataset",
+        "indexing",
+        "information retrieval",
+        "web retrieval",
+        "vector search",
+        "search index",
+        "search engine",
+        "retrieval system",
+    ),
+    "ai-products-engineering-infrastructure": (
+        "api",
         "sdk",
-        "cli",
+        "copilot",
         "developer tool",
-    ),
-    "infrastructure-hardware": (
+        "inference",
+        "serving",
+        "deployment",
+        "observability",
         "gpu",
         "cuda",
-        "kernel",
         "distributed",
         "cluster",
         "hardware",
-        "accelerator",
+        "latency",
+        "throughput",
     ),
-    "safety-security": (
+    "safety-evaluation-governance": (
+        "evaluation",
+        "eval",
+        "benchmark",
         "security",
         "safety",
         "vulnerability",
-        "prompt injection",
-        "jailbreak",
-        "guardrail",
+        "alignment",
+        "interpretability",
+        "governance",
+        "policy",
+        "privacy",
         "incident",
     ),
 }
 
 
-def classify_topic(text: str, default: str = "developer-tools") -> tuple[str, list[str]]:
+def classify_topic(
+    text: str,
+    default: str = "ai-products-engineering-infrastructure",
+) -> tuple[str, list[str]]:
+    """Choose one broad category; the empty tag list is retained for API compatibility."""
+    primary, _ = classify_topic_with_method(text, default)
+    return primary, []
+
+
+def classify_topic_with_method(
+    text: str,
+    default: str = "ai-products-engineering-infrastructure",
+) -> tuple[str, str]:
+    """Choose one category and expose whether evidence or the source default decided it."""
     normalized = text.lower()
     scores = {
-        topic: sum(normalized.count(keyword) for keyword in keywords)
+        topic: sum(_keyword_count(normalized, keyword) for keyword in keywords)
         for topic, keywords in TOPIC_KEYWORDS.items()
     }
     ranked = sorted(scores, key=scores.get, reverse=True)
-    primary = ranked[0] if scores[ranked[0]] > 0 else default
-    tags = [topic for topic in ranked if topic != primary and scores[topic] > 0][:3]
-    return primary if primary in PRIMARY_TOPICS else default, tags
+    safe_default = default if default in PRIMARY_TOPICS else "ai-products-engineering-infrastructure"
+    if scores[ranked[0]] > 0:
+        return ranked[0], "deterministic-keyword"
+    return safe_default, "source-default"
+
+
+def _keyword_count(text: str, keyword: str) -> int:
+    if keyword.replace("-", "").isalnum():
+        return len(re.findall(rf"(?<![a-z0-9]){re.escape(keyword)}(?![a-z0-9])", text))
+    return text.count(keyword)
 
 
 def infer_event_types(text: str, default: list[str] | None = None) -> list[str]:
+    """Choose at most one broad event, using the source default only as a fallback."""
     normalized = text.lower()
-    rules = {
-        "model-launch": ("introducing", "new model", "model release"),
-        "api-change": ("api", "endpoint", "responses api"),
-        "integration": ("integration", "integrates with", "support for"),
-        "research-result": ("paper", "research", "we propose"),
-        "benchmark-result": ("benchmark", "state-of-the-art", "sota"),
-        "pricing-change": ("pricing", "price", "billing"),
-        "breaking-change": ("breaking change", "migration required"),
-        "deprecation": ("deprecat", "sunset", "retir"),
-        "security-issue": ("vulnerability", "security fix", "cve-"),
-        "incident": ("incident", "outage"),
-        "tutorial": ("tutorial", "how to", "step-by-step"),
-    }
-    matches = [event for event, terms in rules.items() if any(term in normalized for term in terms)]
-    return list(dict.fromkeys((default or []) + matches))[:5]
+    rules = (
+        (
+            "alert",
+            (
+                "vulnerability",
+                "security fix",
+                "cve-",
+                "incident",
+                "outage",
+                "breaking change",
+                "deprecat",
+                "sunset",
+            ),
+        ),
+        ("research", ("research", "paper", "we propose", "study", "benchmark result")),
+        ("guide", ("tutorial", "how to", "step-by-step", "walkthrough", "guide")),
+        (
+            "release-update",
+            (
+                "introducing",
+                "launch",
+                "released",
+                "release",
+                "now available",
+                "api change",
+                "integration",
+            ),
+        ),
+        ("analysis", ("analysis", "technical deep dive", "explainer")),
+    )
+    for event, terms in rules:
+        if any(term in normalized for term in terms):
+            return [event]
+    return clean_labels(default, EVENT_TYPES, limit=1)
 
 
 def normalize_event_types(source_name: str, event_types: list[str]) -> list[str]:
-    """Apply source-level event invariants after model classification."""
-    normalized = list(dict.fromkeys(event_types))
-    if source_name not in VERSIONED_LIBRARY_SOURCES:
-        return normalized[:5]
-
-    normalized = [
-        event_type
-        for event_type in normalized
-        if event_type != "product-release"
-        and not (source_name == "transformers" and event_type == "model-launch")
-    ]
-    if "library-release" not in normalized:
-        normalized.insert(0, "library-release")
-    return normalized[:5]
+    """Normalize the compatibility array to zero or one taxonomy-v2 event."""
+    del source_name
+    return clean_labels(event_types, EVENT_TYPES, limit=1)
 
 
 def infer_maturity(
@@ -224,10 +262,7 @@ def infer_maturity(
     if "general availability" in value or re.search(r"\bga\b", value):
         return "general-availability"
     events = set(event_types or [])
-    if (
-        events.intersection({"research-result", "benchmark-result"})
-        and not events.intersection(RELEASE_EVENT_TYPES)
-    ):
+    if "research" in events and not events.intersection(RELEASE_EVENT_TYPES):
         return "research"
     return "stable"
 

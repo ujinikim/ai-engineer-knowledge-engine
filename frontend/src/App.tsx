@@ -3,18 +3,23 @@ import { createRoot } from "react-dom/client";
 import {
   BookOpen,
   Check,
-  ChevronDown,
   Clock3,
   Copy,
   ExternalLink,
-  Filter,
   RefreshCw,
-  X,
 } from "lucide-react";
 import "./styles.css";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 const INITIAL_FEED_COUNT = 6;
+const CATEGORY_LABELS: Record<string, string> = {
+  "agentic-generative-ai": "AI Agents & Generative AI",
+  "machine-learning-classical-ai": "Machine Learning",
+  "vision-speech-robotics": "Vision, Voice & Robotics",
+  "data-search-retrieval": "Data, Search & Retrieval",
+  "ai-products-engineering-infrastructure": "AI Products & Infrastructure",
+  "safety-evaluation-governance": "AI Safety & Evaluation",
+};
 const WINDOWS = [
   { value: "day", label: "Today" },
   { value: "week", label: "This week" },
@@ -28,9 +33,9 @@ const EXAMPLE_TASKS = [
     prompt: "What are the most important developer-impacting changes?",
   },
   {
-    label: "Release comparison",
-    description: "Compare models and tools",
-    prompt: "Compare the most significant model and tooling updates.",
+    label: "Agent stack comparison",
+    description: "Compare tools and infrastructure",
+    prompt: "Compare the most significant agent tooling, evaluation, and infrastructure updates.",
   },
   {
     label: "Evidence boundary",
@@ -40,7 +45,7 @@ const EXAMPLE_TASKS = [
 ];
 
 type TimeWindow = (typeof WINDOWS)[number]["value"];
-type FilterKey = "source" | "tool" | "category" | "eventType" | "sourceType" | "maturity";
+type RelevanceTier = "core" | "contextual" | "excluded";
 type AnswerView = "answer" | "evidence" | "technical";
 type MobileView = "stories" | "briefing";
 type RequestSurface = "updates" | "brief";
@@ -66,14 +71,15 @@ type UpdateItem = {
   source_name: string;
   organization: string;
   tool: string;
-  category: string;
   primary_topic: string;
-  topic_tags: string[];
   event_types: string[];
-  entity_tags: string[];
   source_type: string;
   maturity: string;
   content_detail: "sparse" | "detailed";
+  evidence_level: "full_article" | "source_entry" | "official_feed_excerpt";
+  rag_eligible: boolean;
+  relevance_tier: RelevanceTier;
+  relevance_reason: string;
   default_feed_eligible: boolean;
   default_feed_exclusion_reason: string | null;
   version: string | null;
@@ -124,6 +130,7 @@ type RetrievedChunk = {
   event_types: string[];
   source_category: string | null;
   maturity: string | null;
+  relevance_tier: RelevanceTier;
   vector_similarity: number | null;
   keyword_score: number | null;
   combined_score: number | null;
@@ -153,12 +160,10 @@ function App() {
   const initialFilters = useMemo(readFiltersFromUrl, []);
   const [window, setWindow] = useState<TimeWindow>(initialFilters.window);
   const [source, setSource] = useState(initialFilters.source);
-  const [tool, setTool] = useState(initialFilters.tool);
   const [category, setCategory] = useState(initialFilters.category);
-  const [eventType, setEventType] = useState(initialFilters.eventType);
-  const [sourceType, setSourceType] = useState(initialFilters.sourceType);
-  const [maturity, setMaturity] = useState(initialFilters.maturity);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [includeContextual, setIncludeContextual] = useState(
+    initialFilters.includeContextual,
+  );
   const [visibleCount, setVisibleCount] = useState(INITIAL_FEED_COUNT);
   const [feed, setFeed] = useState<UpdateListResponse | null>(null);
   const [feedLoading, setFeedLoading] = useState(true);
@@ -178,11 +183,8 @@ function App() {
     setFeedError(null);
     const params = new URLSearchParams({ window, limit: "50" });
     if (source !== "all") params.append("source_names", source);
-    if (tool !== "all") params.append("tools", tool);
     if (category !== "all") params.append("categories", category);
-    if (eventType !== "all") params.append("event_types", eventType);
-    if (sourceType !== "all") params.append("source_types", sourceType);
-    if (maturity !== "all") params.append("maturities", maturity);
+    if (includeContextual) params.set("include_contextual", "true");
 
     try {
       const response = await fetch(`${API_URL}/updates?${params}`);
@@ -193,7 +195,12 @@ function App() {
     } finally {
       setFeedLoading(false);
     }
-  }, [window, source, tool, category, eventType, sourceType, maturity]);
+  }, [
+    window,
+    source,
+    category,
+    includeContextual,
+  ]);
 
   useEffect(() => {
     void loadUpdates();
@@ -206,18 +213,21 @@ function App() {
     const params = new URLSearchParams();
     if (window !== "week") params.set("window", window);
     if (source !== "all") params.set("source", source);
-    if (tool !== "all") params.set("tool", tool);
-    if (category !== "all") params.set("topic", category);
-    if (eventType !== "all") params.set("event", eventType);
-    if (sourceType !== "all") params.set("sourceType", sourceType);
-    if (maturity !== "all") params.set("maturity", maturity);
+    if (category !== "all") params.set("category", category);
+    if (includeContextual) params.set("context", "broader");
     const query = params.toString();
     globalThis.window.history.replaceState(
       null,
       "",
       `${globalThis.window.location.pathname}${query ? `?${query}` : ""}${showAbout ? "#about" : ""}`,
     );
-  }, [window, source, tool, category, eventType, sourceType, maturity, showAbout]);
+  }, [
+    window,
+    source,
+    category,
+    includeContextual,
+    showAbout,
+  ]);
 
   useEffect(() => {
     const syncViewFromHistory = () => setShowAbout(globalThis.window.location.hash === "#about");
@@ -242,11 +252,8 @@ function App() {
           question,
           collection: "updates",
           source_names: source === "all" ? null : [source],
-          tools: tool === "all" ? null : [tool],
           categories: category === "all" ? null : [category],
-          event_types: eventType === "all" ? null : [eventType],
-          source_types: sourceType === "all" ? null : [sourceType],
-          maturities: maturity === "all" ? null : [maturity],
+          include_contextual: includeContextual,
           published_after: feed?.window_start,
           published_before: feed?.window_end,
           top_k: 8,
@@ -266,27 +273,6 @@ function App() {
     }
   }
 
-  function clearFilter(key: FilterKey) {
-    const setters: Record<FilterKey, React.Dispatch<React.SetStateAction<string>>> = {
-      source: setSource,
-      tool: setTool,
-      category: setCategory,
-      eventType: setEventType,
-      sourceType: setSourceType,
-      maturity: setMaturity,
-    };
-    setters[key]("all");
-  }
-
-  function clearAllFilters() {
-    setSource("all");
-    setTool("all");
-    setCategory("all");
-    setEventType("all");
-    setSourceType("all");
-    setMaturity("all");
-  }
-
   async function copyAnswer() {
     if (!answer) return;
     await navigator.clipboard.writeText(answer.answer);
@@ -304,14 +290,6 @@ function App() {
   const facets = feed?.facets ?? {
     sources: [], tools: [], categories: [], event_types: [], source_types: [], maturities: [],
   };
-  const activeFilters = [
-    tool !== "all" ? { key: "tool" as const, label: tool } : null,
-    category !== "all" ? { key: "category" as const, label: labelize(category) } : null,
-    eventType !== "all" ? { key: "eventType" as const, label: labelize(eventType) } : null,
-    sourceType !== "all" ? { key: "sourceType" as const, label: labelize(sourceType) } : null,
-    maturity !== "all" ? { key: "maturity" as const, label: labelize(maturity) } : null,
-    source !== "all" ? { key: "source" as const, label: sourceDisplayName(source) } : null,
-  ].filter((value): value is { key: FilterKey; label: string } => Boolean(value));
   const visibleItems = feed?.items.slice(0, visibleCount) ?? [];
   const featuredItem = visibleItems[0] ?? null;
   const compactItems = visibleItems.slice(1);
@@ -326,13 +304,13 @@ function App() {
     <main className="app-shell">
       <header className="topbar">
         <div className="publication-title">
-          <h1>AI Engineering Radar</h1>
-          <p>A briefing on systems, models, infrastructure, and developer tools</p>
+          <h1>AI Agent Radar</h1>
+          <p>Practical updates on AI agents, tools, safety, and the systems behind them</p>
         </div>
         <div className="issue-block">
           <span>{showAbout ? "Project Notes" : edition.label}</span>
           <strong>{showAbout ? "Methods & results" : edition.period}</strong>
-          <small>{showAbout ? "Evaluated side project" : "Source-linked reporting"}</small>
+          <small>{showAbout ? "How this project works" : "Answers linked to sources"}</small>
         </div>
         <div className="masthead-actions">
           <button className="about-button" type="button" onClick={() => navigateToAbout(!showAbout)}>
@@ -348,7 +326,7 @@ function App() {
 
       {showAbout ? (
         <AboutView
-          sourceCount={facets.sources.length || feed?.stats.source_count || 17}
+          sourceCount={facets.sources.length || feed?.stats.source_count || 11}
           onBack={() => navigateToAbout(false)}
         />
       ) : (
@@ -366,79 +344,35 @@ function App() {
             </button>
           ))}
         </div>
-        <button
-          className={filtersOpen || activeFilters.length ? "filter-toggle active" : "filter-toggle"}
-          type="button"
-          aria-expanded={filtersOpen}
-          aria-controls="feed-filters"
-          onClick={() => setFiltersOpen((value) => !value)}
-        >
-          <Filter size={16} />
-          Filters{activeFilters.length ? ` (${activeFilters.length})` : ""}
-          <ChevronDown size={15} className={filtersOpen ? "chevron-open" : ""} />
-        </button>
-      </section>
-
-      {activeFilters.length ? (
-        <div className="active-filters" aria-label="Active filters">
-          {activeFilters.map((filter) => (
-            <button type="button" key={filter.key} onClick={() => clearFilter(filter.key)}>
-              {filter.label}<X size={13} />
-            </button>
-          ))}
-          {activeFilters.length > 1 ? (
-            <button className="clear-filters" type="button" onClick={clearAllFilters}>Clear all</button>
-          ) : null}
+        <div className="scope-controls" aria-label="Article filters">
+          <label className="scope-filter">
+            <span>Topic</span>
+            <select value={category} onChange={(event) => setCategory(event.target.value)}>
+              <option value="all">All topics</option>
+              {facets.categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}
+            </select>
+          </label>
+          <label className="scope-filter">
+            <span>Source</span>
+            <select value={source} onChange={(event) => setSource(event.target.value)}>
+              <option value="all">All sources</option>
+              {facets.sources.map((value) => <option key={value} value={value}>{sourceDisplayName(value)}</option>)}
+            </select>
+          </label>
+          <button
+            className={includeContextual ? "context-toggle active" : "context-toggle"}
+            type="button"
+            aria-pressed={includeContextual}
+            onClick={() => setIncludeContextual((value) => !value)}
+          >
+            Include related AI
+            <small>{includeContextual ? "Related articles included" : "Agent-focused only"}</small>
+          </button>
         </div>
-      ) : null}
-
-      <section id="feed-filters" className={filtersOpen ? "filter-panel open" : "filter-panel"} aria-label="Feed filters">
-        <label>
-          <span>Tool</span>
-          <select value={tool} onChange={(event) => setTool(event.target.value)}>
-            <option value="all">All tools</option>
-            {facets.tools.map((value) => <option key={value} value={value}>{value}</option>)}
-          </select>
-        </label>
-        <label>
-          <span>Topic</span>
-          <select value={category} onChange={(event) => setCategory(event.target.value)}>
-            <option value="all">All topics</option>
-            {facets.categories.map((value) => <option key={value} value={value}>{labelize(value)}</option>)}
-          </select>
-        </label>
-        <label>
-          <span>Event</span>
-          <select value={eventType} onChange={(event) => setEventType(event.target.value)}>
-            <option value="all">All events</option>
-            {facets.event_types.map((value) => <option key={value} value={value}>{labelize(value)}</option>)}
-          </select>
-        </label>
-        <label>
-          <span>Source type</span>
-          <select value={sourceType} onChange={(event) => setSourceType(event.target.value)}>
-            <option value="all">All source types</option>
-            {facets.source_types.map((value) => <option key={value} value={value}>{labelize(value)}</option>)}
-          </select>
-        </label>
-        <label>
-          <span>Source</span>
-          <select value={source} onChange={(event) => setSource(event.target.value)}>
-            <option value="all">All sources</option>
-            {facets.sources.map((value) => <option key={value} value={value}>{sourceDisplayName(value)}</option>)}
-          </select>
-        </label>
-        <label>
-          <span>Maturity</span>
-          <select value={maturity} onChange={(event) => setMaturity(event.target.value)}>
-            <option value="all">All maturity levels</option>
-            {facets.maturities.map((value) => <option key={value} value={value}>{labelize(value)}</option>)}
-          </select>
-        </label>
       </section>
 
-      <section className="stat-band" aria-label="Update summary">
-        <div><strong>{feed?.stats.total_updates ?? 0}</strong><span>updates</span></div>
+      <section className="stat-band" aria-label="Article summary">
+        <div><strong>{feed?.stats.total_updates ?? 0}</strong><span>articles</span></div>
         <div><strong>{feed?.stats.topic_count ?? 0}</strong><span>topics</span></div>
         <div><strong>{feed?.stats.source_count ?? 0}</strong><span>sources</span></div>
         <div className="freshness">
@@ -446,7 +380,7 @@ function App() {
           <span>
             {feed?.stats.latest_published_at
               ? `Newest article ${relativeTime(feed.stats.latest_published_at)}`
-              : "Waiting for collected articles"}
+              : "No articles collected yet"}
           </span>
         </div>
       </section>
@@ -471,7 +405,7 @@ function App() {
           aria-pressed={mobileView === "stories"}
           onClick={() => setMobileView("stories")}
         >
-          Stories
+          Articles
         </button>
         <button
           type="button"
@@ -489,9 +423,9 @@ function App() {
             <div className="analysis-compose">
               <div className="section-heading compact">
                 <div>
-                  <span className="eyebrow">Research desk</span>
-                  <h2>Briefing Memo</h2>
-                  <p>{windowLabel(window)} / {feed?.stats.total_updates ?? 0} matching updates</p>
+                  <span className="eyebrow">Ask these articles</span>
+                  <h2>Get a source-backed answer</h2>
+                  <p>{windowLabel(window)} / {feed?.stats.total_updates ?? 0} matching articles</p>
                 </div>
               </div>
               <form onSubmit={askQuestion}>
@@ -503,12 +437,12 @@ function App() {
                   rows={3}
                 />
                 <button className="primary-button" type="submit" disabled={answerLoading || !feed?.items.length}>
-                  {answerLoading ? "Preparing brief..." : "Prepare brief"}
+                  {answerLoading ? "Finding an answer..." : "Get answer"}
                 </button>
               </form>
               {!answer ? (
                 <div className="example-tasks" aria-label="Example briefing tasks">
-                  <span>Try a demonstration</span>
+                  <span>Try an example</span>
                   {EXAMPLE_TASKS.map((task) => (
                     <button type="button" key={task.label} onClick={() => setQuestion(task.prompt)}>
                       <strong>{task.label}</strong>
@@ -655,7 +589,7 @@ function App() {
         <section className="feed-section">
           <div className="section-heading feed-heading">
             <div>
-              <span className="eyebrow">{edition.label} / Ranked by recency and source quality</span>
+              <span className="eyebrow">{edition.label} / Newest and strongest sources first</span>
               <h2>{feedTitle}</h2>
               <p>Showing {visibleItems.length} of {feed?.items.length ?? 0}</p>
             </div>
@@ -668,9 +602,8 @@ function App() {
           ) : null}
           {!feedLoading && feed?.items.length === 0 ? (
             <div className="empty-state">
-              <h3>No updates match this view</h3>
-              <p>Try a longer time range or remove one of the active filters.</p>
-              {activeFilters.length ? <button type="button" onClick={clearAllFilters}>Clear filters</button> : null}
+              <h3>No articles match these choices</h3>
+              <p>Try a longer time range, another topic, or another source.</p>
             </div>
           ) : null}
           {featuredItem ? (
@@ -679,7 +612,13 @@ function App() {
               <div className="featured-content">
                 <div className="update-meta">
                   <span className="tool-label">{featuredItem.tool}</span>
-                  <span>{labelize(featuredItem.primary_topic)}</span>
+                  {featuredItem.evidence_level === "official_feed_excerpt" ? (
+                    <span className="evidence-label">Official RSS excerpt</span>
+                  ) : null}
+                  {featuredItem.relevance_tier === "contextual" ? (
+                    <span className="context-label">Related AI</span>
+                  ) : null}
+                  <span>{categoryLabel(featuredItem.primary_topic)}</span>
                   <span>{formatDate(featuredItem.published_at)}</span>
                 </div>
                 <h3>
@@ -688,6 +627,11 @@ function App() {
                   </a>
                 </h3>
                 <p className="story-summary">{featuredItem.summary}</p>
+                {featuredItem.relevance_tier === "contextual" ? (
+                  <p className="relevance-note">
+                    <strong>Why this was included:</strong> {featuredItem.relevance_reason}
+                  </p>
+                ) : null}
                 {featuredItem.why_it_matters ? (
                   <div className="why-it-matters">
                     <strong>Developer impact</strong>
@@ -711,6 +655,12 @@ function App() {
                 <div className="compact-story-content">
                   <div className="compact-meta">
                     <span className="compact-tool">{item.tool}</span>
+                    {item.evidence_level === "official_feed_excerpt" ? (
+                      <span className="evidence-label">Official RSS excerpt</span>
+                    ) : null}
+                    {item.relevance_tier === "contextual" ? (
+                      <span className="context-label">Related AI</span>
+                    ) : null}
                     <time dateTime={item.published_at}>{formatDate(item.published_at)}</time>
                   </div>
                   <h3>
@@ -722,7 +672,7 @@ function App() {
                   <div className="compact-footer">
                     <span className="compact-topic">
                       <i aria-hidden="true" />
-                      {labelize(item.primary_topic)}
+                      {categoryLabel(item.primary_topic)}
                     </span>
                     <div className="compact-actions">
                       <a href={item.url} target="_blank" rel="noreferrer">
@@ -740,6 +690,12 @@ function App() {
                   </div>
                   {isExpanded ? (
                     <div className="compact-details" id={detailsId}>
+                      {item.relevance_tier === "contextual" ? (
+                        <section>
+                          <h4>Why this was included</h4>
+                          <p>{item.relevance_reason}</p>
+                        </section>
+                      ) : null}
                       {item.why_it_matters ? (
                         <section>
                           <h4>Developer impact</h4>
@@ -771,7 +727,7 @@ function App() {
           </div>
           {hasMore ? (
             <button className="load-more" type="button" onClick={() => setVisibleCount((count) => count + INITIAL_FEED_COUNT)}>
-              Load more updates
+              Load more articles
             </button>
           ) : null}
         </section>
@@ -780,25 +736,25 @@ function App() {
       <section className="how-it-works" aria-labelledby="how-it-works-heading">
         <div className="how-heading">
           <div>
-            <span className="eyebrow">Publication notes</span>
-            <h2 id="how-it-works-heading">Sources / Method / Search Notes</h2>
+            <span className="eyebrow">How it works</span>
+            <h2 id="how-it-works-heading">From source articles to useful answers</h2>
           </div>
           <p>Short summaries organize the issue. Briefings are prepared from relevant passages in the original articles.</p>
         </div>
         <div className="method-grid">
           <article>
             <span className="method-number">01</span>
-            <h3>Sources</h3>
-            <p>Monitor {facets.sources.length || feed?.stats.source_count || 0} selected release, engineering, and analysis sources.</p>
+            <h3>Collect sources</h3>
+            <p>Monitor {facets.sources.length || feed?.stats.source_count || 11} selected engineering, research, and analysis sources.</p>
           </article>
           <article>
             <span className="method-number">02</span>
-            <h3>Methodology</h3>
-            <p>Organize each update into a concise summary, developer impact, and consistent topic metadata.</p>
+            <h3>Summarize updates</h3>
+            <p>Organize each update into a concise summary, developer impact, and one broad category.</p>
           </article>
           <article>
             <span className="method-number">03</span>
-            <h3>Search notes</h3>
+            <h3>Answer with evidence</h3>
             <p>Search the original articles for relevant passages and show the cited sources and ranking details.</p>
           </article>
         </div>
@@ -808,8 +764,8 @@ function App() {
 
       <footer className="app-footer">
         <div>
-          <strong>AI Engineering Radar</strong>
-          <p>A focused side project for tracking changes that affect developers.</p>
+          <strong>AI Agent Radar</strong>
+          <p>Focused updates for people building and operating AI agents.</p>
         </div>
         <span>Source search · Cited briefings · Original articles</span>
       </footer>
@@ -870,17 +826,18 @@ function AboutView({
         <div className="about-reading">
           <header className="about-intro" id="about-overview">
             <span className="eyebrow">About this project</span>
-            <h2>An evaluated AI engineering reading desk.</h2>
+            <h2>A focused reading and research tool for AI agent builders.</h2>
             <p className="about-lede">
-              AI Engineering Radar collects selected technical updates, structures them
-              for fast reading, and prepares cited briefings from passages in the
-              original articles.
+              AI Agent Radar collects selected technical updates, separates
+              agent-focused work from related AI developments, and prepares cited briefings
+              from passages in the original articles.
             </p>
             <p>
               The current collection monitors {sourceCount} release, engineering, and
-              editorial-analysis sources. It prioritizes attributable technical changes
-              instead of trying to cover every AI headline. Each record keeps its source
-              link and original text alongside its generated summary and metadata.
+              analysis sources. It prioritizes practical work on agent systems,
+              evaluation, tools, retrieval, safety, and supporting infrastructure rather
+              than trying to cover every AI headline. Each record keeps its source link
+              and original text alongside its generated summary and metadata.
             </p>
             <p>
               React and TypeScript provide the reading interface. FastAPI coordinates
@@ -891,10 +848,11 @@ function AboutView({
 
           <section className="about-copy-section" id="about-method">
             <span className="section-kicker">How it works</span>
-            <h3>Collect → Structure → Retrieve → Verify</h3>
+            <h3>Collect → Route → Structure → Retrieve → Verify</h3>
             <ol className="method-list">
               <li><strong>Collect.</strong> Fetch selected feeds and pages, preserve provenance, and avoid duplicate records.</li>
-              <li><strong>Structure.</strong> Generate bounded summaries, developer impact, key points, and taxonomy while retaining the article text.</li>
+              <li><strong>Route.</strong> Check the available source material and separate agent-focused articles from related AI.</li>
+              <li><strong>Structure.</strong> Generate bounded summaries, developer impact, one category, and one event while retaining the article text.</li>
               <li><strong>Retrieve.</strong> Combine semantic, keyword, recency, filter, and source-balancing signals.</li>
               <li><strong>Verify.</strong> Prepare answers from retrieved passages, expose sources, and validate citation identifiers.</li>
             </ol>
@@ -924,20 +882,20 @@ function AboutView({
             <span className="section-kicker">Evaluation</span>
             <h3 id="evaluation-heading">Measured before deployment</h3>
             <p>
-              These results come from the frozen local corpus and versioned review
-              fixtures saved through July 29, 2026. Hosted latency and deployment
-              regression checks remain Phase 4 work.
+              The latest relevance results come from 174 published articles checked
+              with the current agent-focus rules. Database rollout remains
+              separate from this read-only evaluation.
             </p>
             <dl className="evaluation-row">
-              <div><dt>240</dt><dd>summary records evaluated</dd></div>
-              <div><dt>43/43</dt><dd>taxonomy checks passed</dd></div>
-              <div><dt>100%</dt><dd>retrieval Recall@K</dd></div>
-              <div><dt>98.2%</dt><dd>mean reciprocal rank</dd></div>
+              <div><dt>174</dt><dd>articles checked for relevance</dd></div>
+              <div><dt>70</dt><dd>agent-focused articles</dd></div>
+              <div><dt>130</dt><dd>articles including related AI</dd></div>
+              <div><dt>4</dt><dd>unsupported core claims corrected</dd></div>
             </dl>
             <p className="evaluation-note">
-              <strong>Answer review:</strong> 11 pass, 1 partial, and 0 fail across 12
-              cases. Citation identifiers were valid in every case, and all three
-              insufficient-evidence questions passed.
+              <strong>What counts as agent-focused:</strong> the source must contain a clear,
+              direct connection to building or operating AI agents. General AI and machine-learning work remains
+              optional related content, and excluded or incomplete evidence is never used to answer questions.
             </p>
           </section>
 
@@ -945,11 +903,11 @@ function AboutView({
             <span className="section-kicker">Limitations</span>
             <h3>Known boundaries</h3>
             <ul className="limitations-list">
-              <li>The selected sources are useful coverage, not a complete record of the AI industry.</li>
+              <li>The selected sources are useful coverage, not a complete record of agent engineering.</li>
               <li>Some OpenAI News records remain preview-only when full-page collection is blocked.</li>
               <li>Generated summaries and impact notes can still be wrong; original links remain authoritative.</li>
-              <li>The briefing is a one-request cited synthesis, not a stateful conversational agent.</li>
-              <li>Automated production relevance classification remains deferred pending further calibration.</li>
+              <li>Each question produces one source-backed answer; it is not yet a continuing chat.</li>
+              <li>The existing collection has been evaluated with the current relevance rules, but the database update remains pending.</li>
             </ul>
           </section>
 
@@ -1048,6 +1006,10 @@ function sourceDisplayName(value: string) {
     .replace(/^Openai$/, "OpenAI");
 }
 
+function categoryLabel(value: string) {
+  return CATEGORY_LABELS[value] ?? labelize(value);
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(value));
 }
@@ -1069,10 +1031,10 @@ function windowLabel(value: TimeWindow) {
 
 function windowHeading(value: TimeWindow) {
   const headings: Record<TimeWindow, string> = {
-    day: "Today in AI Engineering",
-    week: "The Week in AI Engineering",
-    month: "This Month in AI Engineering",
-    all: "AI Engineering Archive",
+    day: "Today’s AI Agent Updates",
+    week: "This Week’s AI Agent Updates",
+    month: "This Month’s AI Agent Updates",
+    all: "All AI Agent Updates",
   };
   return headings[value];
 }
@@ -1140,11 +1102,8 @@ function readFiltersFromUrl() {
   return {
     window: validWindow,
     source: params.get("source") ?? "all",
-    tool: params.get("tool") ?? "all",
-    category: params.get("topic") ?? "all",
-    eventType: params.get("event") ?? "all",
-    sourceType: params.get("sourceType") ?? "all",
-    maturity: params.get("maturity") ?? "all",
+    category: params.get("category") ?? params.get("topic") ?? "all",
+    includeContextual: params.get("context") === "broader",
   };
 }
 

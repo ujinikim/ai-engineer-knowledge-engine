@@ -13,7 +13,9 @@ from app.schemas.updates import (
     UpdateListResponse,
     UpdateSourceItem,
 )
-from app.services.source_detail import classify_content_detail, sparse_visibility_metadata
+from app.services.source_detail import classify_content_detail
+from app.services.ingestion_policy import PUBLISHED, stored_ingestion_status
+from app.services.article_relevance import stored_relevance_tier
 
 
 class UpdateService:
@@ -52,6 +54,7 @@ class UpdateService:
         source_types: list[str] | None = None,
         maturities: list[str] | None = None,
         include_sparse: bool = False,
+        include_contextual: bool = False,
         start: datetime | None = None,
         end: datetime | None = None,
     ) -> UpdateListResponse:
@@ -59,7 +62,11 @@ class UpdateService:
         window_end = self._aware(end) if end else now
         window_start = self._aware(start) if start else self.window_start(window, window_end)
 
-        stmt = select(Document).where(Document.source_type == "release")
+        enabled_source_slugs = select(UpdateSource.slug).where(UpdateSource.enabled.is_(True))
+        stmt = select(Document).where(
+            Document.source_type == "release",
+            Document.source_name.in_(enabled_source_slugs),
+        )
         if window_start:
             stmt = stmt.where(Document.published_at >= self._naive(window_start))
         stmt = stmt.where(Document.published_at <= self._naive(window_end))
@@ -77,6 +84,7 @@ class UpdateService:
                     document,
                     include_sparse=include_sparse,
                     explicit_sparse_context=explicit_sparse_context,
+                    include_contextual=include_contextual,
                 )
                 and self._matches_taxonomy(
                     document,
@@ -91,8 +99,22 @@ class UpdateService:
             self.db.scalars(select(UpdateSource).where(UpdateSource.enabled.is_(True))).all()
         )
         all_updates = list(
-            self.db.scalars(select(Document).where(Document.source_type == "release")).all()
+            self.db.scalars(
+                select(Document).where(
+                    Document.source_type == "release",
+                    Document.source_name.in_(enabled_source_slugs),
+                )
+            ).all()
         )
+        all_updates = [
+            document
+            for document in all_updates
+            if self._ingestion_status(document) == PUBLISHED
+            and self._relevance_is_visible(
+                document,
+                include_contextual=include_contextual,
+            )
+        ]
         ranked = sorted(documents, key=lambda document: self.importance_score(document, now), reverse=True)
         page = ranked[offset : offset + limit]
         published_dates = [document.published_at for document in documents if document.published_at]
@@ -193,7 +215,15 @@ class UpdateService:
             source_type=str(metadata.get("source_type") or "official-release"),
             maturity=str(metadata.get("maturity") or "stable"),
             content_detail=str(visibility["content_detail"]),
-            default_feed_eligible=bool(visibility["default_feed_eligible"]),
+            evidence_level=self._evidence_level(document),
+            rag_eligible=self._rag_eligible(document),
+            relevance_tier=self._relevance_tier(document),
+            relevance_reason=str(
+                getattr(document, "relevance_reason", None)
+                or metadata.get("relevance_reason")
+                or "Legacy record retained as core."
+            ),
+            default_feed_eligible=self._default_feed_eligible(document),
             default_feed_exclusion_reason=visibility["default_feed_exclusion_reason"],
             version=metadata.get("version"),
             excerpt=excerpt,
@@ -212,10 +242,53 @@ class UpdateService:
         *,
         include_sparse: bool,
         explicit_sparse_context: bool,
+        include_contextual: bool = False,
     ) -> bool:
-        if include_sparse or explicit_sparse_context:
-            return True
-        return bool(self._visibility(document)["default_feed_eligible"])
+        if self._ingestion_status(document) != PUBLISHED:
+            return False
+        if not self._relevance_is_visible(
+            document,
+            include_contextual=include_contextual,
+        ):
+            return False
+        del include_sparse, explicit_sparse_context
+        return True
+
+    def _relevance_is_visible(
+        self,
+        document: Document,
+        *,
+        include_contextual: bool,
+    ) -> bool:
+        tier = self._relevance_tier(document)
+        return tier == "core" or (include_contextual and tier == "contextual")
+
+    def _relevance_tier(self, document: Document) -> str:
+        canonical = getattr(document, "relevance_tier", None)
+        return str(canonical) if canonical else stored_relevance_tier(document.doc_metadata)
+
+    def _ingestion_status(self, document: Document) -> str:
+        canonical = getattr(document, "ingestion_status", None)
+        return str(canonical) if canonical else stored_ingestion_status(document.doc_metadata)
+
+    def _evidence_level(self, document: Document) -> str:
+        canonical = getattr(document, "evidence_level", None)
+        return str(canonical) if canonical else str(
+            document.doc_metadata.get("evidence_level") or "source_entry"
+        )
+
+    def _rag_eligible(self, document: Document) -> bool:
+        return (
+            self._ingestion_status(document) == PUBLISHED
+            and self._evidence_level(document) != "official_feed_excerpt"
+            and self._relevance_tier(document) != "excluded"
+        )
+
+    def _default_feed_eligible(self, document: Document) -> bool:
+        return (
+            self._ingestion_status(document) == PUBLISHED
+            and self._relevance_tier(document) == "core"
+        )
 
     def _visibility(self, document: Document) -> dict[str, str | bool | None]:
         metadata = document.doc_metadata
@@ -223,10 +296,17 @@ class UpdateService:
             metadata.get("content_detail")
             or classify_content_detail(str(document.title or ""), str(document.raw_text or ""))
         )
-        return sparse_visibility_metadata(
-            content_detail,
-            list(metadata.get("event_types") or []),
-        )
+        default_eligible = self._default_feed_eligible(document)
+        reason = None
+        if self._ingestion_status(document) != PUBLISHED:
+            reason = "ingestion_quarantined"
+        elif self._relevance_tier(document) != "core":
+            reason = f"relevance_{self._relevance_tier(document)}"
+        return {
+            "content_detail": content_detail,
+            "default_feed_eligible": default_eligible,
+            "default_feed_exclusion_reason": reason,
+        }
 
     def _matches_taxonomy(
         self,

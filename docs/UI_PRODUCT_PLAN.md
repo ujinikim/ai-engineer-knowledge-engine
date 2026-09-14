@@ -232,6 +232,82 @@ deployment.
 - Desktop and mobile layouts pass keyboard, focus, empty, error, loading, and long-text
   checks.
 
+## Taxonomy V2 UI Compatibility
+
+The compatibility pass was implemented on 2026-09-13 after the backend taxonomy and
+relevance contracts stabilized. The backend remains the source of truth for allowed
+category, event, evidence, and relevance values.
+
+Taxonomy v2 deliberately reduces each article to one broad primary category and at
+most one event type. The UI should reinforce that simplicity instead of replacing the
+removed topic tags with new visual clutter.
+
+### Primary filter hierarchy
+
+- Keep Time, Source, and Category as the main feed controls.
+- Keep broader AI context as a separate retrieval-scope control rather than presenting
+  it as ordinary metadata.
+- Remove Tool, Event, Source Type, and Maturity from the reader-facing filter panel.
+  The backend retains them for diagnostics and future experiments; event remains
+  visible in expanded article details.
+- Present the six categories as a visible category selector on desktop and a single
+  select control on narrow screens.
+- Preserve selected categories in the URL and represent the active selection with one
+  removable filter chip.
+- Continue offering an `All categories` state.
+
+Use concise reader-facing labels while retaining the stable backend slugs in requests:
+
+| Backend value | Reader-facing label |
+| --- | --- |
+| `agentic-generative-ai` | Agentic & GenAI |
+| `machine-learning-classical-ai` | ML & Classical AI |
+| `vision-speech-robotics` | Vision, Speech & Robotics |
+| `data-search-retrieval` | Data & Retrieval |
+| `ai-products-engineering-infrastructure` | Products & Infrastructure |
+| `safety-evaluation-governance` | Safety & Evaluation |
+
+The complete category names and definitions should remain available in accessible
+labels or concise explanatory text; shortened labels must not be the only description
+available to assistive technology.
+
+### Article presentation
+
+- Show exactly one primary-category label on featured and compact article cards.
+- Treat the event type as secondary metadata rather than a second prominent badge.
+- Keep maturity and source type in expanded details only.
+- Do not display `topic_tags` or `entity_tags` as taxonomy badges. Organizations,
+  sources, and tools remain searchable/filterable metadata.
+- Rename user-facing instances of `Topic` or `Topics` to `Category` or `Categories`.
+- Preserve the `Official RSS excerpt` evidence label independently of taxonomy.
+
+### Grounded brief and future agent use
+
+- Pass the selected category to retrieval exactly as the current topic filter is
+  passed today.
+- Describe category selection as the scope of the brief or question, not as a complete
+  description of every technology mentioned in the source.
+- Allow future agent workflows to use the same single category as an explicit retrieval
+  constraint; do not introduce multi-category state until usage demonstrates a need.
+
+### UI acceptance checks
+
+- Every visible article has one and only one broad category.
+- No legacy taxonomy values appear after the production backfill is complete.
+- Selecting a category updates the feed, grounded brief retrieval, active-filter chip,
+  and bookmarkable URL consistently.
+- Category controls remain usable at 320-pixel width and with keyboard-only navigation.
+- Cards do not show topic or entity subtags.
+- Event, maturity, and source-type metadata remain available without competing with
+  the primary category.
+- The UI continues to render legacy values safely during the staged backend rollout,
+  but legacy options disappear from facets once all active records use taxonomy v2.
+
+The current implementation uses reader-facing labels for the six categories, applies
+the same optional contextual scope to the feed and cited briefing, preserves that scope
+in the URL, and visibly explains contextual articles. The excluded-content archive and
+local-storage source personalization remain separate follow-up work.
+
 ## Implementation Update — 2026-07-29
 
 The first P0 interface pass is implemented in `frontend/src/App.tsx` and

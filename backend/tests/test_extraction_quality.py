@@ -244,6 +244,25 @@ def test_integrity_failures_are_reported() -> None:
     assert "missing_chunks" in result.failures
 
 
+def test_excluded_document_does_not_require_chunks() -> None:
+    raw_text = "AI Agent Conference\n\n" + ("Event announcement details. " * 80)
+    document = make_document(
+        raw_text,
+        title="AI Agent Conference",
+        metadata={
+            "ingestion_status": "published",
+            "evidence_level": "full_article",
+            "relevance_tier": "excluded",
+        },
+    )
+
+    result = ExtractionQualityService().evaluate(document, [])
+
+    assert result.chunks_expected is False
+    assert result.quality_status == "pass"
+    assert "missing_chunks" not in result.failures
+
+
 def test_aggregation_and_sample_cover_sources() -> None:
     service = ExtractionQualityService()
     evaluations = []

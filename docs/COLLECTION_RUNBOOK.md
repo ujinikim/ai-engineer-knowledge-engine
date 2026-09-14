@@ -17,7 +17,7 @@ Update sources live in:
 backend/data/update_sources.yml
 ```
 
-Each entry requires a unique slug, tool, organization, default primary topic, source type, feed URL, homepage URL, and credibility weight. Broad feeds can define `include_terms` and `exclude_terms`.
+Each entry requires a unique slug, tool, organization, default primary topic, source type, feed URL, homepage URL, and credibility weight. Broad feeds can define `include_terms` and `exclude_terms`. Set `enabled: false` to omit a source from scheduled collection without deleting its configuration or stored documents.
 
 ## Collect Once
 
@@ -33,6 +33,10 @@ uv run python scripts/collect_updates.py --max-items 12 \
   --source the-batch --source import-ai --source anthropic-news
 ```
 
+Normal collection loads only enabled sources. An explicit `--source` selection may
+run a disabled source for a controlled experiment; it remains excluded from the
+dashboard and RAG until re-enabled in both configuration and the source registry.
+
 The collector:
 
 1. Tries to acquire the PostgreSQL collector advisory lock. If another manual or
@@ -44,14 +48,28 @@ The collector:
 5. Extracts source text and publication time. When configured full-article fetching
    fails, it retains the source-entry excerpt and records structured fetch
    diagnostics rather than treating the whole collection as failed.
-6. Generates a structured article summary and taxonomy for new or changed content.
-7. Classifies source detail and stores default-feed visibility metadata. Sparse
-   records remain searchable but are suppressed from the default feed unless they
-   represent an important operational event.
-8. Upserts by canonical URL.
-9. Skips summarization and embeddings when the content hash is unchanged.
-10. Replaces original-text chunks and embeddings when content changes.
-11. Records collection time and source errors.
+6. Applies the deterministic publication gate. Title-only extraction and ordinary
+   sparse records are stored as `quarantined`. Failed full-article hydration is also
+   quarantined unless the source explicitly permits its official feed excerpt as
+   dashboard-only evidence. Sparse `alert` records may publish when extraction
+   itself succeeded.
+7. Generates a structured article summary and taxonomy only for new or changed
+   content eligible for RAG. Quarantined candidates are not summarized, chunked,
+   embedded, shown in the feed, or returned by retrieval. Approved official feed
+   excerpts use the source description directly, appear in the dashboard, and skip
+   summarization, chunks, embeddings, and RAG.
+8. Upserts by normalized URL, canonical URL, or matching source/title/content hash.
+   Tracking parameters and equivalent default ports do not create new records.
+9. Preserves a previously published article when a later fetch is quarantined and
+   records the failed attempt in metadata for diagnosis.
+10. Skips summarization and embeddings when published content is unchanged.
+11. Replaces original-text chunks and embeddings when published content changes.
+12. Records collection time, per-source quarantine counts, and source errors.
+
+Taxonomy v2 uses the same model request as summary generation. Its strict response
+schema permits one of six broad `primary_topic` values and exactly one broad event.
+Source defaults are fallbacks, not automatically attached labels. Deterministic
+fallbacks follow the same constraints, and `topic_tags` is stored as an empty list.
 
 The lock is held on a dedicated database connection for the whole run, so commits
 inside the collector do not release it. A normal completion unlocks explicitly; a
@@ -69,6 +87,7 @@ The Batch uses nested issue discovery to store individual stories. Import AI use
 uv run python scripts/backfill_article_metadata.py
 uv run python scripts/backfill_source_detail.py
 uv run python scripts/backfill_extraction_metadata.py
+uv run python scripts/backfill_taxonomy_v2.py --dry-run --limit 25
 ```
 
 Use `--force` to regenerate summaries after changing the prompt or taxonomy. Use `--limit N` for a quality sample before a full run.
@@ -77,6 +96,14 @@ visibility metadata and does not regenerate summaries or embeddings.
 The extraction-metadata backfill is also idempotent and supports `--dry-run`. It
 separates source completeness from summary-generation provenance without
 regenerating source text, summaries, taxonomy, chunks, or embeddings.
+
+The taxonomy-v2 command is dry-run by default and reports every before/after value.
+It scopes itself to enabled, published update sources, skips records already on v2,
+and leaves disabled, quarantined, and legacy documentation records alone. Full-text
+articles use the configured summary model for constrained classification; approved
+feed excerpts use deterministic classification. After review, add `--apply` to update
+taxonomy metadata only. `--source`, `--model`, and `--force` support controlled trials.
+The command never rewrites summaries, chunks, or embeddings.
 
 ## Extraction and Summary Provenance
 
@@ -90,10 +117,18 @@ These metadata fields describe independent stages:
 | `full_article_fetch_http_status` | HTTP response status when one was available |
 | `full_article_fetch_error_code` | Controlled code such as `http_forbidden`, `http_not_found`, `http_error`, `network_error`, or `content_incomplete` |
 | `summary_generated_by` | Model and source type, or `deterministic-fallback` when model generation failed |
-| `default_feed_eligible` | Whether the record is visible in the default feed |
+| `ingestion_status` | `published` when eligible for a user-facing surface or `quarantined` when retained only for diagnosis |
+| `ingestion_failure_codes` | Deterministic reasons such as `article_hydration_failed`, `title_only_source`, or `insufficient_source_detail` |
+| `ingestion_warning_codes` | Non-blocking limitations on published evidence, including an approved feed fallback |
+| `quarantine_reason` | The primary ingestion failure code |
+| `evidence_level` | `full_article`, `source_entry`, or `official_feed_excerpt` |
+| `relevance_tier` | `core`, `contextual`, or `excluded`; classified independently from evidence quality |
+| `relevance_reason` | Evidence-based explanation for the relevance route |
+| `rag_eligible` | Derived compatibility value: published, non-excerpt evidence that is not excluded |
+| `default_feed_eligible` | Derived compatibility value: published evidence with `core` relevance |
 
-For example, an official feed excerpt can be successfully summarized while still
-being hidden for insufficient source detail:
+For example, the OpenAI source explicitly permits its official feed description as
+a dashboard announcement when the configured full-page fetch is blocked:
 
 ```json
 {
@@ -101,9 +136,17 @@ being hidden for insufficient source detail:
   "full_article_fetch_http_status": 403,
   "full_article_fetch_error_code": "http_forbidden",
   "summary_input_source": "feed_excerpt",
-  "summary_generated_by": "gpt-4.1-mini:official-product-news",
-  "default_feed_eligible": false,
-  "default_feed_exclusion_reason": "low_source_detail"
+  "ingestion_status": "published",
+  "ingestion_failure_codes": [],
+  "ingestion_warning_codes": [
+    "article_hydration_failed",
+    "insufficient_source_detail"
+  ],
+  "evidence_level": "official_feed_excerpt",
+  "rag_eligible": false,
+  "summary_generated_by": "source-excerpt",
+  "default_feed_eligible": true,
+  "default_feed_exclusion_reason": null
 }
 ```
 
@@ -133,6 +176,13 @@ Check collector health:
 ```bash
 docker compose exec postgres psql -U postgres -d knowledge_engine \
   -c "SELECT slug, last_collected_at, last_error FROM update_sources ORDER BY slug;"
+```
+
+Review the quarantine without exposing it to retrieval:
+
+```bash
+docker compose exec postgres psql -U postgres -d knowledge_engine \
+  -c "SELECT source_name, doc_metadata->>'quarantine_reason' AS reason, count(*) FROM documents WHERE doc_metadata->>'ingestion_status' = 'quarantined' GROUP BY 1, 2 ORDER BY 1, 2;"
 ```
 
 ## Existing Documentation Collection

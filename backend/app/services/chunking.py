@@ -78,13 +78,50 @@ class ChunkingService:
         max_tokens: int,
         overlap_tokens: int,
     ) -> list[str]:
-        tokens = self.encoding.encode(block)
         pieces: list[str] = []
         start = 0
-        while start < len(tokens):
-            end = min(start + max_tokens, len(tokens))
-            pieces.append(self.encoding.decode(tokens[start:end]).strip())
-            if end == len(tokens):
+        safe_overlap = max(0, min(overlap_tokens, max_tokens - 1))
+        while start < len(block):
+            end = self._largest_character_end(block, start, max_tokens)
+            piece = block[start:end].strip()
+            if piece:
+                pieces.append(piece)
+            if end == len(block):
                 break
-            start = max(0, end - overlap_tokens)
-        return [piece for piece in pieces if piece]
+            start = self._overlap_character_start(block, start, end, safe_overlap)
+        return pieces
+
+    def _largest_character_end(self, text: str, start: int, max_tokens: int) -> int:
+        """Find a token-bounded slice without decoding partial UTF-8 token bytes."""
+        low = start + 1
+        high = len(text)
+        best = low
+        while low <= high:
+            candidate = (low + high) // 2
+            if self._count_tokens(text[start:candidate]) <= max_tokens:
+                best = candidate
+                low = candidate + 1
+            else:
+                high = candidate - 1
+        return best
+
+    def _overlap_character_start(
+        self,
+        text: str,
+        previous_start: int,
+        end: int,
+        overlap_tokens: int,
+    ) -> int:
+        if overlap_tokens <= 0:
+            return end
+        low = previous_start + 1
+        high = end
+        best = end
+        while low <= high:
+            candidate = (low + high) // 2
+            if self._count_tokens(text[candidate:end]) <= overlap_tokens:
+                best = candidate
+                high = candidate - 1
+            else:
+                low = candidate + 1
+        return best

@@ -3,9 +3,10 @@ import asyncio
 import httpx
 import pytest
 
-from app.services.article_summary import ArticleSummaryService
+from app.services.article_summary import MAIN_THEME_RESPONSE_FORMAT, ArticleSummaryService
 from app.services.taxonomy import (
     classify_topic,
+    classify_topic_with_method,
     infer_event_types,
     infer_maturity,
     normalize_event_types,
@@ -19,12 +20,52 @@ def test_topic_classification_prefers_inference_signals() -> None:
         "developer-tools",
     )
 
-    assert topic == "inference-serving"
-    assert isinstance(tags, list)
+    assert topic == "ai-products-engineering-infrastructure"
+    assert tags == []
+
+
+def test_topic_classification_exposes_when_source_default_was_used() -> None:
+    topic, method = classify_topic_with_method(
+        "A short announcement without any category evidence.",
+        "agentic-generative-ai",
+    )
+
+    assert topic == "agentic-generative-ai"
+    assert method == "source-default"
+
+
+def test_topic_classification_uses_evidence_before_source_default() -> None:
+    topic, method = classify_topic_with_method(
+        "A safety evaluation benchmark for model security.",
+        "agentic-generative-ai",
+    )
+
+    assert topic == "safety-evaluation-governance"
+    assert method == "deterministic-keyword"
+
+
+def test_generic_search_does_not_imply_retrieval_infrastructure() -> None:
+    topic, method = classify_topic_with_method(
+        "A researcher uses an AI assistant to search genomes for antimicrobial molecules.",
+        "agentic-generative-ai",
+    )
+
+    assert topic == "agentic-generative-ai"
+    assert method == "source-default"
+
+
+def test_specific_information_retrieval_language_is_still_detected() -> None:
+    topic, method = classify_topic_with_method(
+        "The study measures web retrieval quality for an LLM search engine.",
+        "agentic-generative-ai",
+    )
+
+    assert topic == "data-search-retrieval"
+    assert method == "deterministic-keyword"
 
 
 def test_event_and_maturity_inference() -> None:
-    assert "deprecation" in infer_event_types("This API endpoint is deprecated and will sunset.")
+    assert infer_event_types("This API endpoint is deprecated and will sunset.") == ["alert"]
     assert infer_maturity("v2.0.0-rc.2") == "release-candidate"
     assert infer_maturity("v2.0.0-rc1: fix download handling") == "release-candidate"
     assert infer_maturity("v0.26.0rc1") == "release-candidate"
@@ -41,25 +82,25 @@ def test_research_events_infer_research_maturity_without_release_event() -> None
     assert (
         infer_maturity(
             "Web retrieval study",
-            event_types=["research-result", "engineering-analysis"],
+            event_types=["research"],
         )
         == "research"
     )
     assert (
         infer_maturity(
             "Benchmark library v1.0",
-            event_types=["library-release", "benchmark-result"],
+            event_types=["release-update"],
         )
         == "stable"
     )
 
 
-def test_versioned_library_event_normalization() -> None:
+def test_event_normalization_keeps_at_most_one_v2_event() -> None:
     assert normalize_event_types(
         "transformers",
-        ["product-release", "model-launch", "breaking-change"],
-    ) == ["library-release", "breaking-change"]
-    assert normalize_event_types("ollama", ["product-release"]) == ["product-release"]
+        ["release-update", "alert"],
+    ) == ["release-update"]
+    assert normalize_event_types("ollama", ["product-release"]) == []
 
 
 def test_deterministic_summary_keeps_source_facts() -> None:
@@ -72,14 +113,14 @@ def test_deterministic_summary_keeps_source_facts() -> None:
         ),
         organization="vLLM Project",
         tool="vLLM",
-        default_topic="inference-serving",
-        default_event_types=["library-release"],
+        default_topic="ai-products-engineering-infrastructure",
+        default_event_types=["release-update"],
     )
 
-    assert article.primary_topic == "inference-serving"
+    assert article.primary_topic == "ai-products-engineering-infrastructure"
     assert article.display_headline == "vLLM adds prefill controls"
     assert "throttled prefill" in article.summary
-    assert article.event_types[0] == "library-release"
+    assert article.event_types == ["release-update"]
 
 
 def test_generated_and_fallback_headlines_are_capped_at_90_characters() -> None:
@@ -110,6 +151,65 @@ def test_generated_and_fallback_headlines_are_capped_at_90_characters() -> None:
     assert validated.display_headline.endswith("...")
 
 
+def test_validated_taxonomy_has_one_category_one_event_and_no_topic_tags() -> None:
+    service = ArticleSummaryService.__new__(ArticleSummaryService)
+    fallback = service._fallback(
+        title="Agent tool-use research",
+        raw_text="Agent tool-use research\n\nA research paper studies tool use by agents.",
+        organization="Example",
+        tool="Example",
+        default_topic="agentic-generative-ai",
+        default_event_types=["research"],
+    )
+
+    validated = service._validated(
+        {
+            "primary_topic": "agentic-generative-ai",
+            "event_types": ["research", "analysis"],
+            "topic_tags": ["agents"],
+        },
+        fallback,
+        "research-paper",
+        title="Agent tool-use research",
+        raw_text="A research paper studies tool use by agents.",
+    )
+
+    assert validated.primary_topic == "agentic-generative-ai"
+    assert validated.event_types == ["research"]
+    assert validated.topic_tags == []
+
+
+def test_event_default_is_only_used_when_content_has_no_event_signal() -> None:
+    assert infer_event_types("This paper presents a new study.", ["release-update"]) == ["research"]
+    assert infer_event_types("A concise source with no event language.", ["analysis"]) == ["analysis"]
+
+
+def test_taxonomy_prompt_prioritizes_main_theme_over_product_mentions() -> None:
+    service = ArticleSummaryService.__new__(ArticleSummaryService)
+    prompt = service._taxonomy_prompt()
+    event_prompt = service._event_prompt()
+
+    assert "main theme" in prompt
+    assert "merely the setting" in prompt
+    assert "A product mention does not make an article a release" in event_prompt
+    assert "detecting failures" in prompt
+    assert "TPU or GPU kernel authoring" in prompt
+    assert "recommendation, prediction, classification" in prompt
+    assert "'get started' steps" in event_prompt
+
+
+def test_main_theme_prompt_does_not_repeat_relevance_classification() -> None:
+    service = ArticleSummaryService.__new__(ArticleSummaryService)
+    prompt = service._main_theme_prompt()
+
+    assert "main_theme" in prompt
+    assert "decision was made upstream" in prompt
+    assert "Do not classify whether the article belongs in the feed" in prompt
+    assert "Core requires" not in prompt
+    schema = MAIN_THEME_RESPONSE_FORMAT["json_schema"]["schema"]
+    assert list(schema["properties"]) == ["main_theme"]
+
+
 def test_sparse_source_prompt_prohibits_speculative_benefits() -> None:
     service = ArticleSummaryService.__new__(ArticleSummaryService)
     raw_text = "v1.18.3\n\nFix query errors when using shard keys while resharding."
@@ -121,8 +221,6 @@ def test_sparse_source_prompt_prohibits_speculative_benefits() -> None:
         organization="Qdrant",
         tool="Qdrant",
         source_type="official-release",
-        default_topic="retrieval-data",
-        default_event_types=["library-release"],
         detail_level=detail_level,
     )
 
@@ -131,7 +229,8 @@ def test_sparse_source_prompt_prohibits_speculative_benefits() -> None:
     assert "do not claim it improves general reliability" in prompt
     assert "Do not recommend an action" in prompt
     assert "The change applies to users" in prompt
-    assert "Default event types: ['library-release']" in prompt
+    assert "Default topic" not in prompt
+    assert "Default event" not in prompt
 
 
 def test_detailed_source_does_not_receive_sparse_instructions() -> None:
@@ -155,8 +254,6 @@ def test_detailed_source_does_not_receive_sparse_instructions() -> None:
         organization="Example",
         tool="Runtime",
         source_type="official-engineering-blog",
-        default_topic="inference-serving",
-        default_event_types=["engineering-analysis"],
         detail_level=detail_level,
     )
 

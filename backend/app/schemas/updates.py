@@ -35,6 +35,10 @@ class UpdateItem(BaseModel):
     source_type: str
     maturity: str
     content_detail: Literal["sparse", "detailed"]
+    evidence_level: Literal["full_article", "source_entry", "official_feed_excerpt"]
+    rag_eligible: bool
+    relevance_tier: Literal["core", "contextual", "excluded"] = "core"
+    relevance_reason: str = "Legacy record retained as core."
     default_feed_eligible: bool
     default_feed_exclusion_reason: str | None = None
     version: str | None = None

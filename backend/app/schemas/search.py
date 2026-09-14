@@ -27,6 +27,7 @@ class SearchRequest(BaseModel):
     event_types: list[str] | None = None
     source_types: list[str] | None = None
     maturities: list[str] | None = None
+    include_contextual: bool = False
     collection: Literal["all", "docs", "updates"] = "all"
     published_after: datetime | None = None
     published_before: datetime | None = None
@@ -71,6 +72,7 @@ class RetrievedChunk(BaseModel):
     event_types: list[str] = Field(default_factory=list)
     source_category: str | None = None
     maturity: str | None = None
+    relevance_tier: Literal["core", "contextual", "excluded"] = "core"
 
 
 class RetrievalMetrics(BaseModel):

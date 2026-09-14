@@ -30,7 +30,7 @@ def load_sources(source_slugs: list[str] | None = None) -> list[dict]:
     with SOURCE_FILE.open("r", encoding="utf-8") as file:
         sources = yaml.safe_load(file)["sources"]
     if not source_slugs:
-        return sources
+        return [source for source in sources if source.get("enabled", True)]
 
     requested = set(source_slugs)
     selected = [source for source in sources if source["slug"] in requested]

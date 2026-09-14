@@ -4,12 +4,13 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Chunk, Document
+from app.db.models import Chunk, Document, UpdateSource
 from app.schemas.search import RetrievedChunk, RetrievalMetrics, SearchRequest, SearchResponse
 from app.services.embedding import EmbeddingService
+from app.services.article_relevance import stored_relevance_tier
 
 
 @dataclass
@@ -87,7 +88,7 @@ class RetrieverService:
         request: SearchRequest,
         query_embedding: list[float] | None,
     ) -> list[Candidate]:
-        sources = request.source_names or self._available_sources()
+        sources = request.source_names or self._available_sources(request.include_contextual)
         if not sources:
             return self._standard_candidates(request, query_embedding)
 
@@ -309,6 +310,10 @@ class RetrieverService:
             event_types=list(candidate.document.doc_metadata.get("event_types") or []),
             source_category=candidate.document.doc_metadata.get("source_type"),
             maturity=candidate.document.doc_metadata.get("maturity"),
+            relevance_tier=(
+                candidate.document.relevance_tier
+                or stored_relevance_tier(candidate.document.doc_metadata)
+            ),
         )
 
     def _apply_filters(self, stmt, request: SearchRequest):
@@ -318,6 +323,11 @@ class RetrieverService:
             stmt = stmt.where(Document.source_type == "docs")
         elif request.collection == "updates":
             stmt = stmt.where(Document.source_type == "release")
+        stmt = stmt.where(
+            self._retrievable_document_clause(
+                include_contextual=request.include_contextual,
+            )
+        )
         if request.tools:
             stmt = stmt.where(Document.doc_metadata["tool"].astext.in_(request.tools))
         if request.categories:
@@ -360,8 +370,34 @@ class RetrieverService:
             value = value.astimezone(timezone.utc).replace(tzinfo=None)
         return value
 
-    def _available_sources(self) -> list[str]:
-        return list(self.db.scalars(select(Document.source_name).distinct()).all())
+    def _available_sources(self, include_contextual: bool = False) -> list[str]:
+        return list(
+            self.db.scalars(
+                select(Document.source_name)
+                .where(
+                    self._retrievable_document_clause(
+                        include_contextual=include_contextual,
+                    )
+                )
+                .distinct()
+            ).all()
+        )
+
+    def _retrievable_document_clause(self, *, include_contextual: bool = False):
+        enabled_source_slugs = select(UpdateSource.slug).where(UpdateSource.enabled.is_(True))
+        relevance_tiers = ["core", "contextual"] if include_contextual else ["core"]
+        return or_(
+            Document.source_type != "release",
+            and_(
+                Document.source_name.in_(enabled_source_slugs),
+                Document.ingestion_status == "published",
+                Document.evidence_level != "official_feed_excerpt",
+                or_(
+                    Document.relevance_tier.is_(None),
+                    Document.relevance_tier.in_(relevance_tiers),
+                ),
+            ),
+        )
 
     def _diversify_documents(
         self,

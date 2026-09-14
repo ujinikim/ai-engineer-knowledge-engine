@@ -30,9 +30,15 @@ Analysis panel
 
 ## Update Storage
 
-`update_sources` stores source registry and collection health. Feed entries are stored in `documents` with `source_type = release` for collection compatibility. Original text remains in `raw_text` and pgvector-backed chunks. Generated feed fields and taxonomy values live in JSON metadata.
+`update_sources` stores source registry, active state, and collection health. Scheduled collection, dashboard queries, and release retrieval use only enabled sources. Disabling a source preserves its documents and chunks so the decision can be reversed without recollecting historical data. Feed entries are stored in `documents` with `source_type = release` for collection compatibility. Original text remains in `raw_text` and pgvector-backed chunks. Generated feed fields and taxonomy values live in JSON metadata.
 
-Generated metadata includes `display_headline`, `summary`, `why_it_matters`, `key_points`, `primary_topic`, `topic_tags`, `event_types`, `entity_tags`, `source_type`, and `maturity`. These values drive the feed but do not replace original evidence during RAG.
+Generated metadata includes `display_headline`, `summary`, `why_it_matters`,
+`key_points`, `primary_topic`, `event_types`, `entity_tags`, `source_type`, `maturity`,
+and `taxonomy_policy_version`. Taxonomy v2 assigns exactly one of six broad primary
+topics and at most one of five events in the existing summary-model call. Strict schema
+validation prevents invented categories. The legacy `topic_tags` field remains present
+but empty for API compatibility. These values drive the feed but do not replace original
+evidence during RAG.
 
 This preserves one retrieval path while keeping collections filterable.
 
@@ -54,11 +60,17 @@ Hybrid retrieval for release records uses:
 
 Documentation retrieval retains the previous vector/keyword weighting without a recency boost.
 
-Final retrieval is capped at two chunks per document so one long release note cannot consume the entire context window for a multi-update question.
+Final retrieval is capped at two chunks per document so one long release note cannot
+consume the entire context window for a multi-update question. Release retrieval derives
+eligibility from canonical `ingestion_status`, `evidence_level`, and `relevance_tier`.
+Core records are retrieved by default; contextual records require explicit inclusion;
+excluded, quarantined, and official-feed-excerpt records cannot enter LLM context.
+Legacy `rag_eligible` and `default_feed_eligible` metadata remain compatibility outputs
+and are not trusted as policy inputs.
 
 ## Freshness
 
-`collect_updates.py` can run once or remain active with `--interval-minutes 60`. Collection uses canonical URLs and content hashes. Unchanged entries retain generated metadata and skip both summarization and embedding.
+`collect_updates.py` can run once or remain active with `--interval-minutes 60`. Collection normalizes URLs and uses canonical URLs plus content hashes to prevent equivalent links from becoming new records. Unchanged entries retain generated metadata and skip both summarization and embedding. A deterministic publication gate runs before model work, and a failed refresh cannot overwrite an existing published article.
 
 In a hosted deployment, the collector should run as a separate scheduled worker rather than inside web request handling.
 

@@ -47,7 +47,9 @@ def main(limit: int | None, force: bool) -> None:
             metadata = dict(document.doc_metadata)
             default_topic = config.get(
                 "default_primary_topic",
-                metadata.get("primary_topic") or metadata.get("category") or "developer-tools",
+                metadata.get("primary_topic")
+                or metadata.get("category")
+                or "ai-products-engineering-infrastructure",
             )
             source_type = config.get(
                 "source_type",
@@ -60,7 +62,7 @@ def main(limit: int | None, force: bool) -> None:
                 tool=str(metadata.get("tool") or config.get("tool") or "Unknown"),
                 source_type=source_type,
                 default_topic=default_topic,
-                default_event_types=config.get("default_event_types", ["library-release"]),
+                default_event_types=config.get("default_event_types", ["analysis"]),
             )
             document.doc_metadata = {
                 **metadata,

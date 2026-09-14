@@ -93,7 +93,7 @@ to publish.
 
 ### Taxonomy Accuracy
 
-- `correct`: primary topic, tags, event types, entities, and maturity fit the source
+- `correct`: the single broad primary topic and event fit the source's central subject
 - `partial`: broadly useful classification with one meaningful omission or incorrect label
 - `incorrect`: primary classification or several labels misrepresent the source
 

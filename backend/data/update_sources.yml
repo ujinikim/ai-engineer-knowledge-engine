@@ -1,72 +1,78 @@
 sources:
   - slug: vllm
+    enabled: false
     name: vLLM Releases
     organization: vLLM Project
     tool: vLLM
-    category: inference
-    default_primary_topic: inference-serving
+    category: ai-products-engineering-infrastructure
+    default_primary_topic: ai-products-engineering-infrastructure
     source_type: official-release
-    default_event_types: [library-release]
+    default_event_types: [release-update]
     source_kind: github_releases
     feed_url: https://github.com/vllm-project/vllm/releases.atom
     homepage_url: https://github.com/vllm-project/vllm/releases
     credibility_weight: 1.0
   - slug: langgraph
+    enabled: false
     name: LangGraph Releases
     organization: LangChain
     tool: LangGraph
-    category: orchestration
-    default_primary_topic: agents-orchestration
+    category: agentic-generative-ai
+    default_primary_topic: agentic-generative-ai
     source_type: official-release
-    default_event_types: [library-release]
+    default_event_types: [release-update]
     source_kind: github_releases
     feed_url: https://github.com/langchain-ai/langgraph/releases.atom
     homepage_url: https://github.com/langchain-ai/langgraph/releases
     credibility_weight: 1.0
   - slug: transformers
+    enabled: false
     name: Transformers Releases
     organization: Hugging Face
     tool: Transformers
-    category: models
-    default_primary_topic: models-apis
+    category: machine-learning-classical-ai
+    default_primary_topic: machine-learning-classical-ai
     source_type: official-release
-    default_event_types: [library-release]
+    default_event_types: [release-update]
     source_kind: github_releases
     feed_url: https://github.com/huggingface/transformers/releases.atom
     homepage_url: https://github.com/huggingface/transformers/releases
     credibility_weight: 1.0
   - slug: litellm
+    enabled: false
     name: LiteLLM Releases
     organization: BerriAI
     tool: LiteLLM
-    category: gateways
-    default_primary_topic: models-apis
+    category: ai-products-engineering-infrastructure
+    default_primary_topic: ai-products-engineering-infrastructure
     source_type: official-release
-    default_event_types: [library-release, api-change]
+    default_event_types: [release-update]
     source_kind: github_releases
     feed_url: https://github.com/BerriAI/litellm/releases.atom
     homepage_url: https://github.com/BerriAI/litellm/releases
     credibility_weight: 1.0
   - slug: qdrant
+    enabled: false
     name: Qdrant Releases
     organization: Qdrant
     tool: Qdrant
-    category: retrieval
-    default_primary_topic: retrieval-data
+    category: data-search-retrieval
+    default_primary_topic: data-search-retrieval
     source_type: official-release
-    default_event_types: [library-release]
+    default_event_types: [release-update]
     source_kind: github_releases
     feed_url: https://github.com/qdrant/qdrant/releases.atom
     homepage_url: https://github.com/qdrant/qdrant/releases
     credibility_weight: 1.0
   - slug: ollama
+    enabled: false
     name: Ollama Releases
     organization: Ollama
     tool: Ollama
-    category: local-models
-    default_primary_topic: inference-serving
+    category: agentic-generative-ai
+    default_primary_topic: agentic-generative-ai
     source_type: official-release
-    default_event_types: [product-release]
+    default_event_types: [release-update]
     source_kind: github_releases
     feed_url: https://github.com/ollama/ollama/releases.atom
     homepage_url: https://github.com/ollama/ollama/releases
@@ -75,27 +81,62 @@ sources:
     name: OpenAI News
     organization: OpenAI
     tool: OpenAI
-    category: models-apis
-    default_primary_topic: models-apis
+    category: agentic-generative-ai
+    default_primary_topic: agentic-generative-ai
     source_kind: rss
     source_type: official-product-news
-    default_event_types: [product-release]
+    default_event_types: [release-update]
     feed_url: https://openai.com/news/rss.xml
     homepage_url: https://openai.com/news/
     fetch_full_article: true
+    publish_feed_excerpt: true
     content_selector: article, main
     minimum_full_article_characters: 500
     credibility_weight: 1.0
     include_terms: [api, codex, model, developer, gpt, agent, sdk, embedding, realtime]
+  - slug: langchain-blog
+    name: LangChain Blog
+    organization: LangChain
+    tool: LangChain
+    category: agentic-generative-ai
+    default_primary_topic: agentic-generative-ai
+    source_kind: rss
+    source_type: official-engineering-blog
+    default_event_types: [analysis]
+    feed_url: https://www.langchain.com/blog/rss.xml
+    homepage_url: https://www.langchain.com/blog
+    content_selector: .text-rich-text-v2-blog-post
+    fetch_full_article: true
+    minimum_full_article_characters: 500
+    credibility_weight: 1.0
+    quality_tier: primary
+    include_terms: [agent, langgraph, langchain, langsmith, evaluation, evals, observability, mcp, context, memory, retrieval, rag, deployment, tool]
+  - slug: microsoft-foundry
+    name: Microsoft Foundry Blog
+    organization: Microsoft
+    tool: Microsoft Foundry
+    category: ai-products-engineering-infrastructure
+    default_primary_topic: ai-products-engineering-infrastructure
+    source_kind: rss
+    source_type: official-engineering-blog
+    default_event_types: [analysis]
+    feed_url: https://devblogs.microsoft.com/foundry/feed/
+    homepage_url: https://devblogs.microsoft.com/foundry/
+    fetch_full_article: true
+    content_selector: main
+    minimum_full_article_characters: 500
+    credibility_weight: 1.0
+    quality_tier: primary
+    include_terms: [agent, agent service, agent framework, agentic, mcp, toolbox, retrieval, evaluation, deployment, safety, memory, orchestration, tool]
   - slug: google-developers
     name: Google Developers Blog
     organization: Google
     tool: Google AI
-    category: developer-tools
-    default_primary_topic: developer-tools
+    category: ai-products-engineering-infrastructure
+    default_primary_topic: ai-products-engineering-infrastructure
     source_kind: rss
     source_type: official-engineering-blog
-    default_event_types: [engineering-analysis]
+    default_event_types: [analysis]
     feed_url: https://developers.googleblog.com/feeds/posts/default?alt=rss
     homepage_url: https://developers.googleblog.com/
     fetch_full_article: true
@@ -107,11 +148,11 @@ sources:
     name: GitHub Changelog
     organization: GitHub
     tool: GitHub Copilot
-    category: developer-tools
-    default_primary_topic: developer-tools
+    category: ai-products-engineering-infrastructure
+    default_primary_topic: ai-products-engineering-infrastructure
     source_kind: rss
     source_type: official-changelog
-    default_event_types: [product-release]
+    default_event_types: [release-update]
     feed_url: https://github.blog/changelog/feed/
     homepage_url: https://github.blog/changelog/
     credibility_weight: 1.0
@@ -120,11 +161,11 @@ sources:
     name: Hugging Face Blog
     organization: Hugging Face
     tool: Hugging Face
-    category: models-apis
-    default_primary_topic: models-apis
+    category: agentic-generative-ai
+    default_primary_topic: agentic-generative-ai
     source_kind: rss
     source_type: official-engineering-blog
-    default_event_types: [engineering-analysis]
+    default_event_types: [analysis]
     feed_url: https://huggingface.co/blog/feed.xml
     homepage_url: https://huggingface.co/blog
     fetch_full_article: true
@@ -137,11 +178,11 @@ sources:
     name: PyTorch Blog
     organization: PyTorch Foundation
     tool: PyTorch
-    category: training-fine-tuning
-    default_primary_topic: training-fine-tuning
+    category: machine-learning-classical-ai
+    default_primary_topic: machine-learning-classical-ai
     source_kind: rss
     source_type: official-engineering-blog
-    default_event_types: [engineering-analysis]
+    default_event_types: [analysis]
     feed_url: https://pytorch.org/blog/feed/
     homepage_url: https://pytorch.org/blog/
     credibility_weight: 1.0
@@ -149,11 +190,11 @@ sources:
     name: NVIDIA Technical Blog
     organization: NVIDIA
     tool: NVIDIA AI
-    category: infrastructure-hardware
-    default_primary_topic: infrastructure-hardware
+    category: ai-products-engineering-infrastructure
+    default_primary_topic: ai-products-engineering-infrastructure
     source_kind: atom
     source_type: official-engineering-blog
-    default_event_types: [engineering-analysis]
+    default_event_types: [analysis]
     feed_url: https://developer.nvidia.com/blog/feed/
     homepage_url: https://developer.nvidia.com/blog/
     fetch_full_article: true
@@ -165,11 +206,11 @@ sources:
     name: AWS Machine Learning Blog
     organization: Amazon Web Services
     tool: AWS AI
-    category: infrastructure-hardware
-    default_primary_topic: infrastructure-hardware
+    category: ai-products-engineering-infrastructure
+    default_primary_topic: ai-products-engineering-infrastructure
     source_kind: rss
     source_type: official-engineering-blog
-    default_event_types: [engineering-analysis]
+    default_event_types: [analysis]
     feed_url: https://aws.amazon.com/blogs/machine-learning/feed/
     homepage_url: https://aws.amazon.com/blogs/machine-learning/
     credibility_weight: 0.95
@@ -178,11 +219,11 @@ sources:
     name: Anthropic Newsroom
     organization: Anthropic
     tool: Claude
-    category: models-apis
-    default_primary_topic: models-apis
+    category: agentic-generative-ai
+    default_primary_topic: agentic-generative-ai
     source_kind: html_listing
     source_type: official-product-news
-    default_event_types: [product-release]
+    default_event_types: [release-update]
     feed_url: https://www.anthropic.com/news
     homepage_url: https://www.anthropic.com/news
     link_pattern: ^/(news|features)/[^/]+$
@@ -194,11 +235,11 @@ sources:
     name: Google DeepMind Blog
     organization: Google DeepMind
     tool: Google DeepMind
-    category: models-apis
-    default_primary_topic: models-apis
+    category: machine-learning-classical-ai
+    default_primary_topic: machine-learning-classical-ai
     source_kind: rss
     source_type: official-engineering-blog
-    default_event_types: [research-result]
+    default_event_types: [research]
     feed_url: https://deepmind.google/blog/rss.xml
     homepage_url: https://deepmind.google/blog/
     fetch_full_article: true
@@ -210,11 +251,11 @@ sources:
     name: The Batch
     organization: DeepLearning.AI
     tool: The Batch
-    category: developer-tools
-    default_primary_topic: developer-tools
+    category: ai-products-engineering-infrastructure
+    default_primary_topic: ai-products-engineering-infrastructure
     source_kind: nested_html_listing
     source_type: editorial-analysis
-    default_event_types: [engineering-analysis]
+    default_event_types: [analysis]
     feed_url: https://www.deeplearning.ai/the-batch/
     homepage_url: https://www.deeplearning.ai/the-batch/
     link_pattern: ^/the-batch/issue-\d+$
@@ -231,11 +272,11 @@ sources:
     name: Import AI
     organization: Import AI
     tool: Import AI
-    category: models-apis
-    default_primary_topic: models-apis
+    category: machine-learning-classical-ai
+    default_primary_topic: machine-learning-classical-ai
     source_kind: rss
     source_type: editorial-analysis
-    default_event_types: [engineering-analysis, research-result]
+    default_event_types: [analysis]
     feed_url: https://jack-clark.net/feed/
     homepage_url: https://jack-clark.net/
     section_delimiter: "***"

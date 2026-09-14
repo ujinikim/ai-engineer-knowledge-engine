@@ -1,5 +1,10 @@
 from types import SimpleNamespace
 
+from sqlalchemy import select
+from sqlalchemy.dialects import postgresql
+
+from app.db.models import Chunk, Document
+from app.schemas.search import SearchRequest
 from app.services.retriever import Candidate, RetrieverService
 
 
@@ -97,3 +102,61 @@ def test_keyword_scoring_matches_hyphenated_query_to_spaced_title() -> None:
 
     assert spaced_score == hyphenated_score
     assert spaced_score > 0
+
+
+def test_update_retrieval_only_queries_published_documents() -> None:
+    service = RetrieverService.__new__(RetrieverService)
+    statement = service._apply_filters(
+        select(Chunk, Document).join(Document, Chunk.document_id == Document.id),
+        SearchRequest(query="agents", collection="updates", search_mode="keyword"),
+    )
+
+    sql = str(
+        statement.compile(
+            dialect=postgresql.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    )
+
+    assert "documents.source_type = 'release'" in sql
+    assert "ingestion_status" in sql
+    assert "published" in sql
+    assert "evidence_level" in sql
+    assert "official_feed_excerpt" in sql
+    assert "update_sources.enabled IS true" in sql
+    assert "relevance_tier" in sql
+    assert "core" in sql
+
+
+def test_contextual_retrieval_requires_explicit_inclusion() -> None:
+    service = RetrieverService.__new__(RetrieverService)
+    base = select(Chunk, Document).join(Document, Chunk.document_id == Document.id)
+    default_statement = service._apply_filters(
+        base,
+        SearchRequest(query="agents", collection="updates", search_mode="keyword"),
+    )
+    contextual_statement = service._apply_filters(
+        base,
+        SearchRequest(
+            query="agents",
+            collection="updates",
+            search_mode="keyword",
+            include_contextual=True,
+        ),
+    )
+    default_sql = str(
+        default_statement.compile(
+            dialect=postgresql.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    )
+    contextual_sql = str(
+        contextual_statement.compile(
+            dialect=postgresql.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    )
+
+    assert "contextual" not in default_sql
+    assert "contextual" in contextual_sql
+    assert "excluded" not in contextual_sql

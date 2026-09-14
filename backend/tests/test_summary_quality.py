@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 from app.services.summary_quality import SummaryQualityService, SummaryThresholds
+from app.services.taxonomy import TAXONOMY_POLICY_VERSION
 
 
 def make_document(
@@ -171,6 +172,22 @@ def test_missing_fields_and_invalid_taxonomy_fail() -> None:
     assert "invalid_primary_topic" in result.failures
     assert "invalid_event_type" in result.failures
     assert "invalid_maturity" in result.failures
+
+
+def test_taxonomy_v2_rejects_multiple_events_and_topic_tags() -> None:
+    document = make_document()
+    document.doc_metadata = {
+        **document.doc_metadata,
+        "primary_topic": "agentic-generative-ai",
+        "event_types": ["research", "analysis"],
+        "topic_tags": ["agents"],
+        "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
+    }
+
+    result = SummaryQualityService().evaluate(document)
+
+    assert "multiple_event_types" in result.failures
+    assert "unexpected_topic_tags" in result.failures
 
 
 def test_fallback_and_incomplete_source_are_visible() -> None:

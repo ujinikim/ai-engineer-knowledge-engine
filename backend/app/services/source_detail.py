@@ -5,6 +5,7 @@ SPARSE_BODY_WORDS = 50
 SPARSE_SUBSTANTIVE_SENTENCES = 2
 IMPORTANT_SPARSE_EVENT_TYPES = frozenset(
     {
+        "alert",
         "security-issue",
         "breaking-change",
         "deprecation",

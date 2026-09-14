@@ -1,4 +1,4 @@
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import CheckConstraint, UniqueConstraint
 
 from app.db.models import Chunk, Document, UpdateSource
 
@@ -17,6 +17,11 @@ def test_model_metadata_matches_baseline_tables_and_indexes() -> None:
         "documents_content_hash_idx",
         "documents_source_type_idx",
         "documents_published_at_idx",
+        "documents_ingestion_status_idx",
+        "documents_relevance_tier_idx",
+        "documents_primary_topic_idx",
+        "documents_event_type_idx",
+        "documents_feed_scope_idx",
         "chunks_document_id_idx",
         "chunks_content_hash_idx",
         "chunks_embedding_hnsw_idx",
@@ -25,6 +30,46 @@ def test_model_metadata_matches_baseline_tables_and_indexes() -> None:
         "update_sources_tool_idx",
         "update_sources_category_idx",
     }
+
+
+def test_document_model_exposes_canonical_decisions_and_compatibility_metadata() -> None:
+    columns = Document.__table__.c
+    check_constraints = {
+        constraint.name
+        for constraint in Document.__table__.constraints
+        if isinstance(constraint, CheckConstraint)
+    }
+
+    assert {
+        "ingestion_status",
+        "evidence_level",
+        "relevance_tier",
+        "relevance_reason",
+        "primary_topic",
+        "event_type",
+        "summary",
+        "processing_metadata",
+        "doc_metadata",
+    }.issubset(columns.keys())
+    assert columns.ingestion_status.nullable is False
+    assert columns.evidence_level.nullable is False
+    assert columns.relevance_tier.nullable is True
+    assert columns.primary_topic.nullable is True
+    assert columns.event_type.nullable is True
+    assert check_constraints == {
+        "ck_documents_ingestion_status",
+        "ck_documents_evidence_level",
+        "ck_documents_relevance_tier",
+        "ck_documents_primary_topic",
+        "ck_documents_event_type",
+    }
+
+
+def test_chunk_model_tracks_embedding_and_chunking_provenance() -> None:
+    assert "embedding_model" in Chunk.__table__.c
+    assert "chunking_version" in Chunk.__table__.c
+    assert Chunk.__table__.c.embedding_model.nullable is True
+    assert Chunk.__table__.c.chunking_version.nullable is True
 
 
 def test_chunk_position_is_unique_and_document_delete_cascades() -> None:

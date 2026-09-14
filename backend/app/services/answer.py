@@ -35,6 +35,7 @@ class AnswerService:
                 event_types=request.event_types,
                 source_types=request.source_types,
                 maturities=request.maturities,
+                include_contextual=request.include_contextual,
                 collection=request.collection,
                 published_after=request.published_after,
                 published_before=request.published_before,
