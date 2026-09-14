@@ -208,6 +208,18 @@ jobs:
               --build-arg "VCS_REF=${GITHUB_SHA}" \
               --tag "${image_uri}" \
               backend
+
+            # Alpine's libuuid package is built from the util-linux source
+            # package, so ECR can attribute mount/nsenter CVEs to it even when
+            # those util-linux programs are absent. Prove the reviewed image has
+            # libuuid only, not util-linux, before publishing it.
+            docker run --rm --entrypoint sh "${image_uri}" -ec '
+              apk info -e libuuid >/dev/null
+              ! apk info -e util-linux >/dev/null 2>&1
+              nsenter_path="$(readlink -f "$(command -v nsenter)")"
+              apk info -W "${nsenter_path}" | grep -q "owned by busybox-"
+            '
+
             docker push "${image_uri}"
           fi
 
@@ -224,23 +236,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          image_uri="${{ steps.publish.outputs.image_uri }}"
-          registry="${image_uri%%/*}"
-          aws ecr get-login-password --region "${AWS_REGION}" \
-            | docker login --username AWS --password-stdin "${registry}" >/dev/null
-          docker pull "${image_uri}" >/dev/null
-
-          # Alpine's libuuid package is built from the util-linux source package, so
-          # ECR can attribute mount/nsenter CVEs to it even when those util-linux
-          # programs are absent. Keep the exception valid only while the runtime
-          # contains libuuid, not util-linux, and BusyBox owns nsenter.
-          docker run --rm --entrypoint sh "${image_uri}" -ec '
-            apk info -e libuuid >/dev/null
-            ! apk info -e util-linux >/dev/null 2>&1
-            nsenter_path="$(readlink -f "$(command -v nsenter)")"
-            apk info -W "${nsenter_path}" | grep -q "owned by busybox-"
-          '
 
           scan_status=""
           for attempt in $(seq 1 30); do
