@@ -82,7 +82,7 @@ question design, evaluation matrix, tuning order, and acceptance targets are in
 
 The UI is completed first so the initial hosted validation represents the intended
 public product. The detailed order, recommended lean AWS topology, and acceptance
-criteria are in `UI_PRODUCT_PLAN.md` and `DEPLOYMENT_PLAN.md`.
+criteria are in `../UI_PRODUCT_PLAN.md` and `../DEPLOYMENT_PLAN.md`.
 
 ## Phase 5: Content Structure
 

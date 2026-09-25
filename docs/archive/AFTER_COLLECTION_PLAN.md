@@ -1,6 +1,6 @@
 # After Collection Plan
 
-This document preserves the execution plan used for the original documentation RAG prototype. It is historical; the active update-dashboard plan is in `ROADMAP.md`.
+This document preserves the execution plan used for the original documentation RAG prototype. It is historical; the active update-dashboard plan is in `../ROADMAP.md`.
 
 The goal was to turn scraped pages into a searchable, inspectable RAG system without adding unnecessary complexity.
 

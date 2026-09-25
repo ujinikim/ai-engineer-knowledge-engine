@@ -4,7 +4,7 @@ This plan addresses taxonomy quality in a deliberate order so deterministic defe
 are fixed before subjective classification policy is tuned. It is based on the July
 25, 2026 audit of 194 stored release documents.
 
-The active record-level workflow is documented in `TAXONOMY_REVIEW_RUNBOOK.md`.
+The active record-level workflow is documented in `../runbooks/TAXONOMY_REVIEW_RUNBOOK.md`.
 Following the fresh all-source collection, its review artifact indexes 239 documents
 and provides a 43-item stratified human-review sample.
 

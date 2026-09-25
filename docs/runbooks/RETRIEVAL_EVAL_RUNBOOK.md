@@ -6,7 +6,7 @@ It evaluates retrieval only. It does not grade final answer quality yet.
 
 It must remain green for backward compatibility, but its 15 documentation questions
 are not the update-focused Phase 3 benchmark. The versioned update benchmark is
-specified in `PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
+specified in `../archive/PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
 
 ## Update Benchmark
 

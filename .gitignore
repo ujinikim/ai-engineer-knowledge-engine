@@ -31,3 +31,8 @@ backend/data/raw/*.jsonl
 backend/data/eval/results*.jsonl
 backend/data/eval/summary*.json
 backend/data/eval/latency_profile*.json
+
+# Local source and relevance review outputs; retain on disk for comparisons.
+backend/data/eval/source_expansion_2026-09-13/*/*.json
+backend/data/eval/summaries/article_relevance_evaluation_2026-09-13*.json
+backend/data/eval/summaries/taxonomy_v2_review_sample_2026-09-13.json

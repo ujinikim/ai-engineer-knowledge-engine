@@ -290,7 +290,7 @@ def main() -> None:
             },
         ],
         "review_order": [
-            "Review event_types first using TAXONOMY_REMEDIATION_PLAN.md.",
+            "Review event_types first using docs/archive/TAXONOMY_REMEDIATION_PLAN.md.",
             "Review maturity second as artifact lifecycle.",
             "Review primary_topic last after event and maturity decisions stabilize.",
         ],

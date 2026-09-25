@@ -142,7 +142,7 @@ publish to one encrypted SNS topic. Set `alarm_notification_email` before apply 
 request an email subscription, then confirm the message AWS sends. Without an email,
 the alarms are still visible in CloudWatch but do not notify a person.
 
-See `docs/AWS_OBSERVABILITY_RUNBOOK.md` for thresholds, console locations, verification,
+See `docs/runbooks/AWS_OBSERVABILITY_RUNBOOK.md` for thresholds, console locations, verification,
 and first-response guidance.
 
 ## Validate and review

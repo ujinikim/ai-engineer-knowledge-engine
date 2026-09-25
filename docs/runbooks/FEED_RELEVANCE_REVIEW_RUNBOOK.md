@@ -113,4 +113,4 @@ deferred. The future rollout consists of:
 Every proposed `excluded` item has now been reviewed. Application rollout still
 requires the metadata backfill, API behavior, UI control, and regression tests.
 The planned LLM classification flow and its safe fallback behavior are recorded in
-`FEED_RELEVANCE_POLICY_PROPOSAL.md`.
+`../archive/FEED_RELEVANCE_POLICY_PROPOSAL.md`.

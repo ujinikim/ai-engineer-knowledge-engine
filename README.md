@@ -42,67 +42,34 @@ The MVP does not include general web crawling, engagement-based popularity, cros
 
 ## Local Setup
 
-Start PostgreSQL and prepare the schema:
+With Docker running and Node.js/npm and `uv` installed, install dependencies once:
 
 ```bash
-docker compose up -d postgres
+npm install --prefix frontend
 cd backend
 uv sync
-uv run python scripts/create_db.py
+cd ..
 ```
 
-Collect the latest matching official articles and releases once:
+From the project root, start each service separately. Run the backend and frontend
+in separate terminals:
 
 ```bash
-uv run python scripts/collect_updates.py --max-items 12
+npm run db:up
+npm run dev:backend
+npm run dev:frontend
 ```
 
-Keep the database fresh every hour:
-
-```bash
-uv run python scripts/collect_updates.py --max-items 12 --interval-minutes 60
-```
-
-Start the API:
-
-```bash
-uv run fastapi dev app/main.py
-```
-
-Start the frontend in another terminal:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open `http://localhost:5173`. API documentation is at `http://localhost:8000/docs`.
-
-The older documentation ingestion pipeline remains available through `backend/scripts/ingest.py`.
-
-Generate or regenerate article metadata for already stored updates:
-
-```bash
-uv run python scripts/backfill_article_metadata.py
-uv run python scripts/backfill_article_metadata.py --force
-```
+Open `http://localhost:5173`; API docs are at `http://localhost:8000/docs`.
+Starting the services does not ingest articles or migrate the database. Run
+`npm run db:migrate` after creating a database or changing its schema, and run
+`npm run ingest -- --max-items 12` when you want a collection pass. Stop the
+servers with Ctrl+C and PostgreSQL with `npm run db:stop`; its data is preserved.
+Use the local database URL from `.env.example` when working locally.
 
 ## Documentation
 
-- [Project brief](docs/PROJECT_BRIEF.md)
+- [Documentation guide](docs/README.md): current references, runbooks, and historical records
+- [Roadmap](docs/ROADMAP.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Data sources](docs/DATA_SOURCES.md)
-- [Product direction](docs/PRODUCT_DIRECTION.md)
-- [Quality improvement plan](docs/QUALITY_IMPROVEMENT_PLAN.md)
-- [Phase 3 retrieval benchmark plan](docs/PHASE3_RETRIEVAL_BENCHMARK_PLAN.md)
-- [Phase 3 retrieval and grounded-answer closeout](docs/PHASE3_CLOSEOUT_2026-07-29.md)
-- [Deployment plan](docs/DEPLOYMENT_PLAN.md)
-- [Application Terraform](infra/terraform/README.md)
-- [Observability runbook](docs/OBSERVABILITY_RUNBOOK.md)
-- [Extraction evaluation runbook](docs/EXTRACTION_EVAL_RUNBOOK.md)
-- [Summary evaluation runbook](docs/SUMMARY_EVAL_RUNBOOK.md)
-- [Collection runbook](docs/COLLECTION_RUNBOOK.md)
-- [API design](docs/API_DESIGN.md)
-- [MVP status](docs/MVP_STATUS.md)
-- [Roadmap](docs/ROADMAP.md)

@@ -76,7 +76,7 @@ The image includes the Alembic configuration and revisions so the deployment wor
 can migrate the database with the same immutable image that runs the API.
 API and collector application events are emitted as newline-delimited JSON for
 CloudWatch ingestion. Uvicorn's duplicate request access log is disabled; see
-`../docs/OBSERVABILITY_RUNBOOK.md` for event fields and sensitive-data rules.
+`../docs/runbooks/OBSERVABILITY_RUNBOOK.md` for event fields and sensitive-data rules.
 
 ## Runtime configuration
 

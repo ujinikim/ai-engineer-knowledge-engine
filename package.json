@@ -1,0 +1,13 @@
+{
+  "name": "developer-update-radar",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "cd backend && uv run fastapi dev app/main.py",
+    "db:up": "docker compose up -d postgres",
+    "db:stop": "docker compose stop postgres",
+    "db:logs": "docker compose logs -f postgres",
+    "db:migrate": "cd backend && uv run python scripts/create_db.py",
+    "ingest": "cd backend && uv run python scripts/collect_updates.py"
+  }
+}

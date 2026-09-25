@@ -33,7 +33,7 @@ Review one axis across the entire sample before moving to the next:
 Do not attempt to settle all three axes for one item at once. Reviewing one axis at a
 time produces more consistent decisions.
 
-Use `docs/TAXONOMY_REMEDIATION_PLAN.md` for the proposed definitions and decision
+Use `../archive/TAXONOMY_REMEDIATION_PLAN.md` for the proposed definitions and decision
 boundaries.
 
 ## Step 1: Event Types

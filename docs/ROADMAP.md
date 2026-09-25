@@ -50,11 +50,11 @@ checkpoint.
 Agents, conversational memory, and autonomous browsing remain outside the planned product unless a measured workflow requires them.
 
 The longer-term personal digest and learning-dashboard direction is captured in `PRODUCT_DIRECTION.md`.
-The ordered evaluation and product phases are captured in `QUALITY_IMPROVEMENT_PLAN.md`.
+The ordered evaluation and product phases are captured in `archive/QUALITY_IMPROVEMENT_PLAN.md`.
 Phase 3 question design, metrics, tuning order, and gates are captured in
-`PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
+`archive/PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
 The completed Phase 3 result and deployment handoff are in
-`PHASE3_CLOSEOUT_2026-07-29.md`.
+`archive/PHASE3_CLOSEOUT_2026-07-29.md`.
 Deployment topology, sequencing, and launch gates are captured in `DEPLOYMENT_PLAN.md`.
 The pre-launch interface hierarchy and personal-product direction are captured in
 `UI_PRODUCT_PLAN.md`.

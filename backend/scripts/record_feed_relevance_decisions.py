@@ -75,7 +75,7 @@ def main() -> None:
         "schema_version": 1,
         "reviewed_at": datetime.now(timezone.utc).isoformat(),
         "reviewed_by": "codex-assisted-review",
-        "policy_basis": "docs/FEED_RELEVANCE_POLICY_PROPOSAL.md",
+        "policy_basis": "docs/archive/FEED_RELEVANCE_POLICY_PROPOSAL.md",
         "review_file": str(arguments.review.resolve()),
         "decisions": decisions,
         "summary": {
