@@ -2,7 +2,7 @@ from datetime import datetime
 from types import SimpleNamespace
 from uuid import uuid4
 
-from scripts.prepare_update_retrieval_snapshot import corpus_hash, snapshot_document
+from scripts.evaluation.prepare_update_retrieval_snapshot import corpus_hash, snapshot_document
 
 
 def test_snapshot_document_preserves_retrieval_identity_and_policy() -> None:

@@ -26,10 +26,6 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-backend/data/raw/*.jsonl
-!backend/data/raw/.gitkeep
-backend/data/eval/results*.jsonl
-backend/data/eval/summary*.json
 backend/data/eval/latency_profile*.json
 
 # Local source and relevance review outputs; retain on disk for comparisons.

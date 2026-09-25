@@ -2,7 +2,7 @@
 
 ## Source Policy
 
-The feed targets engineers building LLM applications and infrastructure. Sources must be first-party, dated, canonically linkable, and useful for models, APIs, agents, inference, retrieval, training, evaluation, developer tools, infrastructure, or security.
+The feed targets engineers building, operating, evaluating, and securing LLM agents. Sources must be dated, canonically linkable, and useful for that scope. A tagged practitioner feed is allowed as a curated source.
 
 The collector accepts RSS, Atom, and curated HTML listing pages. Broad feeds use configured engineering terms before an item is stored or summarized. HTML sources use explicit link patterns and article-content selectors instead of a general crawler.
 
@@ -17,40 +17,27 @@ Primary sources use a credibility weight of `1.0` by default. Curated analysis i
 
 ## Configured Sources
 
-The registry lives in `backend/data/update_sources.yml` and is copied into `update_sources` during collection.
+`backend/data/update_sources.yml` is the sole source registry. Collection writes per-source outcomes to `collection_source_runs`; the database does not hold another copy of source configuration.
 
 | Slug | Organization | Source type | Default topic | Active |
 |---|---|---|---|---|
-| `vllm` | vLLM Project | Official release | AI Products, Engineering & Infrastructure | No |
-| `langgraph` | LangChain | Official release | Agentic & Generative AI | No |
-| `transformers` | Hugging Face | Official release | Machine Learning & Classical AI | No |
-| `litellm` | BerriAI | Official release | AI Products, Engineering & Infrastructure | No |
-| `qdrant` | Qdrant | Official release | Data, Search & Retrieval | No |
-| `ollama` | Ollama | Official release | Agentic & Generative AI | No |
-| `openai-news` | OpenAI | Official product news | Agentic & Generative AI | Yes |
 | `langchain-blog` | LangChain | Official engineering blog | Agentic & Generative AI | Yes |
 | `microsoft-foundry` | Microsoft | Official engineering blog | AI Products, Engineering & Infrastructure | Yes |
 | `google-developers` | Google | Official engineering blog | AI Products, Engineering & Infrastructure | Yes |
 | `github-changelog` | GitHub | Official changelog | AI Products, Engineering & Infrastructure | Yes |
-| `huggingface-blog` | Hugging Face | Official engineering blog | Agentic & Generative AI | Yes |
-| `pytorch-blog` | PyTorch Foundation | Official engineering blog | Machine Learning & Classical AI | Yes |
-| `nvidia-technical-blog` | NVIDIA | Official engineering blog | AI Products, Engineering & Infrastructure | Yes |
 | `aws-machine-learning` | Amazon Web Services | Official engineering blog | AI Products, Engineering & Infrastructure | Yes |
-| `anthropic-news` | Anthropic | Official product news | Agentic & Generative AI | Yes |
-| `deepmind-blog` | Google DeepMind | Official engineering blog | Machine Learning & Classical AI | Yes |
-| `the-batch` | DeepLearning.AI | Editorial analysis | AI Products, Engineering & Infrastructure | Yes |
-| `import-ai` | Import AI | Editorial analysis | Machine Learning & Classical AI | Yes |
+| `anthropic-engineering` | Anthropic | Official engineering blog | Agentic & Generative AI | Yes |
+| `mcp-blog` | Model Context Protocol | Official engineering blog | Agentic & Generative AI | Yes |
+| `letta-blog` | Letta | Official engineering blog | Agentic & Generative AI | Yes |
+| `crewai-blog` | CrewAI | Official engineering blog | Agentic & Generative AI | Yes |
+| `simon-agentic-engineering` | Simon Willison | Curated analysis | Agentic & Generative AI | Yes |
 
-Raw GitHub repository release feeds remain configured but disabled. Their existing
-documents and chunks are retained for later evaluation. Scheduled collection, the
-dashboard, and RAG use only enabled sources. Passing a disabled slug explicitly with
-`--source` remains available for controlled experiments.
+Retired update sources have been removed from this registry and the local update database. Historical migrations and archived evaluations still document earlier source decisions. Collection, the dashboard, and RAG use only configured sources.
 
 Source-specific boundaries:
 
-- The Batch issue pages are discovery parents; each news story is stored under its individual story URL. The matching issue section is retained as an extraction fallback.
-- Import AI newsletters are split at explicit section delimiters. The original newsletter remains the canonical parent URL.
-- Anthropic news pages use the nested article body and exclude related-content cards.
+- Anthropic Engineering and Letta use dated article listings and extract the article body; undated listing entries are skipped.
+- MCP, CrewAI, and Simon Willison use their RSS or Atom feeds and hydrate individual articles. Feed titles are preserved when a page has a generic site heading. Simon's event and quote posts are skipped.
 - LangChain Blog uses its official RSS feed and hydrates only the article body. The feed supplies dated, canonical article URLs; filtering keeps the vendor's broader marketing and customer-story mix from overwhelming agent-engineering coverage.
 - Microsoft Foundry Blog uses its official RSS feed and full-article extraction. The terms focus its broader Azure AI coverage on agent services, tools, retrieval, evaluation, deployment, safety, and related platform engineering.
 - GitHub Changelog relevance terms use token boundaries, so `ai` does not match unrelated words such as `available`.

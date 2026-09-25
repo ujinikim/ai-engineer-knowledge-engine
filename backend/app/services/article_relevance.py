@@ -203,4 +203,8 @@ def stored_relevance_tier(metadata: dict) -> str:
 
 def relevance_is_visible(metadata: dict, *, include_contextual: bool = False) -> bool:
     tier = stored_relevance_tier(metadata)
-    return tier == "core" or (include_contextual and tier == "contextual")
+    return tier in visible_relevance_tiers(include_contextual=include_contextual)
+
+
+def visible_relevance_tiers(*, include_contextual: bool = False) -> tuple[str, ...]:
+    return ("core", "contextual") if include_contextual else ("core",)

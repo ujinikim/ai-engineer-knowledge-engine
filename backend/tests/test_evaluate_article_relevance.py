@@ -1,4 +1,4 @@
-from scripts.evaluate_article_relevance import evidence_level, summarize
+from scripts.evaluation.evaluate_article_relevance import evidence_level, summarize
 
 
 def test_evidence_level_prefers_explicit_state_and_derives_legacy_full_article() -> None:

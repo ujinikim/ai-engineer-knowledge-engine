@@ -7,10 +7,9 @@ import uuid
 from dataclasses import asdict
 from pathlib import Path
 
-import yaml
-
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+from scripts._source_config import load_update_sources
 from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event
 from app.db.session import SessionLocal, engine
@@ -18,7 +17,6 @@ from app.services.collector_lock import collector_run_lock
 from app.services.update_collector import UpdateCollectorService
 
 
-SOURCE_FILE = Path(__file__).resolve().parents[1] / "data" / "update_sources.yml"
 logger = get_logger("collector.runner")
 
 
@@ -27,8 +25,7 @@ class CollectionRunFailed(RuntimeError):
 
 
 def load_sources(source_slugs: list[str] | None = None) -> list[dict]:
-    with SOURCE_FILE.open("r", encoding="utf-8") as file:
-        sources = yaml.safe_load(file)["sources"]
+    sources = load_update_sources()
     if not source_slugs:
         return [source for source in sources if source.get("enabled", True)]
 

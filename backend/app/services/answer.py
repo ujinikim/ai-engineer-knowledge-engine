@@ -79,7 +79,7 @@ class AnswerService:
                 {
                     "role": "system",
                     "content": (
-                        "You analyze AI developer-tool documentation and dated product updates "
+                        "You analyze dated articles about LLM agent engineering "
                         "using only the provided context, never prior knowledge or memory. "
                         "Cite factual claims with bracketed citation IDs like [1], and use a "
                         "citation only when that exact passage directly supports the claim. "
@@ -167,17 +167,17 @@ class AnswerService:
     def _retrieval_warning(self, chunks, min_similarity: float) -> str | None:
         if not chunks:
             return (
-                "I could not retrieve any matching documentation chunks. "
+                "I could not retrieve any matching article passages. "
                 "Try broadening the source filters or lowering the similarity threshold."
             )
 
         top_score = chunks[0].similarity
         if top_score < min_similarity:
             return (
-                "The retrieved documentation looks weak for this question. "
+                "The retrieved articles look weak for this question. "
                 f"The top similarity score was {top_score:.3f}, below the configured "
                 f"threshold of {min_similarity:.3f}. Try lowering the threshold, increasing "
-                "top-k, changing filters, or adding more source documents."
+                "top-k, changing filters, or collecting more relevant articles."
             )
 
         return None

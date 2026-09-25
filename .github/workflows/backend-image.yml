@@ -69,19 +69,19 @@ jobs:
         run: |
           uv run --project backend alembic -c backend/alembic.ini upgrade head
           uv run --project backend alembic -c backend/alembic.ini check
-          uv run --project backend python backend/scripts/verify_migration_adoption.py seed
+          uv run --project backend python backend/scripts/verification/verify_migration_adoption.py seed
 
           # Simulate adopting the same schema before it had an Alembic version.
           uv run --project backend alembic -c backend/alembic.ini stamp base
           uv run --project backend alembic -c backend/alembic.ini upgrade head
-          uv run --project backend python backend/scripts/verify_migration_adoption.py verify
+          uv run --project backend python backend/scripts/verification/verify_migration_adoption.py verify
 
           # Prove that the baseline can be rebuilt from zero.
           uv run --project backend alembic -c backend/alembic.ini downgrade base
           uv run --project backend alembic -c backend/alembic.ini upgrade head
           uv run --project backend alembic -c backend/alembic.ini current --check-heads
-          uv run --project backend python backend/scripts/verify_health_endpoints.py
-          uv run --project backend python backend/scripts/verify_collector_lock.py
+          uv run --project backend python backend/scripts/verification/verify_health_endpoints.py
+          uv run --project backend python backend/scripts/verification/verify_collector_lock.py
 
       - name: Verify the production image builds
         run: |

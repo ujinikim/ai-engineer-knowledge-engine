@@ -16,7 +16,7 @@ class AskRequest(BaseModel):
     source_types: list[str] | None = None
     maturities: list[str] | None = None
     include_contextual: bool = False
-    collection: Literal["all", "docs", "updates"] = "all"
+    collection: Literal["updates"] = "updates"
     published_after: datetime | None = None
     published_before: datetime | None = None
     min_similarity: float = Field(default=0.35, ge=0, le=1)

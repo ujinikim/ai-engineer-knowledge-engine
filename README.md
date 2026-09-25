@@ -16,9 +16,9 @@ Question -> filtered hybrid retrieval -> original evidence -> cited answer
 
 ## MVP
 
-- Seventeen quality-tiered sources spanning primary releases, engineering publications, and selected editorial analysis
+- Ten selected sources spanning engineering publications, protocol updates, and curated agent analysis
 - Structured headlines, summaries, why-it-matters text, key points, and entity tags
-- Nine-topic controlled taxonomy with event type, source type, and maturity facets
+- Six-topic controlled taxonomy with event type, source type, and maturity facets
 - Idempotent collection with publication and fetch timestamps
 - PostgreSQL + pgvector storage
 - `24 hours`, `7 days`, `30 days`, and `All` dashboard windows
@@ -28,9 +28,8 @@ Question -> filtered hybrid retrieval -> original evidence -> cited answer
 - Answers restricted to the selected update window
 - Used citations separated from all retrieved evidence
 - Retrieval latency, token, and cost diagnostics
-- Existing documentation corpus retained as a separate collection
 
-The MVP does not include general web crawling, engagement-based popularity, cross-publication story clustering, agents, chat memory, or an LLM browsing the web at question time. Summaries are derived display content; original chunks remain the RAG evidence.
+The MVP does not include general web crawling, engagement-based popularity, cross-publication story clustering, autonomous in-app agents, chat memory, or an LLM browsing the web at question time. Summaries are derived display content; original chunks remain the RAG evidence.
 
 ## Stack
 

@@ -7,6 +7,7 @@ import pytest
 import yaml
 
 from app.services.update_collector import CollectionResult
+from app.services.update_visibility import configured_active_source_slugs
 from scripts import collect_updates
 
 
@@ -32,20 +33,33 @@ def install_runner_fakes(monkeypatch, result: CollectionResult) -> None:
     monkeypatch.setattr(collect_updates, "UpdateCollectorService", FakeCollector)
 
 
-def test_default_collection_skips_disabled_repository_release_sources() -> None:
+def test_default_collection_contains_only_selected_agent_sources() -> None:
     sources = collect_updates.load_sources()
+    slugs = {source["slug"] for source in sources}
 
-    assert {source["slug"] for source in sources}.isdisjoint(
-        {"vllm", "langgraph", "transformers", "litellm", "qdrant", "ollama"}
-    )
-    assert "github-changelog" in {source["slug"] for source in sources}
+    assert slugs == {
+        "langchain-blog", "microsoft-foundry", "google-developers",
+        "github-changelog", "aws-machine-learning", "anthropic-engineering",
+        "mcp-blog", "letta-blog", "crewai-blog", "simon-agentic-engineering",
+    }
 
 
-def test_disabled_source_can_still_be_collected_explicitly() -> None:
-    sources = collect_updates.load_sources(["vllm"])
+def test_removed_sources_are_not_in_the_registry() -> None:
+    for slug in (
+        "vllm", "langgraph", "transformers", "litellm", "qdrant", "ollama",
+        "openai-news", "huggingface-blog", "nvidia-technical-blog",
+        "anthropic-news", "deepmind-blog", "pytorch-blog", "the-batch", "import-ai",
+    ):
+        with pytest.raises(ValueError, match="Unknown source slug"):
+            collect_updates.load_sources([slug])
 
-    assert [source["slug"] for source in sources] == ["vllm"]
-    assert sources[0]["enabled"] is False
+
+def test_feed_visibility_uses_only_current_registry() -> None:
+    active = set(configured_active_source_slugs())
+    assert "anthropic-engineering" in active
+    assert "anthropic-news" not in active
+    assert "openai-news" not in active
+
 
 
 def test_new_agent_engineering_sources_use_official_rss_and_full_article_hydration() -> None:
@@ -66,6 +80,12 @@ def test_new_agent_engineering_sources_use_official_rss_and_full_article_hydrati
     assert foundry["feed_url"] == "https://devblogs.microsoft.com/foundry/feed/"
     assert foundry["fetch_full_article"] is True
     assert foundry["content_selector"] == "main"
+
+    assert sources["mcp-blog"]["feed_url"] == "https://blog.modelcontextprotocol.io/index.xml"
+    assert sources["crewai-blog"]["feed_url"] == "https://blog.crewai.com/rss/"
+    assert sources["simon-agentic-engineering"]["feed_url"].endswith("/agentic-engineering.atom")
+    assert sources["anthropic-engineering"]["require_published_date"] is True
+    assert sources["letta-blog"]["require_published_date"] is True
 
 
 def test_overlapping_collection_is_a_successful_skip(monkeypatch, capsys) -> None:

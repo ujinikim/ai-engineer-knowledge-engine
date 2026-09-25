@@ -35,11 +35,10 @@ COPY app ./app
 COPY alembic.ini ./alembic.ini
 COPY migrations ./migrations
 COPY scripts ./scripts
-COPY data/sources.yml data/update_sources.yml ./data/
+COPY data/update_sources.yml ./data/
 
 RUN addgroup -S -g 10001 app \
     && adduser -S -D -u 10001 -G app -h /app app \
-    && mkdir -p /app/data/raw \
     && chown -R app:app /app
 
 USER app

@@ -1,6 +1,6 @@
 from app.db.models import Document
 from app.services.taxonomy import EVENT_TYPES, PRIMARY_TOPICS, TAXONOMY_POLICY_VERSION
-from scripts.backfill_taxonomy_v2 import build_query, classify_excerpt, load_sources
+from scripts.maintenance.backfill_taxonomy_v2 import build_query, classify_excerpt, load_sources
 from sqlalchemy.dialects import postgresql
 
 
@@ -13,7 +13,7 @@ def test_backfill_query_scopes_to_enabled_published_updates() -> None:
     ).lower()
 
     assert "documents.source_type" in sql
-    assert "update_sources.enabled is true" in sql
+    assert "anthropic-engineering" in sql
     assert "ingestion_status" in sql
     assert "documents.source_name" in sql
 

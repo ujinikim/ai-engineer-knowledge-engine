@@ -177,7 +177,7 @@ source or taxonomy has changed. When regeneration is required:
 
 ```bash
 cd backend
-uv run python scripts/prepare_taxonomy_review.py \
+uv run python scripts/reviews/prepare_taxonomy_review.py \
   --sample-size 43 \
   --change-note "Describe exactly what changed."
 ```

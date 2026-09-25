@@ -1,5 +1,5 @@
 from app.db.models import Document
-from scripts.prepare_taxonomy_v2_review import review_key, select_source_balanced
+from scripts.reviews.prepare_taxonomy_v2_review import review_key, select_source_balanced
 
 
 def document(document_id: str, source_name: str) -> Document:

@@ -6,7 +6,7 @@ Phase 1 evaluates stored update documents without changing PostgreSQL or ingesti
 
 ```bash
 cd backend
-uv run python scripts/evaluate_extraction.py
+uv run python scripts/evaluation/evaluate_extraction.py
 ```
 
 Outputs:
@@ -19,9 +19,9 @@ data/eval/extraction/human_review_sample.json
 Useful filters:
 
 ```bash
-uv run python scripts/evaluate_extraction.py --source deepmind-blog
-uv run python scripts/evaluate_extraction.py --status warning
-uv run python scripts/evaluate_extraction.py --sample-size 30
+uv run python scripts/evaluation/evaluate_extraction.py --source anthropic-engineering
+uv run python scripts/evaluation/evaluate_extraction.py --status warning
+uv run python scripts/evaluation/evaluate_extraction.py --sample-size 30
 ```
 
 Filtered runs write to the same paths by default. Use `--output-dir` to preserve a separate report.

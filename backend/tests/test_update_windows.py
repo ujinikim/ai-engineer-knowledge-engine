@@ -1,7 +1,18 @@
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
 
 from app.services.updates import UpdateService
 from app.services.update_collector import UpdateCollectorService
+
+
+def test_empty_updates_query_builds_enabled_source_filters():
+    db = MagicMock()
+    db.scalars.return_value.all.return_value = []
+
+    response = UpdateService(db).list_updates(window="week", limit=1, offset=0)
+
+    assert response.stats.total_updates == 0
+    assert db.scalars.call_count == 2
 
 
 def test_update_windows_are_rolling_ranges():

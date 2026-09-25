@@ -308,113 +308,18 @@ def test_html_listing_adapter_deduplicates_and_resolves_links() -> None:
     ]
 
 
-def test_html_listing_can_name_and_sort_image_only_links() -> None:
+def test_source_filter_can_skip_quote_and_event_posts() -> None:
     collector = UpdateCollectorService.__new__(UpdateCollectorService)
-    config = {
-        "feed_url": "https://example.com/the-batch",
-        "homepage_url": "https://example.com/the-batch",
-        "link_pattern": r"^/the-batch/issue-\d+$",
-        "allow_empty_link_text": True,
-        "sort_links_by_path_number": True,
-    }
-    html = """
-    <a href="/the-batch/issue-100"><img alt="Issue cover"></a>
-    <a href="/the-batch/issue-25"><img alt="Popular old issue"></a>
-    <a href="/the-batch/issue-101"><img alt="Issue cover"></a>
-    """
+    config = {"exclude_title_prefixes": ["Quoting"], "exclude_tags": ["events"]}
 
-    entries = collector._html_listing_entries(config, html)
-
-    assert [entry["title"] for entry in entries] == [
-        "Issue 101",
-        "Issue 100",
-        "Issue 25",
-    ]
-
-
-def test_nested_html_listing_discovers_story_pages() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
-    issue_html = """
-    <html><body><main>
-      <h1 id="news">News</h1>
-      <h1 id="first-story">First story</h1>
-      <p>First story details.</p>
-      <h1 id="second-story%E2%80%99s-update">Second story</h1>
-      <p>Second story details.</p>
-    </main></body></html>
-    """
-    transport = httpx.MockTransport(
-        lambda request: httpx.Response(200, text=issue_html, request=request)
+    assert not collector._matches_config(
+        config, {"title": "Quoting an agent engineer", "summary": "Useful details"}
     )
-    config = {
-        "nested_entry_selector": "main h1[id]",
-        "nested_entry_exclude_ids": ["news"],
-        "nested_link_template": "/the-batch/{id}",
-    }
-    parents = [
-        {
-            "title": "Issue 10",
-            "link": "https://example.com/the-batch/issue-10",
-            "published": "2026-07-24",
-        }
-    ]
-
-    async def expand() -> list[dict]:
-        async with httpx.AsyncClient(transport=transport) as client:
-            return await collector._nested_html_listing_entries(
-                client,
-                config,
-                parents,
-                max_items=10,
-            )
-
-    entries = asyncio.run(expand())
-
-    assert [entry["title"] for entry in entries] == ["First story", "Second story"]
-    assert entries[0]["link"] == "https://example.com/the-batch/first-story"
-    assert entries[1]["link"] == "https://example.com/the-batch/second-storys-update"
-    assert entries[0]["_parent_url"] == "https://example.com/the-batch/issue-10"
-    assert "First story details" in entries[0]["content"][0]["value"]
-    assert "Second story details" not in entries[0]["content"][0]["value"]
-
-
-def test_newsletter_sections_are_split_and_fiction_is_excluded() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
-    config = {
-        "section_title_selector": "strong",
-        "section_exclude_title_prefixes": ["Tech Tales"],
-    }
-    entry = {
-        "title": "Newsletter 10",
-        "link": "https://example.com/newsletter-10",
-        "content": [
-            {
-                "value": """
-                <p>Newsletter introduction.</p>
-                <p><strong>First research story:</strong><br>Details about the result.</p>
-                <p>More evidence.</p>
-                <p>***</p>
-                <p><strong>Second policy story:</strong><br>Policy details.</p>
-                <p>***</p>
-                <p><strong>Tech Tales:</strong></p>
-                <p>A fictional story.</p>
-                """
-            }
-        ],
-    }
-
-    sections = collector._split_entry_sections(config, entry, "***")
-
-    assert [section["title"] for section in sections] == [
-        "First research story",
-        "Second policy story",
-    ]
-    assert sections[0]["_canonical_url"] == entry["link"]
-    assert sections[0]["link"].startswith(f"{entry['link']}#story-1-")
-    assert "Newsletter introduction" not in sections[0]["content"][0]["value"]
-    assert "fictional" not in " ".join(
-        section["content"][0]["value"] for section in sections
+    assert not collector._matches_config(
+        config,
+        {"title": "Agent engineering meetup", "tags": [{"term": "events"}]},
     )
+    assert collector._matches_config(config, {"title": "Building reliable coding agents"})
 
 
 def test_html_entry_date_parser_supports_listing_and_iso_dates() -> None:
@@ -453,7 +358,6 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
         "content_selector": ".article-body",
         "content_remove_selectors": [".related"],
         "minimum_full_article_characters": 50,
-        "title_direct_text": True,
     }
     entry = {
         "title": "Feed title",
@@ -467,7 +371,7 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
 
     hydrated = asyncio.run(hydrate())
 
-    assert hydrated["title"] == "Ray on TPU"
+    assert hydrated["title"] == "Feed title"
     assert hydrated["published"] == "2026-07-20"
     assert collector._entry_datetime(hydrated).isoformat() == "2026-07-20T00:00:00"
     assert hydrated["_hydration_status"] == "full_article"
@@ -478,6 +382,29 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
     assert hydrated["_full_article_fetch_attempted_at"]
     assert "Technical article body" in hydrated["content"][0]["value"]
     assert "Unrelated recommendation" not in hydrated["content"][0]["value"]
+
+
+def test_listing_hydration_uses_article_title_but_feed_hydration_keeps_feed_title() -> None:
+    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    html = "<html><body><h1>Site name</h1><article><h1>Article title</h1><p>Useful agent implementation details.</p></article></body></html>"
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, text=html, request=request))
+    entry = {"title": "Listing title", "link": "https://example.com/article"}
+
+    async def hydrate(config: dict) -> dict:
+        async with httpx.AsyncClient(transport=transport) as client:
+            return await collector._hydrate_html_entry(client, config, entry)
+
+    assert asyncio.run(hydrate({"source_kind": "html_listing", "content_selector": "article", "minimum_full_article_characters": 10}))["title"] == "Article title"
+    assert asyncio.run(hydrate({"source_kind": "rss", "content_selector": "article", "minimum_full_article_characters": 10}))["title"] == "Listing title"
+
+    generic_site_heading = "<html><body><h1>Site name</h1><div class='entryPage'><p>Useful agent implementation details.</p></div></body></html>"
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, text=generic_site_heading, request=request))
+
+    async def hydrate_without_article_heading() -> dict:
+        async with httpx.AsyncClient(transport=transport) as client:
+            return await collector._hydrate_html_entry(client, {"source_kind": "atom", "content_selector": ".entryPage", "minimum_full_article_characters": 10}, entry)
+
+    assert asyncio.run(hydrate_without_article_heading())["title"] == "Listing title"
 
 
 def test_forbidden_article_fetch_becomes_structured_feed_excerpt_fallback() -> None:

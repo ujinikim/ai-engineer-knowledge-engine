@@ -58,3 +58,16 @@ The completed Phase 3 result and deployment handoff are in
 Deployment topology, sequencing, and launch gates are captured in `DEPLOYMENT_PLAN.md`.
 The pre-launch interface hierarchy and personal-product direction are captured in
 `UI_PRODUCT_PLAN.md`.
+
+## Code organization
+
+The commands are grouped by purpose in `backend/scripts/`; its README identifies
+their roles and write behavior. Shared helpers load source configuration and retain
+prior human review decisions. The frontend separates API calls, display helpers,
+the About view, feed, briefing panel, and styles. The collector keeps orchestration
+and storage while `source_extraction.py` handles feed and article parsing.
+
+Feed and search use the same enabled-source and relevance-tier rules. Search also
+requires published, substantive article evidence; the feed may show a published
+official excerpt. These file moves require no database migration. A fresh local
+ingestion and evaluation are still needed before changing source or relevance rules.

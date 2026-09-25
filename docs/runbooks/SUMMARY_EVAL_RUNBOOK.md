@@ -7,21 +7,21 @@ Phase 2 measures whether stored article summaries are grounded, useful, and cate
 From `backend`:
 
 ```bash
-uv run python scripts/evaluate_summaries.py
+uv run python scripts/evaluation/evaluate_summaries.py
 ```
 
 Every evaluation that replaces a human-review artifact should describe what changed:
 
 ```bash
-uv run python scripts/evaluate_summaries.py \
+uv run python scripts/evaluation/evaluate_summaries.py \
   --change-note "Regenerated after sparse-source prompt revision; summaries are otherwise unchanged."
 ```
 
 Optional filters:
 
 ```bash
-uv run python scripts/evaluate_summaries.py --source github-changelog
-uv run python scripts/evaluate_summaries.py --status warning --sample-size 10
+uv run python scripts/evaluation/evaluate_summaries.py --source github-changelog
+uv run python scripts/evaluation/evaluate_summaries.py --status warning --sample-size 10
 ```
 
 The command writes:

@@ -7,10 +7,12 @@ from datetime import datetime, timezone
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Chunk, Document, UpdateSource
+from app.db.models import Chunk, Document
 from app.schemas.search import RetrievedChunk, RetrievalMetrics, SearchRequest, SearchResponse
 from app.services.embedding import EmbeddingService
-from app.services.article_relevance import stored_relevance_tier
+from app.services.article_relevance import stored_relevance_tier, visible_relevance_tiers
+from app.services.ingestion_policy import PUBLISHED
+from app.services.update_visibility import configured_active_source_slugs
 
 
 @dataclass
@@ -269,14 +271,11 @@ class RetrieverService:
             if search_mode == "keyword":
                 candidate.combined_score = keyword_score
                 return candidate.combined_score
-            if candidate.document.source_type == "release":
-                candidate.combined_score = (
-                    (0.60 * vector_score)
-                    + (0.25 * keyword_score)
-                    + (0.15 * candidate.recency_score)
-                )
-            else:
-                candidate.combined_score = (0.7 * vector_score) + (0.3 * keyword_score)
+            candidate.combined_score = (
+                (0.60 * vector_score)
+                + (0.25 * keyword_score)
+                + (0.15 * candidate.recency_score)
+            )
             return candidate.combined_score
 
         return sorted(candidates, key=score, reverse=True)
@@ -319,10 +318,7 @@ class RetrieverService:
     def _apply_filters(self, stmt, request: SearchRequest):
         if request.source_names:
             stmt = stmt.where(Document.source_name.in_(request.source_names))
-        if request.collection == "docs":
-            stmt = stmt.where(Document.source_type == "docs")
-        elif request.collection == "updates":
-            stmt = stmt.where(Document.source_type == "release")
+        stmt = stmt.where(Document.source_type == "release")
         stmt = stmt.where(
             self._retrievable_document_clause(
                 include_contextual=request.include_contextual,
@@ -384,18 +380,16 @@ class RetrieverService:
         )
 
     def _retrievable_document_clause(self, *, include_contextual: bool = False):
-        enabled_source_slugs = select(UpdateSource.slug).where(UpdateSource.enabled.is_(True))
-        relevance_tiers = ["core", "contextual"] if include_contextual else ["core"]
-        return or_(
-            Document.source_type != "release",
-            and_(
-                Document.source_name.in_(enabled_source_slugs),
-                Document.ingestion_status == "published",
-                Document.evidence_level != "official_feed_excerpt",
-                or_(
-                    Document.relevance_tier.is_(None),
-                    Document.relevance_tier.in_(relevance_tiers),
-                ),
+        enabled_sources = configured_active_source_slugs()
+        relevance_tiers = visible_relevance_tiers(include_contextual=include_contextual)
+        return and_(
+            Document.source_type == "release",
+            Document.source_name.in_(enabled_sources),
+            Document.ingestion_status == PUBLISHED,
+            Document.evidence_level != "official_feed_excerpt",
+            or_(
+                Document.relevance_tier.is_(None),
+                Document.relevance_tier.in_(relevance_tiers),
             ),
         )
 

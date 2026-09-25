@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import Document, UpdateSource
+from app.db.models import CollectionSourceRun, Document
 from app.schemas.updates import (
     DashboardStats,
     TimeWindow,
@@ -15,7 +15,8 @@ from app.schemas.updates import (
 )
 from app.services.source_detail import classify_content_detail
 from app.services.ingestion_policy import PUBLISHED, stored_ingestion_status
-from app.services.article_relevance import stored_relevance_tier
+from app.services.article_relevance import stored_relevance_tier, visible_relevance_tiers
+from app.services.update_visibility import configured_active_source_slugs, configured_sources
 
 
 class UpdateService:
@@ -23,23 +24,39 @@ class UpdateService:
         self.db = db
 
     def list_sources(self) -> list[UpdateSourceItem]:
-        sources = self.db.scalars(
-            select(UpdateSource).where(UpdateSource.enabled.is_(True)).order_by(UpdateSource.name)
-        ).all()
+        def latest_runs_for(status: str | None = None) -> dict[str, CollectionSourceRun]:
+            stmt = select(CollectionSourceRun).where(
+                CollectionSourceRun.source_slug.in_(configured_active_source_slugs())
+            )
+            if status is not None:
+                stmt = stmt.where(CollectionSourceRun.status == status)
+            runs = self.db.scalars(
+                stmt.distinct(CollectionSourceRun.source_slug).order_by(
+                    CollectionSourceRun.source_slug,
+                    CollectionSourceRun.finished_at.desc(),
+                    CollectionSourceRun.id.desc(),
+                )
+            ).all()
+            return {run.source_slug: run for run in runs}
+
+        latest_by_slug = latest_runs_for()
+        latest_success_by_slug = latest_runs_for("completed")
         return [
             UpdateSourceItem(
-                slug=source.slug,
-                name=source.name,
-                organization=source.organization,
-                tool=source.tool,
-                category=source.category,
-                source_type=str(source.source_metadata.get("source_type") or "official-release"),
-                primary_topic=source.category,
-                homepage_url=source.homepage_url,
-                last_collected_at=self._utc(source.last_collected_at),
-                last_error=source.last_error,
+                slug=source["slug"],
+                name=source["name"],
+                organization=source["organization"],
+                tool=source["tool"],
+                category=source.get("default_primary_topic", source["category"]),
+                source_type=source.get("source_type", "official-release"),
+                primary_topic=source.get("default_primary_topic", source["category"]),
+                homepage_url=source["homepage_url"],
+                last_collected_at=self._utc(latest_success_by_slug[source["slug"]].finished_at)
+                if source["slug"] in latest_success_by_slug else None,
+                last_error=latest_by_slug[source["slug"]].error
+                if source["slug"] in latest_by_slug else None,
             )
-            for source in sources
+            for source in sorted(configured_sources(), key=lambda source: source["name"])
         ]
 
     def list_updates(
@@ -62,10 +79,10 @@ class UpdateService:
         window_end = self._aware(end) if end else now
         window_start = self._aware(start) if start else self.window_start(window, window_end)
 
-        enabled_source_slugs = select(UpdateSource.slug).where(UpdateSource.enabled.is_(True))
+        enabled_sources = configured_active_source_slugs()
         stmt = select(Document).where(
             Document.source_type == "release",
-            Document.source_name.in_(enabled_source_slugs),
+            Document.source_name.in_(enabled_sources),
         )
         if window_start:
             stmt = stmt.where(Document.published_at >= self._naive(window_start))
@@ -95,14 +112,12 @@ class UpdateService:
                 )
             )
         ]
-        enabled_sources = list(
-            self.db.scalars(select(UpdateSource).where(UpdateSource.enabled.is_(True))).all()
-        )
+        enabled_sources = configured_sources()
         all_updates = list(
             self.db.scalars(
                 select(Document).where(
                     Document.source_type == "release",
-                    Document.source_name.in_(enabled_source_slugs),
+                    Document.source_name.in_(configured_active_source_slugs()),
                 )
             ).all()
         )
@@ -133,8 +148,8 @@ class UpdateService:
                 latest_published_at=self._utc(max(published_dates)) if published_dates else None,
             ),
             facets=UpdateFacets(
-                sources=sorted(source.slug for source in enabled_sources),
-                tools=sorted({source.tool for source in enabled_sources}),
+                sources=sorted(source["slug"] for source in enabled_sources),
+                tools=sorted({source["tool"] for source in enabled_sources}),
                 categories=sorted({self._topic(document) for document in all_updates}),
                 event_types=sorted(
                     {
@@ -261,7 +276,7 @@ class UpdateService:
         include_contextual: bool,
     ) -> bool:
         tier = self._relevance_tier(document)
-        return tier == "core" or (include_contextual and tier == "contextual")
+        return tier in visible_relevance_tiers(include_contextual=include_contextual)
 
     def _relevance_tier(self, document: Document) -> str:
         canonical = getattr(document, "relevance_tier", None)

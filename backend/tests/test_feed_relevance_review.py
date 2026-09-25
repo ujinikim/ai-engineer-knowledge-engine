@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from uuid import uuid4
 
-from scripts.prepare_feed_relevance_review import recommendation
+from scripts.reviews.prepare_feed_relevance_review import recommendation
 
 
 def document(title: str, event_types: list[str] | None = None) -> SimpleNamespace:

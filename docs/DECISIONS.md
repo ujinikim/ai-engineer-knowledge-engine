@@ -1,5 +1,8 @@
 # Decisions
 
+Decisions 001, 002, and the documentation-retention part of 006 describe the
+original prototype. The active product now collects articles only.
+
 ## 001: Start With Documentation, Not News
 
 Stable documentation is better for the MVP because it is easier to evaluate, easier to cite, and better for learning core RAG mechanics.

@@ -22,15 +22,14 @@ Analysis panel
   -> used citations + retrieved evidence + metrics
 ```
 
-## Collections
+## Article corpus
 
-- `updates`: dated official articles and release records collected from feeds
-- `docs`: stable documentation pages from the original RAG prototype
-- `all`: both collections when a question needs recent changes and background documentation
+The active corpus contains dated articles collected from configured update sources.
+The earlier documentation corpus and ingestion path have been removed.
 
 ## Update Storage
 
-`update_sources` stores source registry, active state, and collection health. Scheduled collection, dashboard queries, and release retrieval use only enabled sources. Disabling a source preserves its documents and chunks so the decision can be reversed without recollecting historical data. Feed entries are stored in `documents` with `source_type = release` for collection compatibility. Original text remains in `raw_text` and pgvector-backed chunks. Generated feed fields and taxonomy values live in JSON metadata.
+`backend/data/update_sources.yml` defines the sources used by collection, dashboard queries, and article retrieval. `collection_source_runs` records the outcome of each source attempt, grouped by `run_id`; it does not store source settings. Articles are stored in `documents` with `source_type = release` for schema compatibility. Original text remains in `raw_text` and pgvector-backed chunks. Generated feed fields and taxonomy values live in JSON metadata.
 
 Generated metadata includes `display_headline`, `summary`, `why_it_matters`,
 `key_points`, `primary_topic`, `event_types`, `entity_tags`, `source_type`, `maturity`,
@@ -40,7 +39,7 @@ validation prevents invented categories. The legacy `topic_tags` field remains p
 but empty for API compatibility. These values drive the feed but do not replace original
 evidence during RAG.
 
-This preserves one retrieval path while keeping collections filterable.
+Retrieval only considers the article corpus.
 
 ## Ranking
 
@@ -57,8 +56,6 @@ Hybrid retrieval for release records uses:
 ```text
 60% vector relevance + 25% normalized keyword relevance + 15% recency
 ```
-
-Documentation retrieval retains the previous vector/keyword weighting without a recency boost.
 
 Final retrieval is capped at two chunks per document so one long release note cannot
 consume the entire context window for a multi-update question. Release retrieval derives

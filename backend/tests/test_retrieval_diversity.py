@@ -1,9 +1,12 @@
 from types import SimpleNamespace
 
+import pytest
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.dialects import postgresql
 
 from app.db.models import Chunk, Document
+from app.schemas.ask import AskRequest
 from app.schemas.search import SearchRequest
 from app.services.retriever import Candidate, RetrieverService
 
@@ -123,9 +126,18 @@ def test_update_retrieval_only_queries_published_documents() -> None:
     assert "published" in sql
     assert "evidence_level" in sql
     assert "official_feed_excerpt" in sql
-    assert "update_sources.enabled IS true" in sql
+    assert "anthropic-engineering" in sql
     assert "relevance_tier" in sql
     assert "core" in sql
+
+
+def test_search_and_answers_accept_only_article_collection() -> None:
+    assert SearchRequest(query="agents").collection == "updates"
+    assert AskRequest(question="What changed?").collection == "updates"
+    with pytest.raises(ValidationError):
+        SearchRequest(query="agents", collection="docs")
+    with pytest.raises(ValidationError):
+        AskRequest(question="What changed?", collection="all")
 
 
 def test_contextual_retrieval_requires_explicit_inclusion() -> None:

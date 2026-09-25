@@ -250,7 +250,7 @@ class ExtractionQualityService:
         }
 
     def _suspected_collection_page(self, url: str, extraction_method: str) -> bool:
-        if extraction_method not in {"html_listing", "nested_html_listing"}:
+        if extraction_method != "html_listing":
             return False
         path = urlparse(url).path.lower()
         markers = ("/tag/", "/category/", "/search/", "/page/")

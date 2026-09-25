@@ -6,10 +6,9 @@ FastAPI backend for ingestion, retrieval, and answer generation.
 
 ```bash
 uv sync
-uv run python scripts/fetch_sources.py
 docker compose up -d postgres
 uv run alembic upgrade head
-uv run python scripts/ingest.py
+uv run python scripts/collect_updates.py --max-items 12
 uv run fastapi dev app/main.py
 ```
 

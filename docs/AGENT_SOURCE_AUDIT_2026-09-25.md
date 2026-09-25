@@ -1,14 +1,20 @@
 # Agent-focused source and filtering audit
 
-Research date: September 25, 2026. Recommendations only; source configuration, application code, and databases were not changed. Evidence: current checkout, saved September 13–14 evaluations, and public publisher pages. Production deployment and database state were not inspected.
+Research date: September 25, 2026. The audit below records the pre-change source list. PyTorch Blog, The Batch, and Import AI were subsequently removed from the local source configuration; stored database rows were not changed. Evidence: the checkout at audit time, saved September 13–14 evaluations, and public publisher pages. Production deployment and database state were not inspected.
+
+## Local pilot update
+
+Anthropic Newsroom, OpenAI News, Hugging Face Blog, NVIDIA Technical Blog, and DeepMind Blog were disabled, then removed from the local update registry along with the six repository-release feeds. Previously removed PyTorch Blog, The Batch, and Import AI records were also purged from the local update database. Anthropic Engineering, the MCP blog, Letta, CrewAI, and Simon Willison's agentic-engineering tag are enabled. Historical migrations and evaluation artifacts were retained.
+
+A manual local pilot collected two articles per new source: 10 created, 0 quarantined, 0 collection errors. Anthropic Engineering, MCP, Letta, and CrewAI each had two model-assigned core articles. Simon's two articles were excluded and contextual, respectively. These are initial pipeline results, not human-verified precision; inspect a larger sample before increasing collection volume.
 
 ## Recommendation
 
 Prioritize LangChain, Anthropic Engineering, MCP, Letta, and Microsoft Foundry. Pause the broadest low-yield feeds; retain selected broad publishers behind article-level filtering. Fix classification fallback behavior before expanding collection.
 
-## Current source decisions
+## Source decisions at audit time
 
-The registry has 13 enabled sources and six disabled repository-release sources. Counts below are **model-assigned core labels in saved, already-collected samples**, not human-verified precision or whole-publisher acceptance rates. The 174-article evaluation is separate from the LangChain and Foundry pilots.
+At audit time, the registry had 13 enabled sources and six disabled repository-release sources. Counts below are **model-assigned core labels in saved, already-collected samples**, not human-verified precision or whole-publisher acceptance rates. The 174-article evaluation is separate from the LangChain and Foundry pilots.
 
 | Current source | Saved core / evaluated | Recommendation |
 |---|---:|---|
@@ -49,7 +55,7 @@ Disabling a source currently removes it from enabled-source feed/retrieval queri
 
 LangChain and Foundry are already enabled, not new additions. Their public listings continue to show relevant material: [LangChain](https://www.langchain.com/blog), [Foundry](https://devblogs.microsoft.com/foundry/).
 
-Public pages were checked through web browsing. Direct feed parsing from the local shell failed because DNS/network access was unavailable; these candidates are not claimed to be collector-ready. No new source has received a representative acceptance-rate evaluation.
+The source candidates were subsequently checked with direct feed/listing requests and article extraction, then ingested in the limited local pilot described above. No new source has received a representative acceptance-rate evaluation.
 
 ## Filtering findings and changes
 

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.schemas.search import SearchRequest
-from scripts.evaluate_update_retrieval import (
+from scripts.evaluation.evaluate_update_retrieval import (
     filter_violations,
     required_text_coverage,
     retrieval_metrics,

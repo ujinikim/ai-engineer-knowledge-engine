@@ -17,7 +17,7 @@ Update sources live in:
 backend/data/update_sources.yml
 ```
 
-Each entry requires a unique slug, tool, organization, default primary topic, source type, feed URL, homepage URL, and credibility weight. Broad feeds can define `include_terms` and `exclude_terms`. Set `enabled: false` to omit a source from scheduled collection without deleting its configuration or stored documents.
+Each entry requires a unique slug, tool, organization, default primary topic, source type, feed URL, homepage URL, and credibility weight. Broad feeds can define `include_terms` and `exclude_terms`. Remove retired sources from the registry after their stored data is cleaned up.
 
 ## Collect Once
 
@@ -28,21 +28,20 @@ uv run python scripts/collect_updates.py --max-items 12
 Collect one or more sources during remediation:
 
 ```bash
-uv run python scripts/collect_updates.py --max-items 12 --source the-batch
+uv run python scripts/collect_updates.py --max-items 12 --source langchain-blog
 uv run python scripts/collect_updates.py --max-items 12 \
-  --source the-batch --source import-ai --source anthropic-news
+  --source langchain-blog --source microsoft-foundry --source anthropic-engineering
 ```
 
-Normal collection loads only enabled sources. An explicit `--source` selection may
-run a disabled source for a controlled experiment; it remains excluded from the
-dashboard and RAG until re-enabled in both configuration and the source registry.
+Normal collection loads all configured sources. An explicit `--source` selection
+limits a run to listed configured slugs; removed slugs are rejected.
 
 The collector:
 
 1. Tries to acquire the PostgreSQL collector advisory lock. If another manual or
    scheduled run owns it, the new run reports `collection_already_running` and exits
    successfully without fetching or writing anything.
-2. Registers or updates source records.
+2. Starts a per-source collection attempt identified by the run ID.
 3. Fetches official RSS, Atom, or configured HTML discovery pages.
 4. Applies configured relevance filters.
 5. Extracts source text and publication time. When configured full-article fetching
@@ -79,15 +78,13 @@ Collector output is newline-delimited structured JSON. Each run has a `run_id` j
 start, per-source, token/cost, completion, overlap, and failure events. See
 `OBSERVABILITY_RUNBOOK.md` for the event catalog and sensitive-data rules.
 
-The Batch uses nested issue discovery to store individual stories. Import AI uses explicit newsletter delimiters to store independently retrievable stories. Parent issue and newsletter URLs are retained in document metadata.
-
 ## Backfill Existing Updates
 
 ```bash
-uv run python scripts/backfill_article_metadata.py
-uv run python scripts/backfill_source_detail.py
-uv run python scripts/backfill_extraction_metadata.py
-uv run python scripts/backfill_taxonomy_v2.py --dry-run --limit 25
+uv run python scripts/maintenance/backfill_article_metadata.py
+uv run python scripts/maintenance/backfill_source_detail.py
+uv run python scripts/maintenance/backfill_extraction_metadata.py
+uv run python scripts/maintenance/backfill_taxonomy_v2.py --dry-run --limit 25
 ```
 
 Use `--force` to regenerate summaries after changing the prompt or taxonomy. Use `--limit N` for a quality sample before a full run.
@@ -111,8 +108,8 @@ These metadata fields describe independent stages:
 
 | Field | Purpose |
 |---|---|
-| `extraction_status` | `full_article`, `source_entry`, `feed_excerpt_only`, `title_only`, or `parent_section_fallback` |
-| `summary_input_source` | The text supplied to summarization: full article, source entry, feed excerpt, title, or parent section |
+| `extraction_status` | `full_article`, `source_entry`, `feed_excerpt_only`, or `title_only` |
+| `summary_input_source` | The text supplied to summarization: full article, source entry, feed excerpt, or title |
 | `full_article_fetch_attempted_at` | Timestamp of the latest configured full-page attempt |
 | `full_article_fetch_http_status` | HTTP response status when one was available |
 | `full_article_fetch_error_code` | Controlled code such as `http_forbidden`, `http_not_found`, `http_error`, `network_error`, or `content_incomplete` |
@@ -175,7 +172,7 @@ Check collector health:
 
 ```bash
 docker compose exec postgres psql -U postgres -d knowledge_engine \
-  -c "SELECT slug, last_collected_at, last_error FROM update_sources ORDER BY slug;"
+  -c "SELECT run_id, source_slug, finished_at, status, matched_items, updates_created, error FROM collection_source_runs ORDER BY finished_at DESC LIMIT 20;"
 ```
 
 Review the quarantine without exposing it to retrieval:
@@ -183,12 +180,4 @@ Review the quarantine without exposing it to retrieval:
 ```bash
 docker compose exec postgres psql -U postgres -d knowledge_engine \
   -c "SELECT source_name, doc_metadata->>'quarantine_reason' AS reason, count(*) FROM documents WHERE doc_metadata->>'ingestion_status' = 'quarantined' GROUP BY 1, 2 ORDER BY 1, 2;"
-```
-
-## Existing Documentation Collection
-
-The original curated documentation pipeline remains available:
-
-```bash
-uv run python scripts/ingest.py
 ```

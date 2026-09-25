@@ -33,7 +33,7 @@ remains temporarily available for backward compatibility.
 GET /update-sources
 ```
 
-Returns enabled database-backed source records and collection status.
+Returns configured sources from YAML with their latest collection outcome from the run log.
 
 ## Dashboard Updates
 
