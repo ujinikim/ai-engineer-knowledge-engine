@@ -13,7 +13,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from app.db.models import Document
 from app.db.session import SessionLocal
 from app.sources import configured_active_source_slugs
-from app.ingestion.summary import ArticleSummaryService
+from app.ingestion.taxonomy_classifier import TaxonomyClassifier
 from app.ingestion.taxonomy import EVENT_TYPES, PRIMARY_TOPICS, TAXONOMY_POLICY_VERSION
 from scripts.maintenance.backfill_taxonomy_v2 import classify_excerpt, load_sources
 
@@ -96,7 +96,7 @@ def review_key(document: Document, generated: dict) -> str:
 
 def classify_document(
     document: Document,
-    summarizer: ArticleSummaryService,
+    classifier: TaxonomyClassifier,
     source_config: dict,
 ) -> dict:
     default_topic = source_config.get(
@@ -108,38 +108,26 @@ def classify_document(
     if is_excerpt:
         result = classify_excerpt(document, source_config)
     else:
-        result = summarizer.classify_taxonomy(
+        result = classifier.classify(
             title=document.title,
             raw_text=document.raw_text,
             default_topic=default_topic,
             default_event_types=default_events,
         )
 
-    (
-        topic,
-        events,
-        method,
-        main_theme,
-        category_reason,
-        relevance_tier,
-        relevance_reason,
-        event_reason,
-    ) = result
     return {
-        "relevance": {
-            "tier": relevance_tier,
-            "reason": relevance_reason,
-        },
-        "main_theme": main_theme,
+        # Relevance moved upstream of taxonomy; the empty entry keeps review keys stable.
+        "relevance": {"tier": None, "reason": None},
+        "main_theme": result.main_theme,
         "category": {
-            "primary_topic": topic,
-            "reason": category_reason,
+            "primary_topic": result.primary_topic,
+            "reason": result.category_reason,
         },
         "event": {
-            "event_type": events[0],
-            "reason": event_reason,
+            "event_type": result.event_types[0],
+            "reason": result.event_reason,
         },
-        "classification_method": method,
+        "classification_method": result.method,
         "is_feed_excerpt": is_excerpt,
     }
 
@@ -156,11 +144,11 @@ def prepare_review(
         required_document_ids,
     )
     source_configs = load_sources()
-    summarizer = ArticleSummaryService(model=model)
+    classifier = TaxonomyClassifier(model=model)
     prior_payload = prior_payload or {}
     can_reuse = (
         prior_payload.get("taxonomy_policy_version") == TAXONOMY_POLICY_VERSION
-        and prior_payload.get("model") == summarizer.model
+        and prior_payload.get("model") == classifier.model
     )
     prior_items = {
         item["document_id"]: item
@@ -190,7 +178,7 @@ def prepare_review(
         else:
             generated = classify_document(
                 document,
-                summarizer,
+                classifier,
                 source_configs.get(document.source_name, {}),
             )
         items.append(
@@ -236,7 +224,7 @@ def prepare_review(
         "schema_version": 2,
         "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
         "generated_at": generated_at,
-        "model": summarizer.model,
+        "model": classifier.model,
         "purpose": (
             "Human evaluation of the taxonomy-v2 relevance, category, and event "
             "decision gates on a source-balanced sample of the current local corpus."

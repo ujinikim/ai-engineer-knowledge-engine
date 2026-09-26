@@ -1,10 +1,11 @@
+from types import SimpleNamespace
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
 from sqlalchemy.dialects import postgresql
 
 from app.serving.feed import UpdateService
-from app.ingestion.pipeline import UpdateCollectorService
+from app.ingestion.store import find_existing_article, normalize_url, url_candidates
 
 
 def test_empty_updates_query_builds_enabled_source_filters():
@@ -27,13 +28,12 @@ def test_update_windows_are_rolling_ranges():
 
 
 def test_document_urls_normalize_trailing_slashes_without_losing_fragments():
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
 
     assert (
-        collector._normalize_document_url("https://example.com/releases/item/#details")
+        normalize_url("https://example.com/releases/item/#details")
         == "https://example.com/releases/item#details"
     )
-    assert collector._document_url_candidates(
+    assert url_candidates(
         "https://example.com/releases/item/"
     ) == [
         "https://example.com/releases/item",
@@ -42,26 +42,27 @@ def test_document_urls_normalize_trailing_slashes_without_losing_fragments():
 
 
 def test_document_urls_normalize_hosts_queries_and_tracking_parameters():
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
 
-    assert collector._normalize_document_url(
+    assert normalize_url(
         "HTTPS://Example.COM:443/article/?b=2&utm_source=email&a=1#section"
     ) == "https://example.com/article?a=1&b=2#section"
 
 
 def test_existing_document_lookup_uses_url_without_duplicate_column():
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
-    collector.db = MagicMock()
-    collector.db.scalar.return_value = None
+    db = MagicMock()
+    db.scalar.return_value = None
 
-    collector._find_existing_document(
-        source_slug="example",
-        raw_url="https://example.com/article/",
-        title="Agent article",
-        content_hash="hash",
+    find_existing_article(
+        db,
+        SimpleNamespace(
+            source_slug="example",
+            raw_url="https://example.com/article/",
+            title="Agent article",
+            content_hash="hash",
+        ),
     )
 
-    statement = collector.db.scalar.call_args.args[0]
+    statement = db.scalar.call_args.args[0]
     sql = str(
         statement.compile(
             dialect=postgresql.dialect(),

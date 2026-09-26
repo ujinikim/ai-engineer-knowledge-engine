@@ -3,14 +3,23 @@ import asyncio
 import httpx
 import pytest
 
-from app.ingestion.summary import MAIN_THEME_RESPONSE_FORMAT, ArticleSummaryService
+from app.ingestion.content_detail import classify_content_detail
+from app.ingestion.prompts import (
+    MAIN_THEME_RESPONSE_FORMAT,
+    category_prompt,
+    event_prompt,
+    main_theme_prompt,
+    summary_user_prompt,
+)
+from app.ingestion.summary import ArticleSummaryService
 from app.ingestion.taxonomy import (
     classify_topic,
     classify_topic_with_method,
     infer_event_types,
     normalize_event_types,
 )
-from app.ingestion.pipeline import UpdateCollectorService
+from app.ingestion.fetch import failed_fetch_entry, fetch_full_article
+from app.ingestion.parsing import entry_datetime, html_listing_entries, matches_config
 
 
 def test_topic_classification_prefers_inference_signals() -> None:
@@ -83,8 +92,6 @@ def test_deterministic_summary_keeps_source_facts() -> None:
             "vLLM adds prefill controls\n\n"
             "The release adds throttled prefill scheduling. It also improves KV cache handling."
         ),
-        organization="vLLM Project",
-        tool="vLLM",
         default_topic="ai-products-engineering-infrastructure",
         default_event_types=["release-update"],
     )
@@ -104,8 +111,6 @@ def test_generated_and_fallback_headlines_are_capped_at_90_characters() -> None:
     fallback = service._fallback(
         title=long_title,
         raw_text=f"{long_title}\n\nThe release adds two documented runtime capabilities.",
-        organization="PyTorch",
-        tool="PyTorch",
         default_topic="training-fine-tuning",
         default_event_types=["library-release"],
     )
@@ -113,8 +118,6 @@ def test_generated_and_fallback_headlines_are_capped_at_90_characters() -> None:
         {"display_headline": long_title},
         fallback,
         "official-release",
-        title=long_title,
-        raw_text=f"{long_title}\n\nThe release adds two documented runtime capabilities.",
     )
 
     assert len(fallback.display_headline) <= 90
@@ -128,8 +131,6 @@ def test_validated_taxonomy_has_one_category_and_one_event() -> None:
     fallback = service._fallback(
         title="Agent tool-use research",
         raw_text="Agent tool-use research\n\nA research paper studies tool use by agents.",
-        organization="Example",
-        tool="Example",
         default_topic="agentic-generative-ai",
         default_event_types=["research"],
     )
@@ -141,8 +142,6 @@ def test_validated_taxonomy_has_one_category_and_one_event() -> None:
         },
         fallback,
         "research-paper",
-        title="Agent tool-use research",
-        raw_text="A research paper studies tool use by agents.",
     )
 
     assert validated.primary_topic == "agentic-generative-ai"
@@ -156,22 +155,20 @@ def test_event_default_is_only_used_when_content_has_no_event_signal() -> None:
 
 
 def test_taxonomy_prompt_prioritizes_main_theme_over_product_mentions() -> None:
-    service = ArticleSummaryService.__new__(ArticleSummaryService)
-    prompt = service._taxonomy_prompt()
-    event_prompt = service._event_prompt()
+    prompt = category_prompt()
+    events_prompt = event_prompt()
 
     assert "main theme" in prompt
     assert "merely the setting" in prompt
-    assert "A product mention does not make an article a release" in event_prompt
+    assert "A product mention does not make an article a release" in events_prompt
     assert "detecting failures" in prompt
     assert "TPU or GPU kernel authoring" in prompt
     assert "recommendation, prediction, classification" in prompt
-    assert "'get started' steps" in event_prompt
+    assert "'get started' steps" in events_prompt
 
 
 def test_main_theme_prompt_does_not_repeat_relevance_classification() -> None:
-    service = ArticleSummaryService.__new__(ArticleSummaryService)
-    prompt = service._main_theme_prompt()
+    prompt = main_theme_prompt()
 
     assert "main_theme" in prompt
     assert "decision was made upstream" in prompt
@@ -182,11 +179,10 @@ def test_main_theme_prompt_does_not_repeat_relevance_classification() -> None:
 
 
 def test_sparse_source_prompt_prohibits_speculative_benefits() -> None:
-    service = ArticleSummaryService.__new__(ArticleSummaryService)
     raw_text = "v1.18.3\n\nFix query errors when using shard keys while resharding."
 
-    detail_level = service._source_detail_level("v1.18.3", raw_text)
-    prompt = service._user_prompt(
+    detail_level = classify_content_detail("v1.18.3", raw_text)
+    prompt = summary_user_prompt(
         title="v1.18.3",
         raw_text=raw_text,
         organization="Qdrant",
@@ -205,7 +201,6 @@ def test_sparse_source_prompt_prohibits_speculative_benefits() -> None:
 
 
 def test_detailed_source_does_not_receive_sparse_instructions() -> None:
-    service = ArticleSummaryService.__new__(ArticleSummaryService)
     body = "\n".join(
         [
             "The release adds a new cache implementation for production inference workloads.",
@@ -218,8 +213,8 @@ def test_detailed_source_does_not_receive_sparse_instructions() -> None:
     )
     raw_text = f"Runtime cache release\n\n{body}"
 
-    detail_level = service._source_detail_level("Runtime cache release", raw_text)
-    prompt = service._user_prompt(
+    detail_level = classify_content_detail("Runtime cache release", raw_text)
+    prompt = summary_user_prompt(
         title="Runtime cache release",
         raw_text=raw_text,
         organization="Example",
@@ -234,26 +229,23 @@ def test_detailed_source_does_not_receive_sparse_instructions() -> None:
 
 
 def test_feed_filtering_uses_title_and_body() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     config = {"include_terms": ["agent", "inference"]}
 
-    assert collector._matches_config(config, {"title": "New inference runtime", "summary": ""})
-    assert not collector._matches_config(config, {"title": "Cloud billing update", "summary": ""})
+    assert matches_config(config, {"title": "New inference runtime", "summary": ""})
+    assert not matches_config(config, {"title": "Cloud billing update", "summary": ""})
 
 
 def test_feed_filtering_uses_term_boundaries() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     config = {"include_terms": ["ai"]}
 
-    assert collector._matches_config(config, {"title": "New AI model", "summary": ""})
-    assert not collector._matches_config(
+    assert matches_config(config, {"title": "New AI model", "summary": ""})
+    assert not matches_config(
         config,
         {"title": "Patch release available", "summary": ""},
     )
 
 
 def test_html_listing_adapter_deduplicates_and_resolves_links() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     config = {
         "feed_url": "https://example.com/news",
         "homepage_url": "https://example.com/news",
@@ -267,7 +259,7 @@ def test_html_listing_adapter_deduplicates_and_resolves_links() -> None:
     </main>
     """
 
-    entries = collector._html_listing_entries(config, html)
+    entries = html_listing_entries(config, html)
 
     assert entries == [
         {
@@ -280,32 +272,29 @@ def test_html_listing_adapter_deduplicates_and_resolves_links() -> None:
 
 
 def test_source_filter_can_skip_quote_and_event_posts() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     config = {"exclude_title_prefixes": ["Quoting"], "exclude_tags": ["events"]}
 
-    assert not collector._matches_config(
+    assert not matches_config(
         config, {"title": "Quoting an agent engineer", "summary": "Useful details"}
     )
-    assert not collector._matches_config(
+    assert not matches_config(
         config,
         {"title": "Agent engineering meetup", "tags": [{"term": "events"}]},
     )
-    assert collector._matches_config(config, {"title": "Building reliable coding agents"})
+    assert matches_config(config, {"title": "Building reliable coding agents"})
 
 
 def test_html_entry_date_parser_supports_listing_and_iso_dates() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
 
-    assert collector._entry_datetime({"published": "Jul 21, 2026"}).isoformat() == "2026-07-21T00:00:00"
+    assert entry_datetime({"published": "Jul 21, 2026"}).isoformat() == "2026-07-21T00:00:00"
     assert (
-        collector._entry_datetime({"published": "2026-07-21T08:15:41-07:00"}).isoformat()
+        entry_datetime({"published": "2026-07-21T08:15:41-07:00"}).isoformat()
         == "2026-07-21T15:15:41"
     )
-    assert collector._entry_datetime({}) is None
+    assert entry_datetime({}) is None
 
 
 def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     html = """
     <html>
       <head>
@@ -338,13 +327,13 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
 
     async def hydrate() -> dict:
         async with httpx.AsyncClient(transport=transport) as client:
-            return await collector._hydrate_html_entry(client, config, entry)
+            return await fetch_full_article(client, config, entry)
 
     hydrated = asyncio.run(hydrate())
 
     assert hydrated["title"] == "Feed title"
     assert hydrated["published"] == "2026-07-20"
-    assert collector._entry_datetime(hydrated).isoformat() == "2026-07-20T00:00:00"
+    assert entry_datetime(hydrated).isoformat() == "2026-07-20T00:00:00"
     assert hydrated["_hydration_status"] == "full_article"
     assert hydrated["_extraction_status"] == "full_article"
     assert "Technical article body" in hydrated["content"][0]["value"]
@@ -352,14 +341,13 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
 
 
 def test_listing_hydration_uses_article_title_but_feed_hydration_keeps_feed_title() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     html = "<html><body><h1>Site name</h1><article><h1>Article title</h1><p>Useful agent implementation details.</p></article></body></html>"
     transport = httpx.MockTransport(lambda request: httpx.Response(200, text=html, request=request))
     entry = {"title": "Listing title", "link": "https://example.com/article"}
 
     async def hydrate(config: dict) -> dict:
         async with httpx.AsyncClient(transport=transport) as client:
-            return await collector._hydrate_html_entry(client, config, entry)
+            return await fetch_full_article(client, config, entry)
 
     assert asyncio.run(hydrate({"source_kind": "html_listing", "content_selector": "article", "minimum_full_article_characters": 10}))["title"] == "Article title"
     assert asyncio.run(hydrate({"source_kind": "rss", "content_selector": "article", "minimum_full_article_characters": 10}))["title"] == "Listing title"
@@ -369,19 +357,18 @@ def test_listing_hydration_uses_article_title_but_feed_hydration_keeps_feed_titl
 
     async def hydrate_without_article_heading() -> dict:
         async with httpx.AsyncClient(transport=transport) as client:
-            return await collector._hydrate_html_entry(client, {"source_kind": "atom", "content_selector": ".entryPage", "minimum_full_article_characters": 10}, entry)
+            return await fetch_full_article(client, {"source_kind": "atom", "content_selector": ".entryPage", "minimum_full_article_characters": 10}, entry)
 
     assert asyncio.run(hydrate_without_article_heading())["title"] == "Listing title"
 
 
 def test_forbidden_article_fetch_becomes_structured_feed_excerpt_fallback() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     request = httpx.Request("GET", "https://example.com/article")
     response = httpx.Response(403, request=request)
     with pytest.raises(httpx.HTTPStatusError) as caught:
         response.raise_for_status()
 
-    result = collector._full_article_fallback_entry(
+    result = failed_fetch_entry(
         {
             "title": "Feed title",
             "link": str(request.url),
@@ -397,9 +384,8 @@ def test_forbidden_article_fetch_becomes_structured_feed_excerpt_fallback() -> N
 
 
 def test_incomplete_article_without_excerpt_becomes_title_only() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
 
-    result = collector._full_article_fallback_entry(
+    result = failed_fetch_entry(
         {"title": "Feed title", "link": "https://example.com/article"},
         ValueError("Full article extraction produced only 20 characters"),
     )
@@ -410,14 +396,13 @@ def test_incomplete_article_without_excerpt_becomes_title_only() -> None:
 
 
 def test_full_article_hydration_rejects_challenge_page() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     html = "<html><body><main>Enable JavaScript and cookies to continue</main></body></html>"
     transport = httpx.MockTransport(lambda request: httpx.Response(200, text=html, request=request))
     entry = {"title": "Blocked article", "link": "https://example.com/article"}
 
     async def hydrate() -> dict:
         async with httpx.AsyncClient(transport=transport) as client:
-            return await collector._hydrate_html_entry(
+            return await fetch_full_article(
                 client,
                 {"content_selector": "main", "minimum_full_article_characters": 10},
                 entry,
@@ -428,7 +413,6 @@ def test_full_article_hydration_rejects_challenge_page() -> None:
 
 
 def test_full_article_hydration_preserves_feed_date_when_page_has_none() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     html = """
     <html><body><main>
       <h1>Article without a page date</h1>
@@ -445,7 +429,7 @@ def test_full_article_hydration_preserves_feed_date_when_page_has_none() -> None
 
     async def hydrate() -> dict:
         async with httpx.AsyncClient(transport=transport) as client:
-            return await collector._hydrate_html_entry(
+            return await fetch_full_article(
                 client,
                 {"content_selector": "main", "minimum_full_article_characters": 50},
                 entry,
@@ -453,4 +437,4 @@ def test_full_article_hydration_preserves_feed_date_when_page_has_none() -> None
 
     hydrated = asyncio.run(hydrate())
 
-    assert collector._entry_datetime(hydrated).isoformat() == "2026-07-18T12:30:00"
+    assert entry_datetime(hydrated).isoformat() == "2026-07-18T12:30:00"

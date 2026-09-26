@@ -3,8 +3,9 @@ import asyncio
 import httpx
 import pytest
 
-from app.ingestion import extraction
-from app.ingestion.pipeline import UpdateCollectorService
+from app.ingestion import fetch
+from app.ingestion.fetch import fetch_full_article, get_with_retries
+from app.ingestion.parsing import entry_datetime
 
 
 @pytest.fixture(autouse=True)
@@ -14,16 +15,15 @@ def no_retry_sleep(monkeypatch):
     async def fake_sleep(delay: float) -> None:
         delays.append(delay)
 
-    monkeypatch.setattr(extraction.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(fetch.asyncio, "sleep", fake_sleep)
     return delays
 
 
-def fetch(handler) -> httpx.Response:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+def run_fetch(handler) -> httpx.Response:
 
     async def run() -> httpx.Response:
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-            return await collector._get_with_retries(client, "https://example.com/feed?token=x")
+            return await get_with_retries(client, "https://example.com/feed?token=x")
 
     return asyncio.run(run())
 
@@ -38,7 +38,7 @@ def test_transient_status_is_retried_until_success(no_retry_sleep, caplog) -> No
         headers = {"Retry-After": "3"} if status == 429 else {}
         return httpx.Response(status, headers=headers, request=request)
 
-    assert fetch(handler).status_code == 200
+    assert run_fetch(handler).status_code == 200
     assert len(calls) == 3
     assert no_retry_sleep == [1.0, 3.0]
     retries = [r.structured_fields for r in caplog.records if getattr(r, "event", None) == "fetch_retry"]
@@ -54,7 +54,7 @@ def test_permanent_status_is_not_retried(no_retry_sleep) -> None:
         return httpx.Response(404, request=request)
 
     with pytest.raises(httpx.HTTPStatusError):
-        fetch(handler)
+        run_fetch(handler)
     assert len(calls) == 1
     assert no_retry_sleep == []
 
@@ -67,19 +67,18 @@ def test_transport_errors_raise_after_final_attempt(no_retry_sleep) -> None:
         raise httpx.ConnectTimeout("timed out", request=request)
 
     with pytest.raises(httpx.ConnectTimeout):
-        fetch(handler)
-    assert len(calls) == extraction.FETCH_ATTEMPTS
+        run_fetch(handler)
+    assert len(calls) == fetch.FETCH_ATTEMPTS
     assert no_retry_sleep == [1.0, 2.0]
 
 
 def test_retry_delay_is_capped() -> None:
-    assert extraction.SourceExtractionMixin._retry_delay(1, "120") == (
-        extraction.MAX_RETRY_DELAY_SECONDS
+    assert fetch.retry_delay(1, "120") == (
+        fetch.MAX_RETRY_DELAY_SECONDS
     )
 
 
 def test_date_selector_supplies_date_outside_article_content() -> None:
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
     html = """
     <html><body><main>
       <section><p class="Hero__date">May 25, 2026</p></section>
@@ -96,9 +95,9 @@ def test_date_selector_supplies_date_outside_article_content() -> None:
 
     async def hydrate() -> dict:
         async with httpx.AsyncClient(transport=transport) as client:
-            return await collector._hydrate_html_entry(
+            return await fetch_full_article(
                 client, config, {"title": "Featured post", "link": "https://example.com/post"}
             )
 
     hydrated = asyncio.run(hydrate())
-    assert collector._entry_datetime(hydrated).isoformat() == "2026-05-25T00:00:00"
+    assert entry_datetime(hydrated).isoformat() == "2026-05-25T00:00:00"

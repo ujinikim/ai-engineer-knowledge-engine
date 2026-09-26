@@ -64,8 +64,9 @@ The pre-launch interface hierarchy and personal-product direction are captured i
 The commands are grouped by purpose in `backend/scripts/`; its README identifies
 their roles and write behavior. Shared helpers load source configuration and retain
 prior human review decisions. The frontend separates API calls, display helpers,
-the About view, feed, briefing panel, and styles. The collector keeps orchestration
-and storage while `source_extraction.py` handles feed and article parsing.
+the About view, feed, briefing panel, and styles. The backend is grouped by job:
+`app/ingestion/` (collection pipeline), `app/serving/` (feed, search, answers), and
+`app/evaluation/` (quality reports); see `REFACTORING_PLAN.md`.
 
 Feed and search use the same enabled-source and relevance-tier rules. Search also
 requires published, substantive article evidence; the feed may show a published

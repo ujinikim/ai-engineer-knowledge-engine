@@ -15,7 +15,7 @@ from app.schemas.updates import (
 )
 from app.ingestion.policy import PUBLISHED, evidence_level
 from app.ingestion.relevance import visible_relevance_tiers
-from app.ingestion.extraction import article_excerpt
+from app.ingestion.parsing import article_excerpt
 from app.sources import (
     configured_active_source_slugs,
     configured_sources,

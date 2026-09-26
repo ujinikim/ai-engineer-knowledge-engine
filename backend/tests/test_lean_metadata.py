@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 
-from app.ingestion.extraction import article_excerpt
-from app.ingestion.pipeline import UpdateCollectorService
+from app.ingestion.parsing import article_excerpt
 from app.sources import source_attribute, source_slugs_with
+from app.ingestion.store import apply_fields
 
 
 def test_source_attributes_come_from_configuration() -> None:
@@ -26,7 +26,7 @@ def test_excerpt_is_derived_from_body_after_title() -> None:
 def test_apply_fields_writes_columns_and_resets_fields_absent_from_the_write() -> None:
     document = SimpleNamespace(summary="Old card.", key_points=["Old point."], why_it_matters="Old.")
     event_types = ["guide"]
-    UpdateCollectorService._apply_fields(
+    apply_fields(
         document,
         {
             "ingestion_status": "quarantined",

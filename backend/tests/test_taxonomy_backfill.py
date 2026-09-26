@@ -31,25 +31,14 @@ def test_excerpt_backfill_is_deterministic() -> None:
         "default_event_types": ["release-update"],
     }
 
-    (
-        topic,
-        events,
-        method,
-        main_theme,
-        reason,
-        relevance_tier,
-        relevance_reason,
-        event_reason,
-    ) = classify_excerpt(document, config)
+    result = classify_excerpt(document, config)
 
-    assert topic == "agentic-generative-ai"
-    assert events == ["release-update"]
-    assert method == "deterministic-keyword"
-    assert main_theme is None
-    assert reason == "Official feed excerpt used deterministic taxonomy rules."
-    assert relevance_tier is None
-    assert relevance_reason is None
-    assert event_reason == "Official feed excerpt used deterministic event rules."
+    assert result.primary_topic == "agentic-generative-ai"
+    assert result.event_types == ["release-update"]
+    assert result.method == "deterministic-keyword"
+    assert result.main_theme is None
+    assert result.category_reason == "Official feed excerpt used deterministic taxonomy rules."
+    assert result.event_reason == "Official feed excerpt used deterministic event rules."
     assert TAXONOMY_POLICY_VERSION == "2026-09-12-v2"
 
 

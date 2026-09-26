@@ -1,58 +1,64 @@
-import hashlib
+"""Collect configured sources: fetch entries, decide what each becomes, and store it.
+
+For every entry, `_upsert_entry` prepares a candidate, applies the publication gate,
+and routes it:
+
+- keep the stored article when a refresh is worse than what is already stored
+- publishable, awaiting relevance: store provisional labels and retry next run
+- publishable, excluded or feed-excerpt evidence: store a card from the source excerpt
+- unchanged content that is already classified: refresh dates and status only
+- not publishable: quarantine without a card, chunks, or embeddings
+- otherwise: summarize, chunk, and embed
+"""
+
 import logging
 import time
 import uuid
+from contextlib import aclosing
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from urllib.parse import parse_qsl, urlencode, urlparse
 
 import httpx
-from sqlalchemy import and_, delete, or_, select
 from sqlalchemy.orm import Session
 
+from app.core.embedding import EmbeddingService
 from app.core.model_usage import ModelUsage
 from app.core.settings import settings
-from app.core.structured_logging import get_logger, log_event
-from app.db.models import Chunk, CollectionSourceRun, Document
+from app.core.structured_logging import get_logger, log_event, safe_url
+from app.db.models import CollectionSourceRun, Document
+from app.ingestion.candidate import ArticleCandidate, prepare_candidate
+from app.ingestion.chunking import ChunkingService
+from app.ingestion.content_detail import classify_content_detail
+from app.ingestion.fetch import failed_fetch_entry, fetch_full_article, get_with_retries
+from app.ingestion.parsing import entry_datetime, matches_config, source_entries
+from app.ingestion.policy import IngestionDecision, evaluate_ingestion_candidate
 from app.ingestion.relevance import (
     RELEVANCE_POLICY_VERSION,
     RELEVANCE_TIERS,
     ArticleRelevanceService,
 )
+from app.ingestion.store import (
+    add_chunks,
+    apply_fields,
+    current_fields,
+    delete_chunks,
+    find_existing_article,
+    save_article,
+)
 from app.ingestion.summary import ArticleSummaryService
-from app.ingestion.chunking import ChunkingService
-from app.core.embedding import EmbeddingService
-from app.ingestion.policy import (
-    evaluate_ingestion_candidate,
-)
-from app.ingestion.extraction import SourceExtractionMixin
-from app.ingestion.content_detail import classify_content_detail
-from app.ingestion.taxonomy import (
-    TAXONOMY_POLICY_VERSION,
-    classify_topic_with_method,
-    infer_event_types,
-    normalize_event_types,
-)
+from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION, normalize_event_types
 
 
 logger = get_logger("collector")
 
-DOCUMENT_FIELD_DEFAULTS: dict = {
-    "ingestion_status": "published",
-    "extraction_status": "source_entry",
-    "relevance_tier": None,
-    "relevance_reason": None,
-    "relevance_status": None,
-    "relevance_policy_version": None,
-    "primary_topic": None,
-    "event_types": [],
-    "taxonomy_policy_version": None,
-    "display_headline": None,
-    "summary": None,
-    "why_it_matters": None,
-    "key_points": [],
-    "summary_generated_by": None,
-}
+USER_AGENT = "AI-Engineer-Update-Radar/0.1 (+local RAG project)"
+SOURCE_COUNT_KEYS = (
+    "updates_created",
+    "updates_changed",
+    "updates_unchanged",
+    "updates_quarantined",
+    "chunks_written",
+)
 
 
 @dataclass(frozen=True)
@@ -70,7 +76,9 @@ class CollectionResult:
     estimated_model_cost_usd: float | None = None
 
 
-class UpdateCollectorService(SourceExtractionMixin):
+class UpdateCollectorService:
+    run_id: str | None = None
+
     def __init__(self, db: Session) -> None:
         self.db = db
         self.chunker = ChunkingService()
@@ -79,132 +87,31 @@ class UpdateCollectorService(SourceExtractionMixin):
         self.summarizer = ArticleSummaryService(usage=self.usage)
         self.relevance = ArticleRelevanceService(usage=self.usage)
 
+    # Collection run ---------------------------------------------------------
+
     async def collect(
         self,
         source_configs: list[dict],
         max_items_per_source: int = 12,
         run_id: str | None = None,
     ) -> CollectionResult:
-        run_id = run_id or uuid.uuid4().hex
-        self.run_id = run_id
-        counts = {
-            "sources_processed": 0,
-            "updates_created": 0,
-            "updates_changed": 0,
-            "updates_unchanged": 0,
-            "updates_quarantined": 0,
-            "chunks_written": 0,
-            "errors": 0,
-        }
-        headers = {"User-Agent": "AI-Engineer-Update-Radar/0.1 (+local RAG project)"}
+        self.run_id = run_id or uuid.uuid4().hex
+        totals = dict.fromkeys(("sources_processed", "errors", *SOURCE_COUNT_KEYS), 0)
 
-        async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=headers) as client:
+        async with httpx.AsyncClient(
+            follow_redirects=True, timeout=30, headers={"User-Agent": USER_AGENT}
+        ) as client:
             for config in source_configs:
-                source_slug = config["slug"]
-                source_started_at = datetime.now(timezone.utc).replace(tzinfo=None)
-                source_started = time.perf_counter()
-                source_counts_before = counts.copy()
-                matched_items = 0
-                try:
-                    response = await self._get_with_retries(client, config["feed_url"])
-                    entries = self._source_entries(config, response)
-                    for entry in entries:
-                        if config.get("source_kind") == "html_listing":
-                            entry = await self._hydrate_html_entry(client, config, entry)
-                        if config.get("require_published_date") and not self._entry_datetime(entry):
-                            log_event(
-                                logger,
-                                "source_entry_skipped",
-                                level=logging.WARNING,
-                                run_id=run_id,
-                                source_slug=source_slug,
-                                reason="missing_published_date",
-                                url=self._log_safe_url(entry.get("link")),
-                            )
-                            continue
-                        if not self._matches_config(config, entry):
-                            continue
-                        if config.get("fetch_full_article") and config.get("source_kind") != "html_listing":
-                            try:
-                                entry = await self._hydrate_html_entry(client, config, entry)
-                            except (httpx.HTTPError, ValueError) as error:
-                                entry = self._full_article_fallback_entry(entry, error)
-                                log_event(
-                                    logger,
-                                    "full_article_fetch_failed",
-                                    level=logging.WARNING,
-                                    run_id=run_id,
-                                    source_slug=source_slug,
-                                    url=self._log_safe_url(entry.get("link")),
-                                    http_status=entry["_full_article_fetch_http_status"],
-                                    error_code=entry["_full_article_fetch_error_code"],
-                                    exception_type=type(error).__name__,
-                                )
-                        status, chunks_written = self._upsert_entry(source_slug, config, entry)
-                        counts[f"updates_{status}"] += 1
-                        counts["chunks_written"] += chunks_written
-                        matched_items += 1
-                        if matched_items >= max_items_per_source:
-                            break
-
-                    source_counts = {
-                        key: counts[key] - source_counts_before[key]
-                        for key in (
-                            "updates_created", "updates_changed", "updates_unchanged",
-                            "updates_quarantined", "chunks_written",
-                        )
-                    }
-                    self.db.add(
-                        CollectionSourceRun(
-                            id=uuid.uuid4(),
-                            run_id=run_id,
-                            source_slug=source_slug,
-                            started_at=source_started_at,
-                            finished_at=datetime.now(timezone.utc).replace(tzinfo=None),
-                            status="completed",
-                            matched_items=matched_items,
-                            **source_counts,
-                        )
-                    )
-                    counts["sources_processed"] += 1
-                    self.db.commit()
-                    log_event(
-                        logger,
-                        "source_collection_completed",
-                        run_id=run_id,
-                        source_slug=config["slug"],
-                        matched_items=matched_items,
-                        **source_counts,
-                        duration_ms=int((time.perf_counter() - source_started) * 1000),
-                    )
-                except Exception as error:
-                    self.db.rollback()
-                    counts = source_counts_before.copy()
-                    counts["errors"] += 1
-                    self.db.add(
-                        CollectionSourceRun(
-                            id=uuid.uuid4(),
-                            run_id=run_id,
-                            source_slug=source_slug,
-                            started_at=source_started_at,
-                            finished_at=datetime.now(timezone.utc).replace(tzinfo=None),
-                            status="failed",
-                            error=str(error)[:1000],
-                        )
-                    )
-                    self.db.commit()
-                    log_event(
-                        logger,
-                        "source_collection_failed",
-                        level=logging.ERROR,
-                        run_id=run_id,
-                        source_slug=config["slug"],
-                        exception_type=type(error).__name__,
-                        duration_ms=int((time.perf_counter() - source_started) * 1000),
-                    )
+                source_counts = await self._collect_source(client, config, max_items_per_source)
+                if source_counts is None:
+                    totals["errors"] += 1
+                    continue
+                totals["sources_processed"] += 1
+                for key, value in source_counts.items():
+                    totals[key] += value
 
         return CollectionResult(
-            **counts,
+            **totals,
             chat_input_tokens=self.usage.chat_input_tokens,
             chat_output_tokens=self.usage.chat_output_tokens,
             embedding_tokens=self.usage.embedding_tokens,
@@ -214,420 +121,356 @@ class UpdateCollectorService(SourceExtractionMixin):
             ),
         )
 
-    def _upsert_entry(self, source_slug: str, config: dict, entry) -> tuple[str, int]:
-        raw_url = str(entry.get("link") or entry.get("id") or "").strip()
-        url = self._normalize_document_url(raw_url)
-        title = str(entry.get("title") or "Untitled update").strip()
-        if not url:
-            raise ValueError(f"Feed entry from {source_slug} has no URL")
+    async def _collect_source(
+        self, client: httpx.AsyncClient, config: dict, max_items: int
+    ) -> dict[str, int] | None:
+        """Ingest one source and record its run; None when the source failed."""
+        source_slug = config["slug"]
+        started_at = _utc_now()
+        started = time.perf_counter()
+        counts = dict.fromkeys(SOURCE_COUNT_KEYS, 0)
+        matched_items = 0
+        try:
+            async with aclosing(self._matching_entries(client, config)) as entries:
+                async for entry in entries:
+                    status, chunks_written = self._upsert_entry(source_slug, config, entry)
+                    counts[f"updates_{status}"] += 1
+                    counts["chunks_written"] += chunks_written
+                    matched_items += 1
+                    if matched_items >= max_items:
+                        break
 
-        body_html = self._entry_html(entry)
-        body_text = self._clean_html(body_html)
-        raw_text = f"{title}\n\n{body_text}".strip()
-        content_detail = classify_content_detail(title, raw_text)
-        content_hash = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
-        published_at = self._entry_datetime(entry)
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
-        default_topic = config.get("default_primary_topic", config["category"])
-        source_type = config.get("source_type", "official-release")
-        default_event_types = config.get("default_event_types", ["analysis"])
-        hydration_status = str(entry.get("_hydration_status") or "not_requested")
-        extraction_status = str(
-            entry.get("_extraction_status")
-            or {
-                "full_article": "full_article",
-                "failed": "feed_excerpt_only" if body_text else "title_only",
-            }.get(hydration_status, "source_entry")
-        )
-        excerpt = self._excerpt(body_text or title)
-        base_fields = {
-            "primary_topic": default_topic,
-            "extraction_status": extraction_status,
-        }
-        provisional_events = normalize_event_types(
-            source_slug,
-            infer_event_types(raw_text, default_event_types),
-        )
-        provisional_topic, _ = classify_topic_with_method(
-            f"{title}\n{title}\n{raw_text}",
-            default_topic,
-        )
-        ingestion = evaluate_ingestion_candidate(
-            content_detail=content_detail,
-            hydration_status=hydration_status,
-            extraction_status=extraction_status,
-            event_types=provisional_events,
-            publish_feed_excerpt=bool(config.get("publish_feed_excerpt", False)),
-        )
-        base_fields = {
-            **base_fields,
-            **ingestion.fields(),
-        }
-
-        document = self._find_existing_document(
-            source_slug=source_slug,
-            raw_url=raw_url,
-            title=title,
-            content_hash=content_hash,
-        )
-        existing_has_full_evidence = bool(
-            document
-            and (
-                document.extraction_status == "full_article"
-                or classify_content_detail(getattr(document, "title", ""), document.raw_text) == "detailed"
+            self._record_source_run(
+                source_slug,
+                started_at,
+                status="completed",
+                matched_items=matched_items,
+                **counts,
             )
-        )
-        if document and not ingestion.rag_eligible and existing_has_full_evidence:
-            document.fetched_at = now
             log_event(
                 logger,
-                "stored_article_retained",
-                run_id=getattr(self, "run_id", None),
+                "source_collection_completed",
+                run_id=self.run_id,
                 source_slug=source_slug,
-                url=self._log_safe_url(url),
-                attempt_status=ingestion.status,
-                failure_codes=list(ingestion.failure_codes),
-                warning_codes=list(ingestion.warning_codes),
-                evidence_level=ingestion.evidence_level,
+                matched_items=matched_items,
+                **counts,
+                duration_ms=_elapsed_ms(started),
             )
-            return "unchanged", 0
+            return counts
+        except Exception as error:
+            self.db.rollback()
+            self._record_source_run(
+                source_slug, started_at, status="failed", error=str(error)[:1000]
+            )
+            log_event(
+                logger,
+                "source_collection_failed",
+                level=logging.ERROR,
+                run_id=self.run_id,
+                source_slug=source_slug,
+                exception_type=type(error).__name__,
+                duration_ms=_elapsed_ms(started),
+            )
+            return None
 
-        if ingestion.publishable:
-            if (
-                document
-                and document.content_hash == content_hash
-                and document.relevance_policy_version == RELEVANCE_POLICY_VERSION
-                and document.relevance_tier in RELEVANCE_TIERS
-            ):
-                relevance_fields = {
-                    "relevance_tier": document.relevance_tier,
-                    "relevance_reason": document.relevance_reason,
-                    "relevance_policy_version": document.relevance_policy_version,
-                    "relevance_status": document.relevance_status,
-                }
-            else:
-                relevance_fields = self.relevance.classify(
-                    title=title,
-                    raw_text=raw_text,
-                ).fields()
-            base_fields = {**base_fields, **relevance_fields}
-
-        if ingestion.publishable and base_fields.get("relevance_tier") is None:
-            if document and document.relevance_tier in RELEVANCE_TIERS:
-                document.fetched_at = now
+    async def _matching_entries(self, client: httpx.AsyncClient, config: dict):
+        """Yield the source's entries that pass its filters, with full articles fetched."""
+        source_slug = config["slug"]
+        is_listing = config.get("source_kind") == "html_listing"
+        response = await get_with_retries(client, config["feed_url"], run_id=self.run_id)
+        for entry in source_entries(config, response.text, response.content):
+            if is_listing:
+                entry = await fetch_full_article(client, config, entry, run_id=self.run_id)
+            if config.get("require_published_date") and not entry_datetime(entry):
                 log_event(
                     logger,
-                    "relevance_classification_retained",
+                    "source_entry_skipped",
                     level=logging.WARNING,
-                    run_id=getattr(self, "run_id", None),
+                    run_id=self.run_id,
                     source_slug=source_slug,
-                    url=self._log_safe_url(url),
-                    relevance_tier=document.relevance_tier,
+                    reason="missing_published_date",
+                    url=safe_url(entry.get("link")),
                 )
-                return "unchanged", 0
+                continue
+            if not matches_config(config, entry):
+                continue
+            if config.get("fetch_full_article") and not is_listing:
+                try:
+                    entry = await fetch_full_article(client, config, entry, run_id=self.run_id)
+                except (httpx.HTTPError, ValueError) as error:
+                    entry = failed_fetch_entry(entry, error)
+                    log_event(
+                        logger,
+                        "full_article_fetch_failed",
+                        level=logging.WARNING,
+                        run_id=self.run_id,
+                        source_slug=source_slug,
+                        url=safe_url(entry.get("link")),
+                        http_status=entry["_full_article_fetch_http_status"],
+                        error_code=entry["_full_article_fetch_error_code"],
+                        exception_type=type(error).__name__,
+                    )
+            yield entry
 
-            pending_fields = {
-                **base_fields,
-                "primary_topic": provisional_topic,
-                "event_types": provisional_events,
-            }
-            status = "changed" if document and document.content_hash != content_hash else "unchanged"
-            if document:
-                document.source_name = source_slug
-                document.title = title[:500]
-                document.raw_text = raw_text
-                document.content_hash = content_hash
-                document.fetched_at = now
-                document.published_at = published_at
-                self._apply_fields(document, pending_fields)
-                self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
-            else:
-                status = "created"
-                document = Document(
-                    id=uuid.uuid4(),
-                    source_name=source_slug,
-                    title=title[:500],
-                    url=url,
-                    raw_text=raw_text,
-                    content_hash=content_hash,
-                    fetched_at=now,
-                    published_at=published_at,
-                )
-                self._apply_fields(document, pending_fields)
-                self.db.add(document)
-                self.db.flush()
-            return status, 0
+    def _record_source_run(self, source_slug: str, started_at: datetime, **fields) -> None:
+        self.db.add(
+            CollectionSourceRun(
+                id=uuid.uuid4(),
+                run_id=self.run_id,
+                source_slug=source_slug,
+                started_at=started_at,
+                finished_at=_utc_now(),
+                **fields,
+            )
+        )
+        self.db.commit()
 
-        if ingestion.publishable and base_fields.get("relevance_tier") == "excluded":
-            excluded_fields = {
-                **base_fields,
-                "primary_topic": provisional_topic,
-                "display_headline": title[:90],
-                "summary": excerpt,
-                "why_it_matters": "",
-                "key_points": [],
-                "event_types": provisional_events,
-                "summary_generated_by": "relevance-excluded",
-                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-            }
-            status = "changed" if document and document.content_hash != content_hash else "unchanged"
-            if document:
-                document.source_name = source_slug
-                document.title = title[:500]
-                document.raw_text = raw_text
-                document.content_hash = content_hash
-                document.fetched_at = now
-                document.published_at = published_at
-                self._apply_fields(document, excluded_fields)
-                self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
-            else:
-                status = "created"
-                document = Document(
-                    id=uuid.uuid4(),
-                    source_name=source_slug,
-                    title=title[:500],
-                    url=url,
-                    raw_text=raw_text,
-                    content_hash=content_hash,
-                    fetched_at=now,
-                    published_at=published_at,
-                )
-                self._apply_fields(document, excluded_fields)
-                self.db.add(document)
-                self.db.flush()
-            return status, 0
+    # One entry ----------------------------------------------------------------
 
-        if ingestion.publishable and not ingestion.rag_eligible:
-            excerpt_fields = {
-                **base_fields,
-                "primary_topic": provisional_topic,
-                "display_headline": title[:90],
-                "summary": excerpt,
-                "why_it_matters": "",
-                "key_points": [],
-                "event_types": provisional_events,
-                "summary_generated_by": "source-excerpt",
-                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-            }
-            status = "changed" if document and document.content_hash != content_hash else "unchanged"
-            if document:
-                document.source_name = source_slug
-                document.title = title[:500]
-                document.raw_text = raw_text
-                document.content_hash = content_hash
-                document.fetched_at = now
-                document.published_at = published_at
-                self._apply_fields(document, excerpt_fields)
-                self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
-            else:
-                status = "created"
-                document = Document(
-                    id=uuid.uuid4(),
-                    source_name=source_slug,
-                    title=title[:500],
-                    url=url,
-                    raw_text=raw_text,
-                    content_hash=content_hash,
-                    fetched_at=now,
-                    published_at=published_at,
-                )
-                self._apply_fields(document, excerpt_fields)
-                self.db.add(document)
-                self.db.flush()
-            return status, 0
+    def _upsert_entry(self, source_slug: str, config: dict, entry) -> tuple[str, int]:
+        """Store one entry and return its status and the number of chunks written."""
+        candidate = prepare_candidate(source_slug, config, entry, now=_utc_now())
+        decision = evaluate_ingestion_candidate(
+            content_detail=candidate.content_detail,
+            hydration_status=candidate.hydration_status,
+            extraction_status=candidate.extraction_status,
+            event_types=candidate.provisional_events,
+            publish_feed_excerpt=bool(config.get("publish_feed_excerpt", False)),
+        )
+        existing = find_existing_article(self.db, candidate)
+
+        if existing and not decision.rag_eligible and _has_full_evidence(existing):
+            return self._keep_stored_article(existing, candidate, decision)
+
+        fields = {
+            "primary_topic": candidate.default_topic,
+            "extraction_status": candidate.extraction_status,
+            **decision.fields(),
+        }
+        if decision.publishable:
+            fields.update(self._relevance_fields(existing, candidate))
+            tier = fields.get("relevance_tier")
+            if tier is None:
+                return self._save_awaiting_relevance(existing, candidate, fields)
+            if tier == "excluded":
+                return self._save_excerpt_card(existing, candidate, fields, "relevance-excluded")
+            if not decision.rag_eligible:
+                return self._save_excerpt_card(existing, candidate, fields, "source-excerpt")
 
         if (
-            document
-            and document.content_hash == content_hash
-            and document.relevance_tier in RELEVANCE_TIERS
+            existing
+            and existing.content_hash == candidate.content_hash
+            and existing.relevance_tier in RELEVANCE_TIERS
         ):
-            document.fetched_at = now
-            document.published_at = published_at
-            existing_taxonomy = {
-                "primary_topic": document.primary_topic,
-                "event_types": document.event_types,
-                "taxonomy_policy_version": document.taxonomy_policy_version,
+            return self._refresh_unchanged(existing, candidate, fields, decision)
+        if not decision.publishable:
+            return self._save_quarantined(existing, candidate, fields, decision)
+        return self._save_summarized(existing, candidate, fields, config)
+
+    def _relevance_fields(self, existing: Document | None, candidate: ArticleCandidate) -> dict:
+        """Reuse a current decision for unchanged content; otherwise classify."""
+        if (
+            existing
+            and existing.content_hash == candidate.content_hash
+            and existing.relevance_policy_version == RELEVANCE_POLICY_VERSION
+            and existing.relevance_tier in RELEVANCE_TIERS
+        ):
+            return {
+                "relevance_tier": existing.relevance_tier,
+                "relevance_reason": existing.relevance_reason,
+                "relevance_policy_version": existing.relevance_policy_version,
+                "relevance_status": existing.relevance_status,
             }
-            merged_fields = {
-                **self._document_fields(document),
-                **base_fields,
-                **existing_taxonomy,
-                **ingestion.fields(),
-            }
-            if not ingestion.publishable:
-                self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
-            self._apply_fields(document, merged_fields)
-            if not ingestion.publishable:
-                self._log_quarantine(source_slug, url, ingestion, extraction_status)
-                return "quarantined", 0
+        return self.relevance.classify(title=candidate.title, raw_text=candidate.raw_text).fields()
+
+    # Routes -------------------------------------------------------------------
+
+    def _keep_stored_article(
+        self, existing: Document, candidate: ArticleCandidate, decision: IngestionDecision
+    ) -> tuple[str, int]:
+        """A refresh with weaker evidence never replaces a stored full article."""
+        existing.fetched_at = candidate.fetched_at
+        log_event(
+            logger,
+            "stored_article_retained",
+            run_id=self.run_id,
+            source_slug=candidate.source_slug,
+            url=safe_url(candidate.url),
+            attempt_status=decision.status,
+            failure_codes=list(decision.failure_codes),
+            warning_codes=list(decision.warning_codes),
+            evidence_level=decision.evidence_level,
+        )
+        return "unchanged", 0
+
+    def _save_awaiting_relevance(
+        self, existing: Document | None, candidate: ArticleCandidate, fields: dict
+    ) -> tuple[str, int]:
+        """Classification failed: keep a prior decision, or store provisional labels."""
+        if existing and existing.relevance_tier in RELEVANCE_TIERS:
+            existing.fetched_at = candidate.fetched_at
+            log_event(
+                logger,
+                "relevance_classification_retained",
+                level=logging.WARNING,
+                run_id=self.run_id,
+                source_slug=candidate.source_slug,
+                url=safe_url(candidate.url),
+                relevance_tier=existing.relevance_tier,
+            )
             return "unchanged", 0
 
-        if not ingestion.publishable:
-            quarantine_fields = {
-                **base_fields,
-                "event_types": provisional_events,
-                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-            }
-            if document:
-                document.source_name = source_slug
-                document.title = title[:500]
-                document.url = self._normalize_document_url(raw_url)
-                document.raw_text = raw_text
-                document.content_hash = content_hash
-                document.fetched_at = now
-                document.published_at = published_at
-                self._apply_fields(document, quarantine_fields)
-                self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
-            else:
-                document = Document(
-                    id=uuid.uuid4(),
-                    source_name=source_slug,
-                    title=title[:500],
-                    url=self._normalize_document_url(raw_url),
-                    raw_text=raw_text,
-                    content_hash=content_hash,
-                    fetched_at=now,
-                    published_at=published_at,
-                )
-                self._apply_fields(document, quarantine_fields)
-                self.db.add(document)
-                self.db.flush()
-            self._log_quarantine(source_slug, url, ingestion, extraction_status)
-            return "quarantined", 0
+        status = _write_status(existing, candidate)
+        save_article(
+            self.db,
+            existing,
+            candidate,
+            {
+                **fields,
+                "primary_topic": candidate.provisional_topic,
+                "event_types": candidate.provisional_events,
+            },
+        )
+        return status, 0
 
+    def _save_excerpt_card(
+        self,
+        existing: Document | None,
+        candidate: ArticleCandidate,
+        fields: dict,
+        generated_by: str,
+    ) -> tuple[str, int]:
+        """Build the card from the source excerpt; nothing is summarized or embedded."""
+        status = _write_status(existing, candidate)
+        save_article(
+            self.db,
+            existing,
+            candidate,
+            {
+                **fields,
+                "primary_topic": candidate.provisional_topic,
+                "display_headline": candidate.title[:90],
+                "summary": candidate.excerpt,
+                "why_it_matters": "",
+                "key_points": [],
+                "event_types": candidate.provisional_events,
+                "summary_generated_by": generated_by,
+                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
+            },
+        )
+        return status, 0
+
+    def _refresh_unchanged(
+        self,
+        existing: Document,
+        candidate: ArticleCandidate,
+        fields: dict,
+        decision: IngestionDecision,
+    ) -> tuple[str, int]:
+        """Same content: keep the card and taxonomy, refresh dates and gate status."""
+        existing.fetched_at = candidate.fetched_at
+        existing.published_at = candidate.published_at
+        if not decision.publishable:
+            delete_chunks(self.db, existing)
+        save_fields = {
+            **current_fields(existing),
+            **fields,
+            "primary_topic": existing.primary_topic,
+            "event_types": existing.event_types,
+            "taxonomy_policy_version": existing.taxonomy_policy_version,
+        }
+        apply_fields(existing, save_fields)
+        if not decision.publishable:
+            self._log_quarantine(candidate, decision)
+            return "quarantined", 0
+        return "unchanged", 0
+
+    def _save_quarantined(
+        self,
+        existing: Document | None,
+        candidate: ArticleCandidate,
+        fields: dict,
+        decision: IngestionDecision,
+    ) -> tuple[str, int]:
+        save_article(
+            self.db,
+            existing,
+            candidate,
+            {
+                **fields,
+                "event_types": candidate.provisional_events,
+                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
+            },
+            update_url=True,
+        )
+        self._log_quarantine(candidate, decision)
+        return "quarantined", 0
+
+    def _save_summarized(
+        self,
+        existing: Document | None,
+        candidate: ArticleCandidate,
+        fields: dict,
+        config: dict,
+    ) -> tuple[str, int]:
         article = self.summarizer.summarize(
-            title=title,
-            raw_text=raw_text,
+            title=candidate.title,
+            raw_text=candidate.raw_text,
             organization=config["organization"],
             tool=config["tool"],
-            source_type=source_type,
-            default_topic=default_topic,
-            default_event_types=default_event_types,
+            source_type=config.get("source_type", "official-release"),
+            default_topic=candidate.default_topic,
+            default_event_types=candidate.default_event_types,
         )
-        fields = {**base_fields, **article.fields()}
-        normalized_events = normalize_event_types(
-            source_slug,
-            list(fields.get("event_types") or default_event_types),
+        article_fields = article.fields()
+        status = "changed" if existing else "created"
+        document = save_article(
+            self.db,
+            existing,
+            candidate,
+            {
+                **fields,
+                **article_fields,
+                "event_types": normalize_event_types(
+                    candidate.source_slug,
+                    list(article_fields.get("event_types") or candidate.default_event_types),
+                ),
+                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
+            },
         )
-        fields = {
-            **fields,
-            "event_types": normalized_events,
-            "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-            **ingestion.fields(),
-        }
-
-        status = "changed" if document else "created"
-        if document:
-            document.source_name = source_slug
-            document.title = title[:500]
-            document.raw_text = raw_text
-            document.content_hash = content_hash
-            document.fetched_at = now
-            document.published_at = published_at
-            self._apply_fields(document, fields)
-            self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
-        else:
-            document = Document(
-                id=uuid.uuid4(),
-                source_name=source_slug,
-                title=title[:500],
-                url=url,
-                raw_text=raw_text,
-                content_hash=content_hash,
-                fetched_at=now,
-                published_at=published_at,
-            )
-            self._apply_fields(document, fields)
-            self.db.add(document)
-            self.db.flush()
-
-        chunks = self.chunker.chunk_text(raw_text, max_tokens=650, overlap_tokens=80)
+        chunks = self.chunker.chunk_text(candidate.raw_text, max_tokens=650, overlap_tokens=80)
         embeddings = self.embedder.embed_texts([chunk.content for chunk in chunks])
-        for chunk, embedding in zip(chunks, embeddings, strict=True):
-            self.db.add(
-                Chunk(
-                    id=uuid.uuid4(),
-                    document_id=document.id,
-                    chunk_index=chunk.index,
-                    content=chunk.content,
-                    embedding=embedding,
-                    token_count=chunk.token_count,
-                    content_hash=hashlib.sha256(chunk.content.encode("utf-8")).hexdigest(),
-                )
-            )
-        return status, len(chunks)
+        return status, add_chunks(self.db, document, chunks, embeddings)
 
-    def _log_quarantine(self, source_slug: str, url: str, ingestion, extraction_status: str) -> None:
+    def _log_quarantine(self, candidate: ArticleCandidate, decision: IngestionDecision) -> None:
         log_event(
             logger,
             "article_quarantined",
-            run_id=getattr(self, "run_id", None),
-            source_slug=source_slug,
-            url=self._log_safe_url(url),
-            failure_codes=list(ingestion.failure_codes),
-            extraction_status=extraction_status,
+            run_id=self.run_id,
+            source_slug=candidate.source_slug,
+            url=safe_url(candidate.url),
+            failure_codes=list(decision.failure_codes),
+            extraction_status=candidate.extraction_status,
         )
 
-    @staticmethod
-    def _apply_fields(document: Document, fields: dict) -> None:
-        """Write every managed column; a field absent from this write is reset."""
-        for name, default in DOCUMENT_FIELD_DEFAULTS.items():
-            value = fields.get(name)
-            setattr(document, name, list(value or []) if isinstance(default, list) else value or default)
 
-    @staticmethod
-    def _document_fields(document: Document) -> dict:
-        return {name: getattr(document, name) for name in DOCUMENT_FIELD_DEFAULTS}
+def _has_full_evidence(document: Document) -> bool:
+    return (
+        document.extraction_status == "full_article"
+        or classify_content_detail(document.title or "", document.raw_text) == "detailed"
+    )
 
-    def _find_existing_document(
-        self,
-        *,
-        source_slug: str,
-        raw_url: str,
-        title: str,
-        content_hash: str,
-    ) -> Document | None:
-        raw_candidates = self._document_url_candidates(raw_url)
-        conditions = [Document.url.in_(raw_candidates)]
-        conditions.append(
-            and_(
-                Document.source_name == source_slug,
-                Document.title == title[:500],
-                Document.content_hash == content_hash,
-            )
-        )
-        return self.db.scalar(select(Document).where(or_(*conditions)).limit(1))
 
-    def _normalize_document_url(self, value: str) -> str:
-        parsed = urlparse(value.strip())
-        scheme = parsed.scheme.lower()
-        hostname = (parsed.hostname or "").lower()
-        port = parsed.port
-        if port and not ((scheme == "http" and port == 80) or (scheme == "https" and port == 443)):
-            hostname = f"{hostname}:{port}"
-        path = parsed.path
-        if path and path != "/":
-            path = path.rstrip("/")
-        tracking_parameters = {"fbclid", "gclid", "mc_cid", "mc_eid"}
-        query = urlencode(
-            sorted(
-                (key, item)
-                for key, item in parse_qsl(parsed.query, keep_blank_values=True)
-                if not key.lower().startswith("utm_") and key.lower() not in tracking_parameters
-            ),
-            doseq=True,
-        )
-        return parsed._replace(
-            scheme=scheme,
-            netloc=hostname,
-            path=path,
-            query=query,
-        ).geturl()
+def _write_status(existing: Document | None, candidate: ArticleCandidate) -> str:
+    """Status of a write, judged before the stored content is overwritten."""
+    if existing is None:
+        return "created"
+    return "changed" if existing.content_hash != candidate.content_hash else "unchanged"
 
-    def _document_url_candidates(self, value: str) -> list[str]:
-        normalized = self._normalize_document_url(value)
-        parsed = urlparse(normalized)
-        candidates = [normalized]
-        if parsed.path and parsed.path != "/":
-            candidates.append(parsed._replace(path=f"{parsed.path}/").geturl())
-        return list(dict.fromkeys(candidates))
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def _elapsed_ms(started: float) -> int:
+    return int((time.perf_counter() - started) * 1000)

@@ -13,8 +13,8 @@ from scripts._source_config import update_source_map
 from app.db.models import Document
 from app.db.session import SessionLocal
 from app.sources import configured_active_source_slugs
-from app.ingestion.summary import ArticleSummaryService
-from app.ingestion.extraction import article_excerpt
+from app.ingestion.taxonomy_classifier import TaxonomyClassification, TaxonomyClassifier
+from app.ingestion.parsing import article_excerpt
 from app.ingestion.taxonomy import (
     TAXONOMY_POLICY_VERSION,
     classify_topic_with_method,
@@ -26,10 +26,8 @@ def load_sources() -> dict[str, dict]:
     return update_source_map()
 
 
-def classify_excerpt(
-    document: Document,
-    config: dict,
-) -> tuple[str, list[str], str, str | None, str | None, str, str, str | None]:
+def classify_excerpt(document: Document, config: dict) -> TaxonomyClassification:
+    """Feed excerpts are too short for the model; use deterministic rules."""
     excerpt = article_excerpt(document.title, document.raw_text)
     default_topic = config.get(
         "default_primary_topic",
@@ -44,15 +42,13 @@ def classify_excerpt(
         f"{document.title}\n{excerpt}",
         default_events,
     )
-    return (
-        topic,
-        events or ["analysis"],
-        method,
-        None,
-        "Official feed excerpt used deterministic taxonomy rules.",
-        None,
-        None,
-        "Official feed excerpt used deterministic event rules.",
+    return TaxonomyClassification(
+        primary_topic=topic,
+        event_types=events or ["analysis"],
+        method=method,
+        main_theme=None,
+        category_reason="Official feed excerpt used deterministic taxonomy rules.",
+        event_reason="Official feed excerpt used deterministic event rules.",
     )
 
 
@@ -79,7 +75,7 @@ def run(
     force: bool,
 ) -> dict:
     sources = load_sources()
-    summarizer = ArticleSummaryService(model=model)
+    classifier = TaxonomyClassifier(model=model)
     records: list[dict] = []
     skipped_current = 0
 
@@ -100,32 +96,19 @@ def run(
             default_events = config.get("default_event_types", ["analysis"])
             is_excerpt = document.extraction_status == "feed_excerpt_only"
             if is_excerpt:
-                (
-                    new_topic,
-                    new_events,
-                    method,
-                    _main_theme,
-                    classification_reason,
-                    _relevance_tier,
-                    _relevance_reason,
-                    event_reason,
-                ) = classify_excerpt(document, config)
+                result = classify_excerpt(document, config)
             else:
-                (
-                    new_topic,
-                    new_events,
-                    method,
-                    _main_theme,
-                    classification_reason,
-                    _relevance_tier,
-                    _relevance_reason,
-                    event_reason,
-                ) = summarizer.classify_taxonomy(
+                result = classifier.classify(
                     title=document.title,
                     raw_text=document.raw_text,
                     default_topic=default_topic,
                     default_event_types=default_events,
                 )
+            new_topic = result.primary_topic
+            new_events = result.event_types
+            method = result.method
+            classification_reason = result.category_reason
+            event_reason = result.event_reason
 
             before = {
                 "primary_topic": document.primary_topic,
@@ -165,7 +148,7 @@ def run(
     return {
         "mode": "apply" if apply else "dry-run",
         "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-        "model": summarizer.model,
+        "model": classifier.model,
         "scope": {
             "source": source,
             "enabled_sources_only": True,
