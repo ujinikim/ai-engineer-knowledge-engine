@@ -1,3 +1,4 @@
+import pytest
 import json
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -126,3 +127,26 @@ def test_core_claim_accepts_an_exact_agent_evidence_quote() -> None:
 
     assert decision.tier == "core"
     assert decision.status == "classified"
+
+
+@pytest.mark.parametrize(
+    ("raw_text", "quote"),
+    [
+        ("To\nbuild effective agents\n, they need unlimited tool libraries.", "To build effective agents, they need unlimited tool libraries."),
+        ("We\u2019re launching the agent harness today.", "\"We're launching the agent harness today\""),
+        ("Codex will keep looping until the goal is done... or the budget runs out.", "Codex will keep looping... or the budget runs out"),
+        ("MCP Apps is now live as the first official MCP extension for interactive agent tools.", "MCP Apps are now live as an official MCP extension for interactive agent tools"),
+    ],
+)
+def test_quote_check_tolerates_formatting_and_light_paraphrase(raw_text: str, quote: str) -> None:
+    assert ArticleRelevanceService._quote_is_supported("Title", raw_text, quote)
+
+
+@pytest.mark.parametrize(
+    "quote",
+    ["", "Title", "agents orchestrate tool calls with persistent memory", "Helion... agent planning loops"],
+)
+def test_quote_check_rejects_unsupported_or_trivial_quotes(quote: str) -> None:
+    assert not ArticleRelevanceService._quote_is_supported(
+        "Title", "Helion generates and tunes performant TPU kernels.", quote
+    )

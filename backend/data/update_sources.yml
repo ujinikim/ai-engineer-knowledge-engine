@@ -86,6 +86,7 @@ sources:
     homepage_url: https://www.anthropic.com/engineering
     link_pattern: ^/engineering/[^/]+$
     content_selector: main article
+    date_selector: "[class*='HeroEngineering'][class*='__date']"
     minimum_full_article_characters: 500
     require_published_date: true
     credibility_weight: 1.0

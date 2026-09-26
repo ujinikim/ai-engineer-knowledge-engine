@@ -1,6 +1,5 @@
 import argparse
 import json
-import re
 import sys
 from collections import Counter
 from datetime import datetime, timezone
@@ -25,28 +24,8 @@ DEFAULT_REPORT = (
 METADATA_VERSION = "2026-07-26-v1"
 
 
-def http_status_from_error(error: str) -> int | None:
-    match = re.search(r"\b([45]\d{2})\b", error)
-    return int(match.group(1)) if match else None
-
-
-def error_code(status: int | None, error: str) -> str | None:
-    if status == 403:
-        return "http_forbidden"
-    if status == 404:
-        return "http_not_found"
-    if status is not None and status >= 400:
-        return "http_error"
-    if "Full article extraction produced only" in error:
-        return "content_incomplete"
-    if error:
-        return "unknown_error"
-    return None
-
-
 def extraction_values(document: Document, metadata: dict) -> dict:
     hydration_status = str(metadata.get("hydration_status") or "not_requested")
-    hydration_error = str(metadata.get("hydration_error") or "").strip()
     body = str(document.raw_text or "").removeprefix(str(document.title or "")).strip()
     existing_status = str(metadata.get("extraction_status") or "").strip()
 
@@ -59,31 +38,9 @@ def extraction_values(document: Document, metadata: dict) -> dict:
     else:
         extraction_status = "source_entry"
 
-    attempted = metadata.get("full_article_fetch_attempted_at")
-    if attempted is None and hydration_status in {
-        "full_article",
-        "failed",
-    }:
-        attempted = document.fetched_at.isoformat() if document.fetched_at else None
-
-    status = metadata.get("full_article_fetch_http_status")
-    if status is None:
-        if hydration_status == "full_article":
-            status = 200
-        elif hydration_error:
-            status = http_status_from_error(hydration_error)
-
-    fetch_error_code = metadata.get("full_article_fetch_error_code")
-    if fetch_error_code is None:
-        fetch_error_code = error_code(status, hydration_error)
-
     return {
         "hydration_status": hydration_status,
-        "hydration_error": hydration_error or None,
         "extraction_status": extraction_status,
-        "full_article_fetch_attempted_at": attempted,
-        "full_article_fetch_http_status": status,
-        "full_article_fetch_error_code": fetch_error_code,
     }
 
 
@@ -108,8 +65,6 @@ def main() -> None:
             metadata = dict(document.doc_metadata or {})
             values = extraction_values(document, metadata)
             counts[values["extraction_status"]] += 1
-            if values["full_article_fetch_error_code"]:
-                counts[f"error:{values['full_article_fetch_error_code']}"] += 1
 
             before = {
                 field: metadata.get(field)
@@ -156,7 +111,14 @@ def main() -> None:
                     "Historical fetch-attempt timestamps use the stored fetched_at "
                     "time because the exact prior request time was not retained."
                 ),
-            }
+            },
+            {
+                "date": "2026-09-25",
+                "change": (
+                    "Fetch-attempt diagnostics moved to collector logs; the backfill "
+                    "now derives only hydration and extraction status."
+                ),
+            },
         ],
     }
     output = arguments.report.resolve()

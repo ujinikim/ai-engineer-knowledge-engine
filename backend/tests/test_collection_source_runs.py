@@ -6,6 +6,7 @@ import httpx
 
 from app.core.model_usage import ModelUsage
 from app.db.models import CollectionSourceRun
+from app.services import source_extraction
 from app.services.update_collector import UpdateCollectorService
 from app.services.updates import UpdateService
 
@@ -16,6 +17,10 @@ def test_collection_records_success_and_failure_for_one_run(monkeypatch) -> None
     def respond(request: httpx.Request) -> httpx.Response:
         return httpx.Response(500 if request.url.path == "/broken" else 200, content=feed)
 
+    async def no_sleep(_delay: float) -> None:
+        return None
+
+    monkeypatch.setattr(source_extraction.asyncio, "sleep", no_sleep)
     transport = httpx.MockTransport(respond)
     original_client = httpx.AsyncClient
     monkeypatch.setattr(

@@ -1,6 +1,8 @@
 import json
 import logging
+import re
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 
 from openai import OpenAI
 
@@ -11,8 +13,9 @@ from app.core.structured_logging import get_logger, log_event
 
 logger = get_logger("relevance")
 
-RELEVANCE_POLICY_VERSION = "2026-09-13-agent-engineering-v2"
+RELEVANCE_POLICY_VERSION = "2026-09-25-agent-engineering-v3"
 RELEVANCE_TIERS = ("core", "contextual", "excluded")
+QUOTE_TOKEN_COVERAGE = 0.8
 
 RELEVANCE_RESPONSE_FORMAT = {
     "type": "json_schema",
@@ -150,11 +153,22 @@ class ArticleRelevanceService:
 
     @staticmethod
     def _quote_is_supported(title: str, raw_text: str, quote: str) -> bool:
-        if not quote:
+        # Compare word tokens so punctuation, quote styles, link line breaks, and
+        # "..." joins between excerpts do not reject a genuinely grounded quote.
+        source_tokens = re.findall(r"\w+", f"{title}\n{raw_text}".casefold())
+        fragments = [
+            tokens
+            for fragment in re.split(r"\.\.\.|…", quote.casefold())
+            if len(tokens := re.findall(r"\w+", fragment)) >= 2
+        ]
+        if not fragments or sum(len(tokens) for tokens in fragments) < 3:
             return False
-        normalized_source = " ".join(f"{title}\n{raw_text}".casefold().split())
-        normalized_quote = " ".join(quote.casefold().split())
-        return len(normalized_quote) >= 8 and normalized_quote in normalized_source
+        for tokens in fragments:
+            matcher = SequenceMatcher(None, tokens, source_tokens, autojunk=False)
+            matched = sum(block.size for block in matcher.get_matching_blocks() if block.size >= 2)
+            if matched / len(tokens) < QUOTE_TOKEN_COVERAGE:
+                return False
+        return True
 
     @staticmethod
     def _shorten(value: str, limit: int) -> str:

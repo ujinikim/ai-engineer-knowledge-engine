@@ -432,12 +432,6 @@ def main() -> None:
                 "recommendation_confidence": confidence,
                 "current_visibility": {
                     "extraction_status": metadata.get("extraction_status"),
-                    "full_article_fetch_http_status": metadata.get(
-                        "full_article_fetch_http_status"
-                    ),
-                    "full_article_fetch_error_code": metadata.get(
-                        "full_article_fetch_error_code"
-                    ),
                     "hydration_status": metadata.get("hydration_status"),
                 },
                 "taxonomy": {

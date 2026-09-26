@@ -33,6 +33,11 @@ bodies are never event fields.
 | `collection_started` | Run ID, source count, and item limit |
 | `source_collection_completed` | Per-source document/chunk counts and duration |
 | `source_collection_failed` | Source slug, safe exception type, and duration |
+| `fetch_retry` | URL without query string, attempt, HTTP status or exception type, and backoff delay |
+| `full_article_fetch_failed` | Source slug, URL, HTTP status, controlled error code, and exception type |
+| `source_entry_skipped` | Source slug, URL, and reason, such as `missing_published_date` |
+| `stored_article_retained` | A refresh failed the publication gate; the stored article was kept |
+| `relevance_classification_retained` | Reclassification failed; the prior relevance tier was kept |
 | `summary_generation_fallback` | Records deterministic fallback without source text |
 | `collection_completed` | Final status, counts, token usage, estimated cost, and duration |
 | `collection_skipped` | An overlapping run found the PostgreSQL advisory lock held |

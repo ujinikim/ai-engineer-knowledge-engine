@@ -186,7 +186,7 @@ def test_approved_feed_excerpt_skips_summary_and_embeddings_but_publishes() -> N
     assert metadata["summary"] == metadata["excerpt"]
 
 
-def test_failed_refresh_does_not_replace_an_existing_published_document() -> None:
+def test_failed_refresh_does_not_replace_an_existing_published_document(caplog) -> None:
     existing = SimpleNamespace(
         raw_text="Release\n\nA complete article that was previously published.",
         content_hash="existing-content-hash",
@@ -235,13 +235,19 @@ def test_failed_refresh_does_not_replace_an_existing_published_document() -> Non
     assert existing.raw_text == "Release\n\nA complete article that was previously published."
     assert existing.content_hash == "existing-content-hash"
     assert existing.ingestion_status == PUBLISHED
-    assert existing.doc_metadata["last_ingestion_attempt_status"] == PUBLISHED
-    assert existing.doc_metadata["last_ingestion_failure_codes"] == []
-    assert existing.doc_metadata["last_ingestion_warning_codes"] == [
+    assert not any(key.startswith("last_ingestion_") for key in existing.doc_metadata)
+    retained = next(
+        record.structured_fields
+        for record in caplog.records
+        if getattr(record, "event", None) == "stored_article_retained"
+    )
+    assert retained["attempt_status"] == PUBLISHED
+    assert retained["failure_codes"] == []
+    assert retained["warning_codes"] == [
         "article_hydration_failed",
         "insufficient_source_detail",
     ]
-    assert existing.doc_metadata["last_ingestion_evidence_level"] == "official_feed_excerpt"
+    assert retained["evidence_level"] == "official_feed_excerpt"
 
 
 def test_relevance_excluded_article_skips_summary_chunks_and_embeddings() -> None:
@@ -408,7 +414,7 @@ def test_failed_relevance_stays_unclassified_and_retries_without_content_change(
     assert "default_feed_eligible" not in collector.db.document.doc_metadata
 
 
-def test_failed_reclassification_keeps_existing_good_article() -> None:
+def test_failed_reclassification_keeps_existing_good_article(caplog) -> None:
     existing = SimpleNamespace(
         raw_text="Original agent article",
         content_hash="original-hash",
@@ -466,4 +472,8 @@ def test_failed_reclassification_keeps_existing_good_article() -> None:
     assert existing.raw_text == "Original agent article"
     assert existing.content_hash == "original-hash"
     assert existing.relevance_tier == "core"
-    assert existing.doc_metadata["last_relevance_attempt_status"] == "failed"
+    assert "last_relevance_attempt_status" not in existing.doc_metadata
+    assert any(
+        getattr(record, "event", None) == "relevance_classification_retained"
+        for record in caplog.records
+    )

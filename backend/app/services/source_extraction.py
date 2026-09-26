@@ -1,6 +1,8 @@
 """Feed and article extraction helpers used by the update collector."""
 
+import asyncio
 import json
+import logging
 import re
 from datetime import datetime, timezone
 from time import struct_time
@@ -10,8 +12,59 @@ import feedparser
 import httpx
 from bs4 import BeautifulSoup
 
+from app.core.structured_logging import get_logger, log_event
+
+
+logger = get_logger("collector.fetch")
+
+FETCH_ATTEMPTS = 3
+RETRY_BASE_DELAY_SECONDS = 1.0
+MAX_RETRY_DELAY_SECONDS = 10.0
+RETRYABLE_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
+
 
 class SourceExtractionMixin:
+    async def _get_with_retries(self, client: httpx.AsyncClient, url: str) -> httpx.Response:
+        """GET a URL, retrying timeouts, connection errors, and transient HTTP statuses."""
+        for attempt in range(1, FETCH_ATTEMPTS + 1):
+            http_status = None
+            exception_type = None
+            retry_after = None
+            try:
+                response = await client.get(url)
+            except httpx.TransportError as error:
+                if attempt == FETCH_ATTEMPTS:
+                    raise
+                exception_type = type(error).__name__
+            else:
+                if response.status_code not in RETRYABLE_STATUS_CODES or attempt == FETCH_ATTEMPTS:
+                    response.raise_for_status()
+                    return response
+                http_status = response.status_code
+                retry_after = response.headers.get("Retry-After")
+
+            delay = self._retry_delay(attempt, retry_after)
+            log_event(
+                logger,
+                "fetch_retry",
+                level=logging.WARNING,
+                run_id=getattr(self, "run_id", None),
+                url=self._log_safe_url(url),
+                attempt=attempt,
+                http_status=http_status,
+                exception_type=exception_type,
+                delay_ms=int(delay * 1000),
+            )
+            await asyncio.sleep(delay)
+        raise AssertionError("unreachable")
+
+    @staticmethod
+    def _retry_delay(attempt: int, retry_after: str | None) -> float:
+        delay = RETRY_BASE_DELAY_SECONDS * 2 ** (attempt - 1)
+        if retry_after and retry_after.strip().isdigit():
+            delay = float(retry_after.strip())
+        return min(delay, MAX_RETRY_DELAY_SECONDS)
+
     def _source_entries(self, config: dict, response: httpx.Response) -> list[dict]:
         if config.get("source_kind") == "html_listing":
             return self._html_listing_entries(config, response.text)
@@ -55,8 +108,7 @@ class SourceExtractionMixin:
         config: dict,
         entry: dict,
     ) -> dict:
-        response = await client.get(entry["link"])
-        response.raise_for_status()
+        response = await self._get_with_retries(client, entry["link"])
         soup = BeautifulSoup(response.text, "html.parser")
         content = soup.select_one(config.get("content_selector", "main")) or soup.body or soup
         remove_selectors = ", ".join(
@@ -99,6 +151,9 @@ class SourceExtractionMixin:
             title = f"{title_prefix} {title}"
 
         article_published = self._published_value(soup, content)
+        date_element = soup.select_one(config["date_selector"]) if config.get("date_selector") else None
+        if not article_published and date_element:
+            article_published = self._date_from_text(date_element.get_text(" ", strip=True))
         published = article_published or entry.get("published")
         if not published:
             published = self._date_from_text(content.get_text(" ", strip=True)[:500])
@@ -112,11 +167,7 @@ class SourceExtractionMixin:
             "published_parsed": None if article_published else entry.get("published_parsed"),
             "updated_parsed": None if article_published else entry.get("updated_parsed"),
             "_hydration_status": "full_article",
-            "_hydration_error": "",
             "_extraction_status": "full_article",
-            "_full_article_fetch_attempted_at": datetime.now(timezone.utc).isoformat(),
-            "_full_article_fetch_http_status": response.status_code,
-            "_full_article_fetch_error_code": None,
         }
 
     def _full_article_fallback_entry(
@@ -147,9 +198,7 @@ class SourceExtractionMixin:
         return {
             **entry,
             "_hydration_status": "failed",
-            "_hydration_error": str(error)[:500],
             "_extraction_status": extraction_status,
-            "_full_article_fetch_attempted_at": datetime.now(timezone.utc).isoformat(),
             "_full_article_fetch_http_status": http_status,
             "_full_article_fetch_error_code": error_code,
         }
@@ -266,6 +315,13 @@ class SourceExtractionMixin:
             re.IGNORECASE,
         )
         return match.group(0) if match else ""
+
+    @staticmethod
+    def _log_safe_url(value) -> str | None:
+        if not value:
+            return None
+        parsed = urlparse(str(value))
+        return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
 
     def _excerpt(self, text: str, limit: int = 420) -> str:
         compact = " ".join(text.split())

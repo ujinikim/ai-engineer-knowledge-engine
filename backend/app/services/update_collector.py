@@ -69,6 +69,7 @@ class UpdateCollectorService(SourceExtractionMixin):
         run_id: str | None = None,
     ) -> CollectionResult:
         run_id = run_id or uuid.uuid4().hex
+        self.run_id = run_id
         counts = {
             "sources_processed": 0,
             "updates_created": 0,
@@ -88,13 +89,21 @@ class UpdateCollectorService(SourceExtractionMixin):
                 source_counts_before = counts.copy()
                 matched_items = 0
                 try:
-                    response = await client.get(config["feed_url"])
-                    response.raise_for_status()
+                    response = await self._get_with_retries(client, config["feed_url"])
                     entries = self._source_entries(config, response)
                     for entry in entries:
                         if config.get("source_kind") == "html_listing":
                             entry = await self._hydrate_html_entry(client, config, entry)
                         if config.get("require_published_date") and not self._entry_datetime(entry):
+                            log_event(
+                                logger,
+                                "source_entry_skipped",
+                                level=logging.WARNING,
+                                run_id=run_id,
+                                source_slug=source_slug,
+                                reason="missing_published_date",
+                                url=self._log_safe_url(entry.get("link")),
+                            )
                             continue
                         if not self._matches_config(config, entry):
                             continue
@@ -103,6 +112,17 @@ class UpdateCollectorService(SourceExtractionMixin):
                                 entry = await self._hydrate_html_entry(client, config, entry)
                             except (httpx.HTTPError, ValueError) as error:
                                 entry = self._full_article_fallback_entry(entry, error)
+                                log_event(
+                                    logger,
+                                    "full_article_fetch_failed",
+                                    level=logging.WARNING,
+                                    run_id=run_id,
+                                    source_slug=source_slug,
+                                    url=self._log_safe_url(entry.get("link")),
+                                    http_status=entry["_full_article_fetch_http_status"],
+                                    error_code=entry["_full_article_fetch_error_code"],
+                                    exception_type=type(error).__name__,
+                                )
                         status, chunks_written = self._upsert_entry(source_slug, config, entry)
                         counts[f"updates_{status}"] += 1
                         counts["chunks_written"] += chunks_written
@@ -202,7 +222,6 @@ class UpdateCollectorService(SourceExtractionMixin):
                 "failed": "feed_excerpt_only" if body_text else "title_only",
             }.get(hydration_status, "source_entry")
         )
-        hydration_error = str(entry.get("_hydration_error") or "").strip()
         base_metadata = {
             "organization": config["organization"],
             "tool": config["tool"],
@@ -210,19 +229,9 @@ class UpdateCollectorService(SourceExtractionMixin):
             "excerpt": self._excerpt(body_text or title),
             "source_type": source_type,
             "credibility_weight": float(config.get("credibility_weight", 1.0)),
-            # Legacy hydration fields remain during the metadata migration.
+            # Legacy hydration status remains during the metadata migration.
             "hydration_status": hydration_status,
-            "hydration_error": hydration_error or None,
             "extraction_status": extraction_status,
-            "full_article_fetch_attempted_at": entry.get(
-                "_full_article_fetch_attempted_at"
-            ),
-            "full_article_fetch_http_status": entry.get(
-                "_full_article_fetch_http_status"
-            ),
-            "full_article_fetch_error_code": entry.get(
-                "_full_article_fetch_error_code"
-            ),
         }
         provisional_events = normalize_event_types(
             source_slug,
@@ -260,14 +269,17 @@ class UpdateCollectorService(SourceExtractionMixin):
         )
         if document and not ingestion.rag_eligible and existing_has_full_evidence:
             document.fetched_at = now
-            document.doc_metadata = {
-                **document.doc_metadata,
-                "last_ingestion_attempt_status": ingestion.status,
-                "last_ingestion_failure_codes": list(ingestion.failure_codes),
-                "last_ingestion_warning_codes": list(ingestion.warning_codes),
-                "last_ingestion_evidence_level": ingestion.evidence_level,
-                "last_ingestion_attempted_at": now.isoformat(),
-            }
+            log_event(
+                logger,
+                "stored_article_retained",
+                run_id=getattr(self, "run_id", None),
+                source_slug=source_slug,
+                url=self._log_safe_url(url),
+                attempt_status=ingestion.status,
+                failure_codes=list(ingestion.failure_codes),
+                warning_codes=list(ingestion.warning_codes),
+                evidence_level=ingestion.evidence_level,
+            )
             return "unchanged", 0
 
         if ingestion.publishable:
@@ -307,11 +319,15 @@ class UpdateCollectorService(SourceExtractionMixin):
                 and document.doc_metadata.get("relevance_classification_status") != "fail_open"
             ):
                 document.fetched_at = now
-                document.doc_metadata = {
-                    **document.doc_metadata,
-                    "last_relevance_attempt_status": "failed",
-                    "last_relevance_attempted_at": now.isoformat(),
-                }
+                log_event(
+                    logger,
+                    "relevance_classification_retained",
+                    level=logging.WARNING,
+                    run_id=getattr(self, "run_id", None),
+                    source_slug=source_slug,
+                    url=self._log_safe_url(url),
+                    relevance_tier=document.relevance_tier,
+                )
                 return "unchanged", 0
 
             pending_metadata = {

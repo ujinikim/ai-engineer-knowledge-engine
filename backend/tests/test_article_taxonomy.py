@@ -347,9 +347,6 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
     assert collector._entry_datetime(hydrated).isoformat() == "2026-07-20T00:00:00"
     assert hydrated["_hydration_status"] == "full_article"
     assert hydrated["_extraction_status"] == "full_article"
-    assert hydrated["_full_article_fetch_http_status"] == 200
-    assert hydrated["_full_article_fetch_error_code"] is None
-    assert hydrated["_full_article_fetch_attempted_at"]
     assert "Technical article body" in hydrated["content"][0]["value"]
     assert "Unrelated recommendation" not in hydrated["content"][0]["value"]
 
@@ -397,7 +394,6 @@ def test_forbidden_article_fetch_becomes_structured_feed_excerpt_fallback() -> N
     assert result["_extraction_status"] == "feed_excerpt_only"
     assert result["_full_article_fetch_http_status"] == 403
     assert result["_full_article_fetch_error_code"] == "http_forbidden"
-    assert result["_full_article_fetch_attempted_at"]
 
 
 def test_incomplete_article_without_excerpt_becomes_title_only() -> None:

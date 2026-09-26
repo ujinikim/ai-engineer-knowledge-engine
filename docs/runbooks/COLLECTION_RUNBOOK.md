@@ -17,7 +17,8 @@ Update sources live in:
 backend/data/update_sources.yml
 ```
 
-Each entry requires a unique slug, tool, organization, default primary topic, source type, feed URL, homepage URL, and credibility weight. Broad feeds can define `include_terms` and `exclude_terms`. Remove retired sources from the registry after their stored data is cleaned up.
+Each entry requires a unique slug, tool, organization, default primary topic, source type, feed URL, homepage URL, and credibility weight. Broad feeds can define `include_terms` and `exclude_terms`. HTML sources whose article
+pages keep the publication date outside the content selector can set `date_selector`. Remove retired sources from the registry after their stored data is cleaned up.
 
 ## Collect Once
 
@@ -42,11 +43,15 @@ The collector:
    scheduled run owns it, the new run reports `collection_already_running` and exits
    successfully without fetching or writing anything.
 2. Starts a per-source collection attempt identified by the run ID.
-3. Fetches official RSS, Atom, or configured HTML discovery pages.
+3. Fetches official RSS, Atom, or configured HTML discovery pages. Feed and article
+   requests are retried up to three times with short backoff for timeouts,
+   connection errors, and HTTP 408, 429, 500, 502, 503, or 504. Each retry is logged
+   as `fetch_retry`; other HTTP errors fail immediately.
 4. Applies configured relevance filters.
 5. Extracts source text and publication time. When configured full-article fetching
-   fails, it retains the source-entry excerpt and records structured fetch
-   diagnostics rather than treating the whole collection as failed.
+   fails, it retains the source-entry excerpt and logs `full_article_fetch_failed`
+   rather than treating the whole collection as failed. Entries skipped for a missing
+   required publication date are logged as `source_entry_skipped`.
 6. Applies the deterministic publication gate. Title-only extraction and ordinary
    sparse records are stored as `quarantined`. Failed full-article hydration is also
    quarantined unless the source explicitly permits its official feed excerpt as
@@ -60,7 +65,7 @@ The collector:
 8. Upserts by normalized URL, canonical URL, or matching source/title/content hash.
    Tracking parameters and equivalent default ports do not create new records.
 9. Preserves a previously published article when a later fetch is quarantined and
-   records the failed attempt in metadata for diagnosis.
+   logs the attempt as `stored_article_retained`.
 10. Skips summarization and embeddings when published content is unchanged.
 11. Replaces original-text chunks and embeddings when published content changes.
 12. Records collection time, per-source quarantine counts, and source errors.
@@ -110,9 +115,6 @@ These metadata fields describe independent stages:
 |---|---|
 | `extraction_status` | `full_article`, `source_entry`, `feed_excerpt_only`, or `title_only` |
 | `summary_input_source` | The text supplied to summarization: full article, source entry, feed excerpt, or title |
-| `full_article_fetch_attempted_at` | Timestamp of the latest configured full-page attempt |
-| `full_article_fetch_http_status` | HTTP response status when one was available |
-| `full_article_fetch_error_code` | Controlled code such as `http_forbidden`, `http_not_found`, `http_error`, `network_error`, or `content_incomplete` |
 | `summary_generated_by` | Model and source type, or `deterministic-fallback` when model generation failed |
 | `ingestion_status` | `published` when eligible for a user-facing surface or `quarantined` when retained only for diagnosis |
 | `ingestion_failure_codes` | Deterministic reasons such as `article_hydration_failed`, `title_only_source`, or `insufficient_source_detail` |
@@ -130,8 +132,6 @@ a dashboard announcement when the configured full-page fetch is blocked:
 ```json
 {
   "extraction_status": "feed_excerpt_only",
-  "full_article_fetch_http_status": 403,
-  "full_article_fetch_error_code": "http_forbidden",
   "summary_input_source": "feed_excerpt",
   "ingestion_status": "published",
   "ingestion_failure_codes": [],
@@ -147,8 +147,13 @@ a dashboard announcement when the configured full-page fetch is blocked:
 }
 ```
 
-`hydration_status` and `hydration_error` remain temporarily for backward
-compatibility. New code should use the structured extraction fields.
+`hydration_status` remains temporarily for backward compatibility. New code should
+use the structured extraction fields.
+
+Per-attempt diagnostics are log events, not document metadata. A failed full-page
+fetch logs `full_article_fetch_failed` with the source slug, URL without query string,
+HTTP status, and a controlled `error_code` such as `http_forbidden`, `http_not_found`,
+`http_error`, `network_error`, or `content_incomplete`.
 
 ## Run Continuously
 
