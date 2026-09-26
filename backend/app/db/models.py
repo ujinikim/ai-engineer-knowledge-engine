@@ -19,7 +19,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
-from app.services.taxonomy import EVENT_TYPES, PRIMARY_TOPICS
+from app.ingestion.taxonomy import EVENT_TYPES, PRIMARY_TOPICS
 
 
 def _sql_list(values) -> str:

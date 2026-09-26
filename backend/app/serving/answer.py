@@ -10,7 +10,7 @@ from app.core.model_usage import estimate_chat_cost_usd
 from app.core.structured_logging import get_logger, log_event
 from app.schemas.ask import AnswerMetrics, AskRequest, AskResponse, Citation
 from app.schemas.search import SearchRequest
-from app.services.retriever import RetrieverService
+from app.serving.search import RetrieverService
 
 
 logger = get_logger("answer")

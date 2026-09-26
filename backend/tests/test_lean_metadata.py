@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 
-from app.services.source_extraction import article_excerpt
-from app.services.update_collector import UpdateCollectorService
-from app.services.update_visibility import source_attribute, source_slugs_with
+from app.ingestion.extraction import article_excerpt
+from app.ingestion.pipeline import UpdateCollectorService
+from app.sources import source_attribute, source_slugs_with
 
 
 def test_source_attributes_come_from_configuration() -> None:

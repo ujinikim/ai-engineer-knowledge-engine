@@ -9,10 +9,10 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Chunk, Document
 from app.schemas.search import RetrievedChunk, RetrievalMetrics, SearchRequest, SearchResponse
-from app.services.embedding import EmbeddingService
-from app.services.article_relevance import visible_relevance_tiers
-from app.services.ingestion_policy import PUBLISHED
-from app.services.update_visibility import (
+from app.core.embedding import EmbeddingService
+from app.ingestion.relevance import visible_relevance_tiers
+from app.ingestion.policy import PUBLISHED
+from app.sources import (
     configured_active_source_slugs,
     source_attribute,
     source_slugs_with,

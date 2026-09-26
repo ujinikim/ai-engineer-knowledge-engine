@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from app.services.source_detail import classify_content_detail
-from app.services.updates import UpdateService
+from app.ingestion.content_detail import classify_content_detail
+from app.serving.feed import UpdateService
 
 
 def make_document(

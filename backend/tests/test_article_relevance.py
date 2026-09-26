@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 from app.core.model_usage import ModelUsage
-from app.services.article_relevance import (
+from app.ingestion.relevance import (
     RELEVANCE_POLICY_VERSION,
     ArticleRelevanceService,
 )

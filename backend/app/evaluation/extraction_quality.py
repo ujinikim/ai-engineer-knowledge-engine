@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Any, Iterable
 from urllib.parse import urlparse
 
-from app.services.update_visibility import source_attribute
+from app.sources import source_attribute
 
 
 BOILERPLATE_TERMS = (

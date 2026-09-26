@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.api.routes import get_readiness_checker
 from app.core.settings import Settings
 from app.main import create_app
-from app.services.health import (
+from app.serving.health import (
     DatabaseReadinessChecker,
     ReadinessCheckError,
     expected_alembic_heads,

@@ -8,7 +8,7 @@ import yaml
 
 @lru_cache(maxsize=1)
 def configured_sources() -> tuple[dict, ...]:
-    source_file = Path(__file__).resolve().parents[2] / "data" / "update_sources.yml"
+    source_file = Path(__file__).resolve().parents[1] / "data" / "update_sources.yml"
     with source_file.open("r", encoding="utf-8") as file:
         sources = yaml.safe_load(file)["sources"]
     required = {"slug", "name", "organization", "tool", "category", "source_kind", "feed_url", "homepage_url"}

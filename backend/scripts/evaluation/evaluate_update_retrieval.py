@@ -13,7 +13,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.session import SessionLocal
 from app.schemas.search import RetrievedChunk, SearchRequest
-from app.services.retriever import RetrieverService
+from app.serving.search import RetrieverService
 
 
 ROOT = Path(__file__).resolve().parents[2]

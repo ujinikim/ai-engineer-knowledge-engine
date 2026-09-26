@@ -9,10 +9,10 @@ from app.schemas.ask import AskRequest, AskResponse
 from app.schemas.health import LivenessResponse, ReadinessResponse
 from app.schemas.search import SearchRequest, SearchResponse
 from app.schemas.updates import TimeWindow, UpdateListResponse, UpdateSourceItem
-from app.services.answer import AnswerService
-from app.services.health import DatabaseReadinessChecker, ReadinessCheckError
-from app.services.retriever import RetrieverService
-from app.services.updates import UpdateService
+from app.serving.answer import AnswerService
+from app.serving.health import DatabaseReadinessChecker, ReadinessCheckError
+from app.serving.search import RetrieverService
+from app.serving.feed import UpdateService
 
 router = APIRouter()
 

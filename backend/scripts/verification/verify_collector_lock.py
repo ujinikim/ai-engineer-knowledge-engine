@@ -6,7 +6,7 @@ from sqlalchemy import text
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.session import engine
-from app.services.collector_lock import COLLECTOR_LOCK_NAME, collector_run_lock
+from app.ingestion.lock import COLLECTOR_LOCK_NAME, collector_run_lock
 
 
 with collector_run_lock(engine) as first_acquired:

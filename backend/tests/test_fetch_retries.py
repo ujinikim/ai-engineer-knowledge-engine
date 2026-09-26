@@ -3,8 +3,8 @@ import asyncio
 import httpx
 import pytest
 
-from app.services import source_extraction
-from app.services.update_collector import UpdateCollectorService
+from app.ingestion import extraction
+from app.ingestion.pipeline import UpdateCollectorService
 
 
 @pytest.fixture(autouse=True)
@@ -14,7 +14,7 @@ def no_retry_sleep(monkeypatch):
     async def fake_sleep(delay: float) -> None:
         delays.append(delay)
 
-    monkeypatch.setattr(source_extraction.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(extraction.asyncio, "sleep", fake_sleep)
     return delays
 
 
@@ -68,13 +68,13 @@ def test_transport_errors_raise_after_final_attempt(no_retry_sleep) -> None:
 
     with pytest.raises(httpx.ConnectTimeout):
         fetch(handler)
-    assert len(calls) == source_extraction.FETCH_ATTEMPTS
+    assert len(calls) == extraction.FETCH_ATTEMPTS
     assert no_retry_sleep == [1.0, 2.0]
 
 
 def test_retry_delay_is_capped() -> None:
-    assert source_extraction.SourceExtractionMixin._retry_delay(1, "120") == (
-        source_extraction.MAX_RETRY_DELAY_SECONDS
+    assert extraction.SourceExtractionMixin._retry_delay(1, "120") == (
+        extraction.MAX_RETRY_DELAY_SECONDS
     )
 
 

@@ -3,14 +3,14 @@ import asyncio
 import httpx
 import pytest
 
-from app.services.article_summary import MAIN_THEME_RESPONSE_FORMAT, ArticleSummaryService
-from app.services.taxonomy import (
+from app.ingestion.summary import MAIN_THEME_RESPONSE_FORMAT, ArticleSummaryService
+from app.ingestion.taxonomy import (
     classify_topic,
     classify_topic_with_method,
     infer_event_types,
     normalize_event_types,
 )
-from app.services.update_collector import UpdateCollectorService
+from app.ingestion.pipeline import UpdateCollectorService
 
 
 def test_topic_classification_prefers_inference_signals() -> None:

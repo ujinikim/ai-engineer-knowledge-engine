@@ -14,20 +14,20 @@ from app.core.model_usage import ModelUsage
 from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event
 from app.db.models import Chunk, CollectionSourceRun, Document
-from app.services.article_relevance import (
+from app.ingestion.relevance import (
     RELEVANCE_POLICY_VERSION,
     RELEVANCE_TIERS,
     ArticleRelevanceService,
 )
-from app.services.article_summary import ArticleSummaryService
-from app.services.chunking import ChunkingService
-from app.services.embedding import EmbeddingService
-from app.services.ingestion_policy import (
+from app.ingestion.summary import ArticleSummaryService
+from app.ingestion.chunking import ChunkingService
+from app.core.embedding import EmbeddingService
+from app.ingestion.policy import (
     evaluate_ingestion_candidate,
 )
-from app.services.source_extraction import SourceExtractionMixin
-from app.services.source_detail import classify_content_detail
-from app.services.taxonomy import (
+from app.ingestion.extraction import SourceExtractionMixin
+from app.ingestion.content_detail import classify_content_detail
+from app.ingestion.taxonomy import (
     TAXONOMY_POLICY_VERSION,
     classify_topic_with_method,
     infer_event_types,

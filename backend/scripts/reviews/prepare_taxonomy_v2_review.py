@@ -12,9 +12,9 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.models import Document
 from app.db.session import SessionLocal
-from app.services.update_visibility import configured_active_source_slugs
-from app.services.article_summary import ArticleSummaryService
-from app.services.taxonomy import EVENT_TYPES, PRIMARY_TOPICS, TAXONOMY_POLICY_VERSION
+from app.sources import configured_active_source_slugs
+from app.ingestion.summary import ArticleSummaryService
+from app.ingestion.taxonomy import EVENT_TYPES, PRIMARY_TOPICS, TAXONOMY_POLICY_VERSION
 from scripts.maintenance.backfill_taxonomy_v2 import classify_excerpt, load_sources
 
 

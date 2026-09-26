@@ -12,10 +12,10 @@ from scripts._source_config import update_source_map
 
 from app.db.models import Document
 from app.db.session import SessionLocal
-from app.services.update_visibility import configured_active_source_slugs
-from app.services.article_summary import ArticleSummaryService
-from app.services.source_extraction import article_excerpt
-from app.services.taxonomy import (
+from app.sources import configured_active_source_slugs
+from app.ingestion.summary import ArticleSummaryService
+from app.ingestion.extraction import article_excerpt
+from app.ingestion.taxonomy import (
     TAXONOMY_POLICY_VERSION,
     classify_topic_with_method,
     infer_event_types,

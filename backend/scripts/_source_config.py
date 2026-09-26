@@ -1,6 +1,6 @@
 """Shared access to the configured update sources for command-line tools."""
 
-from app.services.update_visibility import configured_sources
+from app.sources import configured_sources
 
 
 def load_update_sources() -> list[dict]:

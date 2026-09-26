@@ -11,12 +11,12 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.core.model_usage import ModelUsage, estimate_chat_cost_usd
 from app.db.session import SessionLocal
-from app.services.article_relevance import (
+from app.ingestion.relevance import (
     RELEVANCE_POLICY_VERSION,
     ArticleRelevanceService,
 )
-from app.services.ingestion_policy import PUBLISHED, evidence_level
-from app.services.update_visibility import configured_active_source_slugs
+from app.ingestion.policy import PUBLISHED, evidence_level
+from app.sources import configured_active_source_slugs
 
 
 ROOT = Path(__file__).resolve().parents[2]

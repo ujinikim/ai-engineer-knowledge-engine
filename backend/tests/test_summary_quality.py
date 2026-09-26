@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 from uuid import uuid4
 
-from app.services.summary_quality import SummaryQualityService, SummaryThresholds
-from app.services.taxonomy import TAXONOMY_POLICY_VERSION
+from app.evaluation.summary_quality import SummaryQualityService, SummaryThresholds
+from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION
 
 
 def make_document(

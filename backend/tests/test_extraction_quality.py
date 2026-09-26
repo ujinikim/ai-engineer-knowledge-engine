@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from types import SimpleNamespace
 from uuid import uuid4
 
-from app.services.extraction_quality import ExtractionQualityService
+from app.evaluation.extraction_quality import ExtractionQualityService
 
 
 def make_chunk(content: str, index: int = 0):

@@ -59,7 +59,7 @@ Each taxonomy-v2 article has exactly one broad primary topic and at most one eve
 `release-update`, `research`, `guide`, `analysis`, or `alert`. `topic_tags` remains
 an empty compatibility field. Entity tags, source type, and maturity remain metadata,
 not additional reader-facing topic categories. Allowed values are defined in
-`backend/app/services/taxonomy.py`.
+`backend/app/ingestion/taxonomy.py`.
 
 ## Stored Layers
 

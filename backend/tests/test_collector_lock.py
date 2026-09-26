@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 import pytest
 
-from app.services.collector_lock import COLLECTOR_LOCK_NAME, collector_run_lock
+from app.ingestion.lock import COLLECTOR_LOCK_NAME, collector_run_lock
 
 
 class FakeConnection:

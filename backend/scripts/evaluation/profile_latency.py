@@ -9,7 +9,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.session import SessionLocal
 from app.schemas.ask import AskRequest
-from app.services.answer import AnswerService
+from app.serving.answer import AnswerService
 
 
 OUTPUT_FILE = Path(__file__).resolve().parents[2] / "data" / "eval" / "latency_profile.json"

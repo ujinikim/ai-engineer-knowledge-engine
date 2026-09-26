@@ -6,9 +6,9 @@ from dataclasses import asdict, dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from app.services.source_detail import classify_content_detail
-from app.services.update_visibility import source_attribute
-from app.services.taxonomy import (
+from app.ingestion.content_detail import classify_content_detail
+from app.sources import source_attribute
+from app.ingestion.taxonomy import (
     EVENT_TYPES,
     LEGACY_EVENT_TYPES,
     LEGACY_PRIMARY_TOPICS,

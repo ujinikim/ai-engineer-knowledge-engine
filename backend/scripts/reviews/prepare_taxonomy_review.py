@@ -14,8 +14,8 @@ from scripts._source_config import update_source_map
 
 from app.db.models import Document
 from app.db.session import SessionLocal
-from app.services.taxonomy import EVENT_TYPES, PRIMARY_TOPICS
-from app.services.update_visibility import source_attribute
+from app.ingestion.taxonomy import EVENT_TYPES, PRIMARY_TOPICS
+from app.sources import source_attribute
 
 
 DEFAULT_OUTPUT = (

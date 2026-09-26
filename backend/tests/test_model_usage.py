@@ -7,8 +7,8 @@ from app.core.model_usage import (
     estimate_chat_cost_usd,
     estimate_embedding_cost_usd,
 )
-from app.services.article_summary import ArticleSummaryService
-from app.services.embedding import EmbeddingService
+from app.ingestion.summary import ArticleSummaryService
+from app.core.embedding import EmbeddingService
 
 
 def test_known_model_costs_and_snapshots_are_estimated() -> None:

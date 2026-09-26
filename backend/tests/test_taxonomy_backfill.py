@@ -1,5 +1,5 @@
 from app.db.models import Document
-from app.services.taxonomy import EVENT_TYPES, PRIMARY_TOPICS, TAXONOMY_POLICY_VERSION
+from app.ingestion.taxonomy import EVENT_TYPES, PRIMARY_TOPICS, TAXONOMY_POLICY_VERSION
 from scripts.maintenance.backfill_taxonomy_v2 import build_query, classify_excerpt, load_sources
 from sqlalchemy.dialects import postgresql
 

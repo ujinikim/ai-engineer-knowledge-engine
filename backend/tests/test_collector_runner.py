@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from app.services.update_collector import CollectionResult
-from app.services.update_visibility import configured_active_source_slugs
+from app.ingestion.pipeline import CollectionResult
+from app.sources import configured_active_source_slugs
 from scripts import collect_updates
 
 

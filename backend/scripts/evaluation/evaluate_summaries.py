@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.models import Document
 from app.db.session import SessionLocal
-from app.services.summary_quality import SummaryQualityService
+from app.evaluation.summary_quality import SummaryQualityService
 from scripts._review_io import read_review_payload, review_items_by_key
 
 

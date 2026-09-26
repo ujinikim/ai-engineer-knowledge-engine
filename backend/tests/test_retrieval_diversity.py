@@ -8,7 +8,7 @@ from sqlalchemy.dialects import postgresql
 from app.db.models import Chunk, Document
 from app.schemas.ask import AskRequest
 from app.schemas.search import SearchRequest
-from app.services.retriever import Candidate, RetrieverService
+from app.serving.search import Candidate, RetrieverService
 
 
 def candidate(

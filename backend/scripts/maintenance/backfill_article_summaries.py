@@ -11,7 +11,7 @@ from scripts._source_config import update_source_map
 
 from app.db.models import Document
 from app.db.session import SessionLocal
-from app.services.article_summary import ArticleSummaryService
+from app.ingestion.summary import ArticleSummaryService
 
 
 def load_sources() -> dict[str, dict]:

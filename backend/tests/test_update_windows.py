@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 
 from sqlalchemy.dialects import postgresql
 
-from app.services.updates import UpdateService
-from app.services.update_collector import UpdateCollectorService
+from app.serving.feed import UpdateService
+from app.ingestion.pipeline import UpdateCollectorService
 
 
 def test_empty_updates_query_builds_enabled_source_filters():

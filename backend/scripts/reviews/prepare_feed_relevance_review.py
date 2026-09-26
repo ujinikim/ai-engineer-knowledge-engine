@@ -13,7 +13,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.models import Document
 from app.db.session import SessionLocal
-from app.services.update_visibility import source_attribute
+from app.sources import source_attribute
 
 
 ROOT = Path(__file__).resolve().parents[2]

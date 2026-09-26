@@ -1,4 +1,4 @@
-from app.services.chunking import ChunkingService
+from app.ingestion.chunking import ChunkingService
 
 
 def test_large_unicode_block_chunks_remain_exact_source_substrings() -> None:

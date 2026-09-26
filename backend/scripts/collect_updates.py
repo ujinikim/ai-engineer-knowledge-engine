@@ -13,8 +13,8 @@ from scripts._source_config import load_update_sources
 from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event
 from app.db.session import SessionLocal, engine
-from app.services.collector_lock import collector_run_lock
-from app.services.update_collector import UpdateCollectorService
+from app.ingestion.lock import collector_run_lock
+from app.ingestion.pipeline import UpdateCollectorService
 
 
 logger = get_logger("collector.runner")

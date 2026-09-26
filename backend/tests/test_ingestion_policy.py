@@ -1,13 +1,13 @@
 from types import SimpleNamespace
 
-from app.services.ingestion_policy import (
+from app.ingestion.policy import (
     PUBLISHED,
     QUARANTINED,
     evaluate_ingestion_candidate,
     evidence_level,
 )
-from app.services.update_collector import UpdateCollectorService
-from app.services.article_relevance import RelevanceDecision
+from app.ingestion.pipeline import UpdateCollectorService
+from app.ingestion.relevance import RelevanceDecision
 
 
 def test_detailed_source_is_publishable() -> None:

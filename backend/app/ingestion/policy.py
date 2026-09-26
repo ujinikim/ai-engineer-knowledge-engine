@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from app.services.source_detail import IMPORTANT_SPARSE_EVENT_TYPES
+from app.ingestion.content_detail import IMPORTANT_SPARSE_EVENT_TYPES
 
 
 PUBLISHED = "published"

@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from app.services.answer import AnswerService
+from app.serving.answer import AnswerService
 
 
 def citation_ids(answer: str, context_count: int):

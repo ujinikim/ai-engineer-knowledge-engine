@@ -8,7 +8,7 @@ from openai import OpenAI
 from app.core.settings import settings
 from app.core.model_usage import ModelUsage
 from app.core.structured_logging import get_logger, log_event
-from app.services.taxonomy import (
+from app.ingestion.taxonomy import (
     EVENT_TYPES,
     PRIMARY_TOPICS,
     TAXONOMY_POLICY_VERSION,
@@ -16,7 +16,7 @@ from app.services.taxonomy import (
     classify_topic_with_method,
     infer_event_types,
 )
-from app.services.source_detail import classify_content_detail
+from app.ingestion.content_detail import classify_content_detail
 
 
 logger = get_logger("summarization")
