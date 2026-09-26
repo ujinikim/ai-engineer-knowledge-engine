@@ -10,7 +10,6 @@ def document(document_id: str, source_name: str) -> Document:
         url=f"https://example.com/{document_id}",
         raw_text="Example source text",
         content_hash=f"hash-{document_id}",
-        doc_metadata={},
     )
 
 

@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 from typing import Any, Iterable
 from urllib.parse import urlparse
 
+from app.services.update_visibility import source_attribute
+
 
 BOILERPLATE_TERMS = (
     "accept cookies",
@@ -87,18 +89,17 @@ class ExtractionQualityService:
         stored_text = str(document.raw_text or "")
         raw_text = stored_text.strip()
         title = str(document.title or "").strip()
-        metadata = dict(document.doc_metadata or {})
         lines = [self._normalize(line) for line in raw_text.splitlines() if line.strip()]
         paragraphs = [part.strip() for part in re.split(r"\n\s*\n", raw_text) if part.strip()]
         words = re.findall(r"\b\w+[+#.-]*\b", raw_text)
-        source_category = str(metadata.get("source_type") or "unknown")
+        source_category = str(source_attribute(document.source_name, "source_type") or "unknown")
         extraction_method = source_kind
         ingestion_status = str(getattr(document, "ingestion_status", None) or "published")
-        evidence_level = str(getattr(document, "evidence_level", None) or "source_entry")
+        extraction_status = str(getattr(document, "extraction_status", None) or "source_entry")
         relevance_tier = getattr(document, "relevance_tier", None)
         chunks_expected = (
             ingestion_status == "published"
-            and evidence_level != "official_feed_excerpt"
+            and extraction_status != "feed_excerpt_only"
             and relevance_tier in {"core", "contextual"}
         )
         warnings: list[str] = []
@@ -162,10 +163,7 @@ class ExtractionQualityService:
             warnings.append("suspected_excerpt")
         if suspected_collection_page:
             warnings.append("suspected_collection_page")
-        if (
-            metadata.get("extraction_status") in {"feed_excerpt_only", "title_only"}
-            or metadata.get("hydration_status") == "failed"
-        ):
+        if extraction_status in {"feed_excerpt_only", "title_only"}:
             warnings.append("article_hydration_failed")
         if boilerplate_ratio > self.thresholds.high_boilerplate_ratio:
             warnings.append("high_boilerplate_ratio")

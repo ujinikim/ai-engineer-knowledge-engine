@@ -8,7 +8,7 @@ def document(title: str, event_types: list[str] | None = None) -> SimpleNamespac
     return SimpleNamespace(
         id=uuid4(),
         title=title,
-        doc_metadata={"event_types": event_types or []},
+        event_types=event_types or [],
     )
 
 

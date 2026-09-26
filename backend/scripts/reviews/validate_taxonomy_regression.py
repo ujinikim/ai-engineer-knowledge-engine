@@ -77,7 +77,6 @@ def main() -> None:
             counts["missing"] += 1
             continue
 
-        metadata = dict(document.doc_metadata or {})
         baseline = dict(item.get("generated_taxonomy") or {})
         axis_results: dict[str, dict] = {}
         item_passed = True
@@ -90,9 +89,9 @@ def main() -> None:
             )
             if field == "event_types":
                 expected = list(expected or [])
-                actual = list(metadata.get(field) or [])
+                actual = list(getattr(document, field) or [])
             else:
-                actual = metadata.get(field)
+                actual = getattr(document, field)
             passed = actual == expected
             item_passed = item_passed and passed
             counts[f"{review}_axes"] += 1

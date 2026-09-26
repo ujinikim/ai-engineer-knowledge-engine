@@ -25,3 +25,17 @@ def configured_sources() -> tuple[dict, ...]:
 
 def configured_active_source_slugs() -> tuple[str, ...]:
     return tuple(source["slug"] for source in configured_sources())
+
+
+def source_attribute(slug: str, key: str, default=None):
+    """Read a per-source attribute from configuration instead of copying it into rows."""
+    source = next((source for source in configured_sources() if source["slug"] == slug), None)
+    return source.get(key, default) if source else default
+
+
+def source_slugs_with(key: str, values: list[str], default=None) -> list[str]:
+    return [
+        source["slug"]
+        for source in configured_sources()
+        if source.get(key, default) in values
+    ]

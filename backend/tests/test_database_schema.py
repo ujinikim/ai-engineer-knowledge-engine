@@ -16,8 +16,6 @@ def test_model_metadata_matches_baseline_tables_and_indexes() -> None:
         "documents_source_name_idx",
         "documents_content_hash_idx",
         "documents_published_at_idx",
-        "documents_ingestion_status_idx",
-        "documents_relevance_tier_idx",
         "documents_primary_topic_idx",
         "documents_feed_scope_idx",
         "chunks_document_id_idx",
@@ -28,7 +26,7 @@ def test_model_metadata_matches_baseline_tables_and_indexes() -> None:
     }
 
 
-def test_document_model_exposes_canonical_decisions_and_compatibility_metadata() -> None:
+def test_document_model_stores_every_article_field_as_a_typed_column() -> None:
     columns = Document.__table__.c
     check_constraints = {
         constraint.name
@@ -36,31 +34,32 @@ def test_document_model_exposes_canonical_decisions_and_compatibility_metadata()
         if isinstance(constraint, CheckConstraint)
     }
 
-    assert {
-        "ingestion_status",
-        "evidence_level",
-        "relevance_tier",
-        "relevance_reason",
-        "primary_topic",
-        "doc_metadata",
-    }.issubset(columns.keys())
-    assert {
-        "event_type", "summary", "processing_metadata", "source_type", "canonical_url"
-    }.isdisjoint(columns.keys())
+    assert set(columns.keys()) == {
+        "id", "source_name", "title", "url", "raw_text", "content_hash",
+        "fetched_at", "published_at",
+        "ingestion_status", "extraction_status",
+        "relevance_tier", "relevance_reason", "relevance_status", "relevance_policy_version",
+        "primary_topic", "event_types", "taxonomy_policy_version",
+        "display_headline", "summary", "why_it_matters", "key_points", "summary_generated_by",
+    }
     assert columns.ingestion_status.nullable is False
-    assert columns.evidence_level.nullable is False
+    assert columns.extraction_status.nullable is False
+    assert columns.event_types.nullable is False
+    assert columns.key_points.nullable is False
     assert columns.relevance_tier.nullable is True
     assert columns.primary_topic.nullable is True
     assert check_constraints == {
         "ck_documents_ingestion_status",
-        "ck_documents_evidence_level",
+        "ck_documents_extraction_status",
         "ck_documents_relevance_tier",
+        "ck_documents_relevance_status",
         "ck_documents_primary_topic",
+        "ck_documents_event_types",
     }
 
 
 def test_chunk_model_omits_unpopulated_metadata_columns() -> None:
-    for column in ("embedding_model", "chunking_version", "chunk_metadata"):
+    for column in ("embedding_model", "chunking_version", "chunk_metadata", "created_at"):
         assert column not in Chunk.__table__.c
 
 

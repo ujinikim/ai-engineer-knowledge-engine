@@ -185,9 +185,8 @@ class ArticleSummary:
     primary_topic: str
     event_types: list[str]
     generated_by: str
-    taxonomy_generated_by: str
 
-    def metadata(self) -> dict:
+    def fields(self) -> dict:
         return {
             "display_headline": self.display_headline,
             "summary": self.summary,
@@ -196,7 +195,6 @@ class ArticleSummary:
             "primary_topic": self.primary_topic,
             "event_types": self.event_types,
             "summary_generated_by": self.generated_by,
-            "taxonomy_generated_by": self.taxonomy_generated_by,
             "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
         }
 
@@ -384,7 +382,6 @@ class ArticleSummaryService:
             primary_topic=primary_topic,
             event_types=event_types,
             generated_by=f"{getattr(self, 'model', settings.chat_model)}:{source_type}",
-            taxonomy_generated_by=getattr(self, "model", settings.chat_model),
         )
 
     def _fallback(
@@ -401,7 +398,7 @@ class ArticleSummaryService:
         compact = " ".join(body.split())
         sentences = re.split(r"(?<=[.!?])\s+", compact)
         summary = " ".join(sentences[:2]).strip() or title
-        primary_topic, taxonomy_method = classify_topic_with_method(
+        primary_topic, _ = classify_topic_with_method(
             f"{title}\n{title}\n{raw_text}",
             default_topic,
         )
@@ -414,7 +411,6 @@ class ArticleSummaryService:
             primary_topic=primary_topic,
             event_types=events or ["analysis"],
             generated_by="deterministic-fallback",
-            taxonomy_generated_by=taxonomy_method,
         )
 
     def classify_taxonomy(

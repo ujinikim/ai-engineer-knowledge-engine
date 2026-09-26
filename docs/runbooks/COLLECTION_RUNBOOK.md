@@ -86,74 +86,55 @@ start, per-source, token/cost, completion, overlap, and failure events. See
 ## Backfill Existing Updates
 
 ```bash
-uv run python scripts/maintenance/backfill_article_metadata.py
-uv run python scripts/maintenance/backfill_source_detail.py
-uv run python scripts/maintenance/backfill_extraction_metadata.py
+uv run python scripts/maintenance/backfill_article_summaries.py
 uv run python scripts/maintenance/backfill_taxonomy_v2.py --dry-run --limit 25
 ```
 
-Use `--force` to regenerate summaries after changing the prompt or taxonomy. Use `--limit N` for a quality sample before a full run.
-The source-detail backfill is idempotent and supports `--dry-run`; it updates only
-visibility metadata and does not regenerate summaries or embeddings.
-The extraction-metadata backfill is also idempotent and supports `--dry-run`. It
-separates source completeness from summary-generation provenance without
-regenerating source text, summaries, taxonomy, chunks, or embeddings.
+The summary backfill generates missing article cards. Use `--force` to regenerate
+them after changing the prompt or taxonomy, and `--limit N` for a quality sample
+before a full run.
 
 The taxonomy-v2 command is dry-run by default and reports every before/after value.
 It scopes itself to enabled, published update sources, skips records already on v2,
 and leaves disabled, quarantined, and legacy documentation records alone. Full-text
 articles use the configured summary model for constrained classification; approved
 feed excerpts use deterministic classification. After review, add `--apply` to update
-taxonomy metadata only. `--source`, `--model`, and `--force` support controlled trials.
-The command never rewrites summaries, chunks, or embeddings.
+the taxonomy columns only. `--source`, `--model`, and `--force` support controlled
+trials. The command never rewrites summaries, chunks, or embeddings.
 
-## Extraction and Summary Provenance
+## Where Article Data Lives
 
-These metadata fields describe independent stages:
+Every stored article field is a typed `documents` column:
 
-| Field | Purpose |
+| Columns | Purpose |
 |---|---|
-| `extraction_status` | `full_article`, `source_entry`, `feed_excerpt_only`, or `title_only` |
-| `summary_input_source` | The text supplied to summarization: full article, source entry, feed excerpt, or title |
-| `summary_generated_by` | Model and source type, or `deterministic-fallback` when model generation failed |
 | `ingestion_status` | `published` when eligible for a user-facing surface or `quarantined` when retained only for diagnosis |
-| `ingestion_failure_codes` | Deterministic reasons such as `article_hydration_failed`, `title_only_source`, or `insufficient_source_detail` |
-| `ingestion_warning_codes` | Non-blocking limitations on published evidence, including an approved feed fallback |
-| `quarantine_reason` | The primary ingestion failure code |
-| `evidence_level` | `full_article`, `source_entry`, or `official_feed_excerpt` |
-| `relevance_tier` | `core`, `contextual`, or `excluded`; classified independently from evidence quality |
-| `relevance_reason` | Evidence-based explanation for the relevance route |
-| `rag_eligible` | Derived compatibility value: published, non-excerpt evidence that is not excluded |
-| `default_feed_eligible` | Derived compatibility value: published evidence with `core` relevance |
+| `extraction_status` | `full_article`, `source_entry`, `feed_excerpt_only`, or `title_only` |
+| `relevance_tier`, `relevance_reason` | `core`, `contextual`, or `excluded`, with an evidence-based explanation |
+| `relevance_status`, `relevance_policy_version` | Whether the decision was classified, corrected, or failed, and under which policy |
+| `primary_topic`, `event_types`, `taxonomy_policy_version` | Taxonomy labels and the policy that produced them |
+| `display_headline`, `summary`, `why_it_matters`, `key_points`, `summary_generated_by` | The generated article card and its generator |
 
-For example, the OpenAI source explicitly permits its official feed description as
-a dashboard announcement when the configured full-page fetch is blocked:
+The API's `evidence_level` is derived: `full_article`, `official_feed_excerpt` for a
+published `feed_excerpt_only` article, or `source_entry`.
 
-```json
-{
-  "extraction_status": "feed_excerpt_only",
-  "summary_input_source": "feed_excerpt",
-  "ingestion_status": "published",
-  "ingestion_failure_codes": [],
-  "ingestion_warning_codes": [
-    "article_hydration_failed",
-    "insufficient_source_detail"
-  ],
-  "evidence_level": "official_feed_excerpt",
-  "rag_eligible": false,
-  "summary_generated_by": "source-excerpt",
-  "default_feed_eligible": true,
-  "default_feed_exclusion_reason": null
-}
-```
+Source attributes (`organization`, `tool`, `source_type`, `credibility_weight`) are
+read from `update_sources.yml` by `source_name` and are not copied into rows. The card
+excerpt is derived from `raw_text` when an article is served.
 
-`hydration_status` remains temporarily for backward compatibility. New code should
-use the structured extraction fields.
+Per-attempt diagnostics are log events, not stored data. A failed full-page fetch logs
+`full_article_fetch_failed` with the source slug, URL without query string, HTTP status,
+and a controlled `error_code` such as `http_forbidden`, `http_not_found`, `http_error`,
+`network_error`, or `content_incomplete`. A quarantined candidate logs
+`article_quarantined` with its failure codes, such as `article_hydration_failed`,
+`title_only_source`, or `insufficient_source_detail`. Each relevance decision logs
+`relevance_classified` with the model, tier, and agent focus.
 
-Per-attempt diagnostics are log events, not document metadata. A failed full-page
-fetch logs `full_article_fetch_failed` with the source slug, URL without query string,
-HTTP status, and a controlled `error_code` such as `http_forbidden`, `http_not_found`,
-`http_error`, `network_error`, or `content_incomplete`.
+For example, a source may explicitly permit its official feed description as a
+dashboard announcement when the configured full-page fetch is blocked. That article is
+stored with `ingestion_status = published`, `extraction_status = feed_excerpt_only`,
+and `summary_generated_by = source-excerpt`; it appears in the feed but is not chunked,
+embedded, or retrieved.
 
 ## Run Continuously
 
@@ -170,7 +151,7 @@ for collection.
 
 ```bash
 docker compose exec postgres psql -U postgres -d knowledge_engine \
-  -c "SELECT source_name, count(*) FROM documents WHERE source_type = 'release' GROUP BY 1 ORDER BY 1;"
+  -c "SELECT source_name, ingestion_status, relevance_tier, count(*) FROM documents GROUP BY 1, 2, 3 ORDER BY 1, 2, 3;"
 ```
 
 Check collector health:
@@ -180,9 +161,10 @@ docker compose exec postgres psql -U postgres -d knowledge_engine \
   -c "SELECT run_id, source_slug, finished_at, status, matched_items, updates_created, error FROM collection_source_runs ORDER BY finished_at DESC LIMIT 20;"
 ```
 
-Review the quarantine without exposing it to retrieval:
+Review the quarantine without exposing it to retrieval (failure codes are in the
+`article_quarantined` log events):
 
 ```bash
 docker compose exec postgres psql -U postgres -d knowledge_engine \
-  -c "SELECT source_name, doc_metadata->>'quarantine_reason' AS reason, count(*) FROM documents WHERE doc_metadata->>'ingestion_status' = 'quarantined' GROUP BY 1, 2 ORDER BY 1, 2;"
+  -c "SELECT source_name, extraction_status, count(*) FROM documents WHERE ingestion_status = 'quarantined' GROUP BY 1, 2 ORDER BY 1, 2;"
 ```

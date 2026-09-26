@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Chunk, Document
@@ -12,7 +12,11 @@ from app.schemas.search import RetrievedChunk, RetrievalMetrics, SearchRequest, 
 from app.services.embedding import EmbeddingService
 from app.services.article_relevance import visible_relevance_tiers
 from app.services.ingestion_policy import PUBLISHED
-from app.services.update_visibility import configured_active_source_slugs
+from app.services.update_visibility import (
+    configured_active_source_slugs,
+    source_attribute,
+    source_slugs_with,
+)
 
 
 @dataclass
@@ -300,10 +304,10 @@ class RetrieverService:
             combined_score=round(candidate.combined_score, 4),
             recency_score=round(candidate.recency_score, 4),
             published_at=candidate.document.published_at,
-            tool=candidate.document.doc_metadata.get("tool"),
+            tool=source_attribute(candidate.document.source_name, "tool"),
             category=candidate.document.primary_topic,
-            event_types=list(candidate.document.doc_metadata.get("event_types") or []),
-            source_category=candidate.document.doc_metadata.get("source_type"),
+            event_types=list(candidate.document.event_types or []),
+            source_category=source_attribute(candidate.document.source_name, "source_type"),
             relevance_tier=candidate.document.relevance_tier,
         )
 
@@ -316,20 +320,17 @@ class RetrieverService:
             )
         )
         if request.tools:
-            stmt = stmt.where(Document.doc_metadata["tool"].astext.in_(request.tools))
+            stmt = stmt.where(Document.source_name.in_(source_slugs_with("tool", request.tools)))
         if request.categories:
             stmt = stmt.where(Document.primary_topic.in_(request.categories))
         if request.event_types:
+            stmt = stmt.where(Document.event_types.overlap(request.event_types))
+        if request.source_types:
             stmt = stmt.where(
-                or_(
-                    *[
-                        Document.doc_metadata["event_types"].contains([event_type])
-                        for event_type in request.event_types
-                    ]
+                Document.source_name.in_(
+                    source_slugs_with("source_type", request.source_types, "official-release")
                 )
             )
-        if request.source_types:
-            stmt = stmt.where(Document.doc_metadata["source_type"].astext.in_(request.source_types))
         if request.published_after:
             stmt = stmt.where(Document.published_at >= self._naive_utc(request.published_after))
         if request.published_before:
@@ -369,12 +370,8 @@ class RetrieverService:
         return and_(
             Document.source_name.in_(enabled_sources),
             Document.ingestion_status == PUBLISHED,
-            Document.evidence_level != "official_feed_excerpt",
+            Document.extraction_status != "feed_excerpt_only",
             Document.relevance_tier.in_(relevance_tiers),
-            or_(
-                Document.doc_metadata["relevance_classification_status"].astext.is_(None),
-                Document.doc_metadata["relevance_classification_status"].astext != "fail_open",
-            ),
         )
 
     def _diversify_documents(

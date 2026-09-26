@@ -124,8 +124,8 @@ def test_update_retrieval_only_queries_published_documents() -> None:
     assert "documents.source_type" not in sql
     assert "ingestion_status" in sql
     assert "published" in sql
-    assert "evidence_level" in sql
-    assert "official_feed_excerpt" in sql
+    assert "extraction_status" in sql
+    assert "feed_excerpt_only" in sql
     assert "anthropic-engineering" in sql
     assert "relevance_tier" in sql
     assert "core" in sql

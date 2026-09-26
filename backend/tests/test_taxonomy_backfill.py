@@ -25,7 +25,6 @@ def test_excerpt_backfill_is_deterministic() -> None:
         url="https://example.com/agent",
         raw_text="Introducing a new agent model\n\nThe model uses tools to complete tasks.",
         content_hash="hash",
-        doc_metadata={"excerpt": "The model uses tools to complete tasks."},
     )
     config = {
         "default_primary_topic": "agentic-generative-ai",

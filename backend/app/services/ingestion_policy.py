@@ -20,12 +20,17 @@ class IngestionDecision:
     def publishable(self) -> bool:
         return self.status == PUBLISHED
 
-    def metadata(self) -> dict[str, str | list[str]]:
-        return {
-            "ingestion_status": self.status,
-            "ingestion_failure_codes": list(self.failure_codes),
-            "evidence_level": self.evidence_level,
-        }
+    def fields(self) -> dict[str, str]:
+        return {"ingestion_status": self.status}
+
+
+def evidence_level(*, extraction_status: str, ingestion_status: str) -> str:
+    """API evidence label; a published feed excerpt is one its source approved."""
+    if extraction_status == "full_article":
+        return "full_article"
+    if extraction_status == "feed_excerpt_only" and ingestion_status == PUBLISHED:
+        return "official_feed_excerpt"
+    return "source_entry"
 
 
 def evaluate_ingestion_candidate(

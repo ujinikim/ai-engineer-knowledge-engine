@@ -15,6 +15,7 @@ from scripts._source_config import update_source_map
 from app.db.models import Document
 from app.db.session import SessionLocal
 from app.services.taxonomy import EVENT_TYPES, PRIMARY_TOPICS
+from app.services.update_visibility import source_attribute
 
 
 DEFAULT_OUTPUT = (
@@ -163,10 +164,9 @@ def main() -> None:
     all_items: list[dict] = []
 
     for document in documents:
-        metadata = dict(document.doc_metadata or {})
         taxonomy = {
             "primary_topic": str(document.primary_topic or ""),
-            "event_types": list(metadata.get("event_types") or []),
+            "event_types": list(document.event_types or []),
         }
         config = configs[document.source_name]
         focus = review_focus(document, config, taxonomy)
@@ -180,7 +180,7 @@ def main() -> None:
                 "document_id": str(document.id),
                 "review_key": key,
                 "source_name": document.source_name,
-                "source_type": str(metadata.get("source_type") or "unknown"),
+                "source_type": str(source_attribute(document.source_name, "source_type") or "unknown"),
                 "title": document.title,
                 "url": document.url,
                 "published_at": document.published_at.isoformat()
@@ -193,10 +193,10 @@ def main() -> None:
                 },
                 "generated_taxonomy": taxonomy,
                 "generated_card": {
-                    "display_headline": metadata.get("display_headline"),
-                    "summary": metadata.get("summary"),
-                    "why_it_matters": metadata.get("why_it_matters"),
-                    "key_points": list(metadata.get("key_points") or []),
+                    "display_headline": document.display_headline,
+                    "summary": document.summary,
+                    "why_it_matters": document.why_it_matters,
+                    "key_points": list(document.key_points or []),
                 },
                 "primary_topic_review": preserved_value(
                     prior, "primary_topic_review"

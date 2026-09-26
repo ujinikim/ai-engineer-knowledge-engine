@@ -34,36 +34,28 @@ def main(limit: int | None, force: bool) -> None:
         for document in documents:
             if limit is not None and updated >= limit:
                 break
-            if document.doc_metadata.get("summary") and not force:
+            if document.summary and not force:
                 skipped += 1
                 continue
 
             config = sources.get(document.source_name, {})
-            metadata = dict(document.doc_metadata)
             default_topic = config.get(
                 "default_primary_topic",
                 document.primary_topic
                 or "ai-products-engineering-infrastructure",
             )
-            source_type = config.get(
-                "source_type",
-                metadata.get("source_type") or "official-release",
-            )
+            source_type = config.get("source_type", "official-release")
             article = summarizer.summarize(
                 title=document.title,
                 raw_text=document.raw_text,
-                organization=str(metadata.get("organization") or config.get("organization") or "Unknown"),
-                tool=str(metadata.get("tool") or config.get("tool") or "Unknown"),
+                organization=str(config.get("organization") or "Unknown"),
+                tool=str(config.get("tool") or "Unknown"),
                 source_type=source_type,
                 default_topic=default_topic,
                 default_event_types=config.get("default_event_types", ["analysis"]),
             )
-            document.doc_metadata = {
-                **metadata,
-                "source_type": source_type,
-                **{key: value for key, value in article.metadata().items() if key != "primary_topic"},
-            }
-            document.primary_topic = article.primary_topic
+            for field, value in article.fields().items():
+                setattr(document, field, value)
             db.commit()
             updated += 1
             print(f"[{updated}] {document.source_name}: {document.title[:80]}")

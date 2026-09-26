@@ -43,7 +43,7 @@ def test_relevance_classification_uses_strict_agent_engineering_schema() -> None
     assert decision.status == "classified"
     assert decision.generated_by == "gpt-test"
     assert decision.agent_focus == "supporting"
-    assert decision.metadata()["relevance_policy_version"] == RELEVANCE_POLICY_VERSION
+    assert decision.fields()["relevance_policy_version"] == RELEVANCE_POLICY_VERSION
     response_format = service.client.chat.completions.create.call_args.kwargs["response_format"]
     assert response_format["type"] == "json_schema"
     assert response_format["json_schema"]["strict"] is True

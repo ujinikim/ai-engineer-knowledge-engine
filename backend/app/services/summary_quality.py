@@ -7,6 +7,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from app.services.source_detail import classify_content_detail
+from app.services.update_visibility import source_attribute
 from app.services.taxonomy import (
     EVENT_TYPES,
     LEGACY_EVENT_TYPES,
@@ -112,16 +113,15 @@ class SummaryQualityService:
         self.thresholds = thresholds or SummaryThresholds()
 
     def evaluate(self, document: Any) -> SummaryEvaluation:
-        metadata = dict(document.doc_metadata or {})
         source_text = str(document.raw_text or "")
-        display_headline = self._text(metadata.get("display_headline"))
-        summary = self._text(metadata.get("summary"))
-        why_it_matters = self._text(metadata.get("why_it_matters"))
-        key_points = self._text_list(metadata.get("key_points"))
+        display_headline = self._text(document.display_headline)
+        summary = self._text(document.summary)
+        why_it_matters = self._text(document.why_it_matters)
+        key_points = self._text_list(document.key_points)
         primary_topic = self._text(getattr(document, "primary_topic", None))
-        event_types = self._text_list(metadata.get("event_types"))
-        generated_by = self._text(metadata.get("summary_generated_by")) or "unknown"
-        source_type = self._text(metadata.get("source_type")) or "unknown"
+        event_types = self._text_list(document.event_types)
+        generated_by = self._text(document.summary_generated_by) or "unknown"
+        source_type = self._text(source_attribute(str(document.source_name), "source_type")) or "unknown"
         source_detail = classify_content_detail(str(document.title or ""), source_text)
 
         generated_text = " ".join(
@@ -168,7 +168,7 @@ class SummaryQualityService:
         )
         if generated_text and grounding_overlap < grounding_threshold:
             warnings.append("low_lexical_grounding")
-        is_v2 = metadata.get("taxonomy_policy_version") == TAXONOMY_POLICY_VERSION
+        is_v2 = document.taxonomy_policy_version == TAXONOMY_POLICY_VERSION
         allowed_topics = PRIMARY_TOPICS if is_v2 else PRIMARY_TOPICS + LEGACY_PRIMARY_TOPICS
         allowed_events = EVENT_TYPES if is_v2 else EVENT_TYPES + LEGACY_EVENT_TYPES
         if primary_topic and primary_topic not in allowed_topics:
@@ -179,10 +179,7 @@ class SummaryQualityService:
             failures.append("multiple_event_types")
         if generated_by == "deterministic-fallback":
             warnings.append("deterministic_fallback_summary")
-        if (
-            metadata.get("extraction_status") in {"feed_excerpt_only", "title_only"}
-            or metadata.get("hydration_status") == "failed"
-        ):
+        if document.extraction_status in {"feed_excerpt_only", "title_only"}:
             warnings.append("source_content_incomplete")
 
         status = "fail" if failures else "warning" if warnings else "pass"

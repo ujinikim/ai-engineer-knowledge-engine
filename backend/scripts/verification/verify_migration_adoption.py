@@ -17,10 +17,13 @@ def seed() -> None:
         connection.execute(
             text(
                 """
-                INSERT INTO documents (id, source_name, title, url, raw_text, content_hash)
+                INSERT INTO documents (
+                    id, source_name, source_type, title, url, raw_text, content_hash
+                )
                 VALUES (
                     :id,
                     'migration-test',
+                    'release',
                     'Preserve me',
                     'https://example.com/migration-test',
                     'sentinel',
@@ -45,7 +48,10 @@ def verify() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Seed or verify the disposable legacy-schema adoption test."
+        description=(
+            "Seed a baseline-schema database with an article, or verify that it "
+            "survived adoption and upgrade to the current schema."
+        )
     )
     parser.add_argument("action", choices=("seed", "verify"))
     args = parser.parse_args()

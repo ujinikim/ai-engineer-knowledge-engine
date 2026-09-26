@@ -14,6 +14,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from app.core.settings import settings
 from app.db.models import Chunk, Document
 from app.db.session import SessionLocal
+from app.services.update_visibility import source_attribute
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,7 +36,6 @@ def isoformat(value: object) -> str | None:
 
 
 def snapshot_document(document: Document, chunk_count: int) -> dict[str, Any]:
-    metadata = dict(document.doc_metadata or {})
     return {
         "document_id": str(document.id),
         "source_name": document.source_name,
@@ -45,12 +45,12 @@ def snapshot_document(document: Document, chunk_count: int) -> dict[str, Any]:
         "fetched_at": isoformat(document.fetched_at),
         "content_hash": document.content_hash,
         "chunk_count": chunk_count,
-        "tool": metadata.get("tool"),
+        "tool": source_attribute(document.source_name, "tool"),
         "primary_topic": document.primary_topic,
-        "event_types": list(metadata.get("event_types") or []),
-        "source_category": metadata.get("source_type"),
-        "taxonomy_policy_version": metadata.get("taxonomy_policy_version"),
-        "summary_generated_by": metadata.get("summary_generated_by"),
+        "event_types": list(document.event_types or []),
+        "source_category": source_attribute(document.source_name, "source_type"),
+        "taxonomy_policy_version": document.taxonomy_policy_version,
+        "summary_generated_by": document.summary_generated_by,
     }
 
 

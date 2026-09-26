@@ -37,6 +37,23 @@ from app.services.taxonomy import (
 
 logger = get_logger("collector")
 
+DOCUMENT_FIELD_DEFAULTS: dict = {
+    "ingestion_status": "published",
+    "extraction_status": "source_entry",
+    "relevance_tier": None,
+    "relevance_reason": None,
+    "relevance_status": None,
+    "relevance_policy_version": None,
+    "primary_topic": None,
+    "event_types": [],
+    "taxonomy_policy_version": None,
+    "display_headline": None,
+    "summary": None,
+    "why_it_matters": None,
+    "key_points": [],
+    "summary_generated_by": None,
+}
+
 
 @dataclass(frozen=True)
 class CollectionResult:
@@ -222,22 +239,16 @@ class UpdateCollectorService(SourceExtractionMixin):
                 "failed": "feed_excerpt_only" if body_text else "title_only",
             }.get(hydration_status, "source_entry")
         )
-        base_metadata = {
-            "organization": config["organization"],
-            "tool": config["tool"],
+        excerpt = self._excerpt(body_text or title)
+        base_fields = {
             "primary_topic": default_topic,
-            "excerpt": self._excerpt(body_text or title),
-            "source_type": source_type,
-            "credibility_weight": float(config.get("credibility_weight", 1.0)),
-            # Legacy hydration status remains during the metadata migration.
-            "hydration_status": hydration_status,
             "extraction_status": extraction_status,
         }
         provisional_events = normalize_event_types(
             source_slug,
             infer_event_types(raw_text, default_event_types),
         )
-        provisional_topic, provisional_topic_method = classify_topic_with_method(
+        provisional_topic, _ = classify_topic_with_method(
             f"{title}\n{title}\n{raw_text}",
             default_topic,
         )
@@ -248,9 +259,9 @@ class UpdateCollectorService(SourceExtractionMixin):
             event_types=provisional_events,
             publish_feed_excerpt=bool(config.get("publish_feed_excerpt", False)),
         )
-        base_metadata = {
-            **base_metadata,
-            **ingestion.metadata(),
+        base_fields = {
+            **base_fields,
+            **ingestion.fields(),
         }
 
         document = self._find_existing_document(
@@ -262,8 +273,7 @@ class UpdateCollectorService(SourceExtractionMixin):
         existing_has_full_evidence = bool(
             document
             and (
-                getattr(document, "evidence_level", None) == "full_article"
-                or document.doc_metadata.get("extraction_status") == "full_article"
+                document.extraction_status == "full_article"
                 or classify_content_detail(getattr(document, "title", ""), document.raw_text) == "detailed"
             )
         )
@@ -283,41 +293,27 @@ class UpdateCollectorService(SourceExtractionMixin):
             return "unchanged", 0
 
         if ingestion.publishable:
-            existing_relevance = dict(document.doc_metadata) if document else {}
             if (
                 document
                 and document.content_hash == content_hash
-                and existing_relevance.get("relevance_policy_version")
-                == RELEVANCE_POLICY_VERSION
+                and document.relevance_policy_version == RELEVANCE_POLICY_VERSION
                 and document.relevance_tier in RELEVANCE_TIERS
-                and existing_relevance.get("relevance_classification_status") != "fail_open"
             ):
-                relevance_metadata = {
+                relevance_fields = {
                     "relevance_tier": document.relevance_tier,
                     "relevance_reason": document.relevance_reason,
-                    **{
-                        key: existing_relevance[key]
-                        for key in (
-                            "relevance_generated_by",
-                            "relevance_policy_version",
-                            "relevance_classification_status",
-                        )
-                        if key in existing_relevance
-                    },
+                    "relevance_policy_version": document.relevance_policy_version,
+                    "relevance_status": document.relevance_status,
                 }
             else:
-                relevance_metadata = self.relevance.classify(
+                relevance_fields = self.relevance.classify(
                     title=title,
                     raw_text=raw_text,
-                ).metadata()
-            base_metadata = {**base_metadata, **relevance_metadata}
+                ).fields()
+            base_fields = {**base_fields, **relevance_fields}
 
-        if ingestion.publishable and base_metadata.get("relevance_tier") is None:
-            if (
-                document
-                and document.relevance_tier in RELEVANCE_TIERS
-                and document.doc_metadata.get("relevance_classification_status") != "fail_open"
-            ):
+        if ingestion.publishable and base_fields.get("relevance_tier") is None:
+            if document and document.relevance_tier in RELEVANCE_TIERS:
                 document.fetched_at = now
                 log_event(
                     logger,
@@ -330,8 +326,8 @@ class UpdateCollectorService(SourceExtractionMixin):
                 )
                 return "unchanged", 0
 
-            pending_metadata = {
-                **base_metadata,
+            pending_fields = {
+                **base_fields,
                 "primary_topic": provisional_topic,
                 "event_types": provisional_events,
             }
@@ -343,8 +339,7 @@ class UpdateCollectorService(SourceExtractionMixin):
                 document.content_hash = content_hash
                 document.fetched_at = now
                 document.published_at = published_at
-                document.doc_metadata = pending_metadata
-                self._sync_canonical_fields(document, pending_metadata)
+                self._apply_fields(document, pending_fields)
                 self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
             else:
                 status = "created"
@@ -357,24 +352,22 @@ class UpdateCollectorService(SourceExtractionMixin):
                     content_hash=content_hash,
                     fetched_at=now,
                     published_at=published_at,
-                    doc_metadata=pending_metadata,
                 )
-                self._sync_canonical_fields(document, pending_metadata)
+                self._apply_fields(document, pending_fields)
                 self.db.add(document)
                 self.db.flush()
             return status, 0
 
-        if ingestion.publishable and base_metadata.get("relevance_tier") == "excluded":
-            excluded_metadata = {
-                **base_metadata,
+        if ingestion.publishable and base_fields.get("relevance_tier") == "excluded":
+            excluded_fields = {
+                **base_fields,
                 "primary_topic": provisional_topic,
                 "display_headline": title[:90],
-                "summary": str(base_metadata["excerpt"]),
+                "summary": excerpt,
                 "why_it_matters": "",
                 "key_points": [],
                 "event_types": provisional_events,
                 "summary_generated_by": "relevance-excluded",
-                "taxonomy_generated_by": provisional_topic_method,
                 "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
             }
             status = "changed" if document and document.content_hash != content_hash else "unchanged"
@@ -385,8 +378,7 @@ class UpdateCollectorService(SourceExtractionMixin):
                 document.content_hash = content_hash
                 document.fetched_at = now
                 document.published_at = published_at
-                document.doc_metadata = excluded_metadata
-                self._sync_canonical_fields(document, excluded_metadata)
+                self._apply_fields(document, excluded_fields)
                 self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
             else:
                 status = "created"
@@ -399,24 +391,22 @@ class UpdateCollectorService(SourceExtractionMixin):
                     content_hash=content_hash,
                     fetched_at=now,
                     published_at=published_at,
-                    doc_metadata=excluded_metadata,
                 )
-                self._sync_canonical_fields(document, excluded_metadata)
+                self._apply_fields(document, excluded_fields)
                 self.db.add(document)
                 self.db.flush()
             return status, 0
 
         if ingestion.publishable and not ingestion.rag_eligible:
-            excerpt_metadata = {
-                **base_metadata,
+            excerpt_fields = {
+                **base_fields,
                 "primary_topic": provisional_topic,
                 "display_headline": title[:90],
-                "summary": str(base_metadata["excerpt"]),
+                "summary": excerpt,
                 "why_it_matters": "",
                 "key_points": [],
                 "event_types": provisional_events,
                 "summary_generated_by": "source-excerpt",
-                "taxonomy_generated_by": provisional_topic_method,
                 "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
             }
             status = "changed" if document and document.content_hash != content_hash else "unchanged"
@@ -427,8 +417,7 @@ class UpdateCollectorService(SourceExtractionMixin):
                 document.content_hash = content_hash
                 document.fetched_at = now
                 document.published_at = published_at
-                document.doc_metadata = excerpt_metadata
-                self._sync_canonical_fields(document, excerpt_metadata)
+                self._apply_fields(document, excerpt_fields)
                 self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
             else:
                 status = "created"
@@ -441,9 +430,8 @@ class UpdateCollectorService(SourceExtractionMixin):
                     content_hash=content_hash,
                     fetched_at=now,
                     published_at=published_at,
-                    doc_metadata=excerpt_metadata,
                 )
-                self._sync_canonical_fields(document, excerpt_metadata)
+                self._apply_fields(document, excerpt_fields)
                 self.db.add(document)
                 self.db.flush()
             return status, 0
@@ -452,40 +440,32 @@ class UpdateCollectorService(SourceExtractionMixin):
             document
             and document.content_hash == content_hash
             and document.relevance_tier in RELEVANCE_TIERS
-            and document.doc_metadata.get("relevance_classification_status") != "fail_open"
         ):
             document.fetched_at = now
             document.published_at = published_at
             existing_taxonomy = {
                 "primary_topic": document.primary_topic,
-                **{
-                    key: document.doc_metadata.get(key)
-                    for key in (
-                        "event_types",
-                        "taxonomy_policy_version",
-                    )
-                    if key in document.doc_metadata
-                },
+                "event_types": document.event_types,
+                "taxonomy_policy_version": document.taxonomy_policy_version,
             }
-            merged_metadata = {**document.doc_metadata, **base_metadata}
-            merged_metadata = {**merged_metadata, **existing_taxonomy}
-            merged_metadata = {
-                **merged_metadata,
-                **ingestion.metadata(),
+            merged_fields = {
+                **self._document_fields(document),
+                **base_fields,
+                **existing_taxonomy,
+                **ingestion.fields(),
             }
             if not ingestion.publishable:
                 self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
-            document.doc_metadata = merged_metadata
-            self._sync_canonical_fields(document, merged_metadata)
+            self._apply_fields(document, merged_fields)
             if not ingestion.publishable:
+                self._log_quarantine(source_slug, url, ingestion, extraction_status)
                 return "quarantined", 0
             return "unchanged", 0
 
         if not ingestion.publishable:
-            quarantine_metadata = {
-                **base_metadata,
+            quarantine_fields = {
+                **base_fields,
                 "event_types": provisional_events,
-                "taxonomy_generated_by": provisional_topic_method,
                 "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
             }
             if document:
@@ -496,8 +476,7 @@ class UpdateCollectorService(SourceExtractionMixin):
                 document.content_hash = content_hash
                 document.fetched_at = now
                 document.published_at = published_at
-                document.doc_metadata = quarantine_metadata
-                self._sync_canonical_fields(document, quarantine_metadata)
+                self._apply_fields(document, quarantine_fields)
                 self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
             else:
                 document = Document(
@@ -509,11 +488,11 @@ class UpdateCollectorService(SourceExtractionMixin):
                     content_hash=content_hash,
                     fetched_at=now,
                     published_at=published_at,
-                    doc_metadata=quarantine_metadata,
                 )
-                self._sync_canonical_fields(document, quarantine_metadata)
+                self._apply_fields(document, quarantine_fields)
                 self.db.add(document)
                 self.db.flush()
+            self._log_quarantine(source_slug, url, ingestion, extraction_status)
             return "quarantined", 0
 
         article = self.summarizer.summarize(
@@ -525,19 +504,16 @@ class UpdateCollectorService(SourceExtractionMixin):
             default_topic=default_topic,
             default_event_types=default_event_types,
         )
-        metadata = {**base_metadata, **article.metadata()}
+        fields = {**base_fields, **article.fields()}
         normalized_events = normalize_event_types(
             source_slug,
-            list(metadata.get("event_types") or default_event_types),
+            list(fields.get("event_types") or default_event_types),
         )
-        metadata = {
-            **metadata,
+        fields = {
+            **fields,
             "event_types": normalized_events,
             "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-        }
-        metadata = {
-            **metadata,
-            **ingestion.metadata(),
+            **ingestion.fields(),
         }
 
         status = "changed" if document else "created"
@@ -548,8 +524,7 @@ class UpdateCollectorService(SourceExtractionMixin):
             document.content_hash = content_hash
             document.fetched_at = now
             document.published_at = published_at
-            document.doc_metadata = metadata
-            self._sync_canonical_fields(document, metadata)
+            self._apply_fields(document, fields)
             self.db.execute(delete(Chunk).where(Chunk.document_id == document.id))
         else:
             document = Document(
@@ -561,9 +536,8 @@ class UpdateCollectorService(SourceExtractionMixin):
                 content_hash=content_hash,
                 fetched_at=now,
                 published_at=published_at,
-                doc_metadata=metadata,
             )
-            self._sync_canonical_fields(document, metadata)
+            self._apply_fields(document, fields)
             self.db.add(document)
             self.db.flush()
 
@@ -583,25 +557,27 @@ class UpdateCollectorService(SourceExtractionMixin):
             )
         return status, len(chunks)
 
+    def _log_quarantine(self, source_slug: str, url: str, ingestion, extraction_status: str) -> None:
+        log_event(
+            logger,
+            "article_quarantined",
+            run_id=getattr(self, "run_id", None),
+            source_slug=source_slug,
+            url=self._log_safe_url(url),
+            failure_codes=list(ingestion.failure_codes),
+            extraction_status=extraction_status,
+        )
+
     @staticmethod
-    def _sync_canonical_fields(document: Document, metadata: dict) -> None:
-        """Keep decisions in typed columns and presentation details in JSON."""
-        document.ingestion_status = str(metadata.get("ingestion_status") or "published")
-        document.evidence_level = str(metadata.get("evidence_level") or "source_entry")
-        document.relevance_tier = metadata.get("relevance_tier")
-        document.relevance_reason = metadata.get("relevance_reason")
-        document.primary_topic = metadata.get("primary_topic")
-        document.doc_metadata = {
-            key: value
-            for key, value in metadata.items()
-            if key not in {
-                "ingestion_status", "evidence_level", "relevance_tier",
-                "relevance_reason", "primary_topic", "ingestion_warning_codes",
-                "taxonomy_main_theme", "extraction_metadata_version",
-                "quality_tier", "source_kind", "content_detail",
-                "summary_input_source", "maturity",
-            }
-        }
+    def _apply_fields(document: Document, fields: dict) -> None:
+        """Write every managed column; a field absent from this write is reset."""
+        for name, default in DOCUMENT_FIELD_DEFAULTS.items():
+            value = fields.get(name)
+            setattr(document, name, list(value or []) if isinstance(default, list) else value or default)
+
+    @staticmethod
+    def _document_fields(document: Document) -> dict:
+        return {name: getattr(document, name) for name in DOCUMENT_FIELD_DEFAULTS}
 
     def _find_existing_document(
         self,

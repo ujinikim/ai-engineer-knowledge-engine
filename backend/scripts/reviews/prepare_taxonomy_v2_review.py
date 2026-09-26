@@ -104,7 +104,7 @@ def classify_document(
         "ai-products-engineering-infrastructure",
     )
     default_events = source_config.get("default_event_types", ["analysis"])
-    is_excerpt = document.evidence_level == "official_feed_excerpt"
+    is_excerpt = document.extraction_status == "feed_excerpt_only"
     if is_excerpt:
         result = classify_excerpt(document, source_config)
     else:

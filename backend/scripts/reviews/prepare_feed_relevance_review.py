@@ -13,6 +13,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.models import Document
 from app.db.session import SessionLocal
+from app.services.update_visibility import source_attribute
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -216,11 +217,10 @@ TITLE_OVERRIDES = {
 
 
 def recommendation(document: Document) -> tuple[str, list[str], float]:
-    metadata = dict(document.doc_metadata or {})
     document_id = str(document.id)
     title = str(document.title or "").strip()
     normalized_title = title.lower()
-    event_types = set(metadata.get("event_types") or [])
+    event_types = set(document.event_types or [])
 
     if document_id in KNOWN_CONTEXTUAL_IDS:
         return "contextual", [KNOWN_CONTEXTUAL_IDS[document_id]], 0.98
@@ -394,7 +394,6 @@ def main() -> None:
     corpus_counts: Counter[str] = Counter()
     all_items: list[dict] = []
     for document in documents:
-        metadata = dict(document.doc_metadata or {})
         tier, reasons, confidence = recommendation(document)
         corpus_counts[tier] += 1
         key = review_key(document, tier, reasons)
@@ -419,7 +418,7 @@ def main() -> None:
                 "document_id": str(document.id),
                 "review_key": key,
                 "source_name": document.source_name,
-                "source_type": metadata.get("source_type"),
+                "source_type": source_attribute(document.source_name, "source_type"),
                 "title": document.title,
                 "url": document.url,
                 "published_at": (
@@ -431,18 +430,17 @@ def main() -> None:
                 "recommended_reasons": reasons,
                 "recommendation_confidence": confidence,
                 "current_visibility": {
-                    "extraction_status": metadata.get("extraction_status"),
-                    "hydration_status": metadata.get("hydration_status"),
+                    "extraction_status": document.extraction_status,
                 },
                 "taxonomy": {
                     "primary_topic": document.primary_topic,
-                    "event_types": list(metadata.get("event_types") or []),
+                    "event_types": list(document.event_types or []),
                 },
                 "generated_card": {
-                    "display_headline": metadata.get("display_headline"),
-                    "summary": metadata.get("summary"),
-                    "why_it_matters": metadata.get("why_it_matters"),
-                    "key_points": list(metadata.get("key_points") or []),
+                    "display_headline": document.display_headline,
+                    "summary": document.summary,
+                    "why_it_matters": document.why_it_matters,
+                    "key_points": list(document.key_points or []),
                 },
                 "relevance_review": review,
                 "reviewed_tier": prior.get("reviewed_tier"),

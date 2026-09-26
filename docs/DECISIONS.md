@@ -60,3 +60,13 @@ Popularity and community feeds are not treated as ordinary publications. They re
 ## 012: Use Explicit Adapters For HTML-Only Sources
 
 Some high-quality publishers do not expose RSS or Atom. The collector supports those sources through configured listing-link patterns and article-content selectors. It does not perform broad crawling or autonomous browsing.
+
+## 013: Store Article Data In Typed Columns
+
+Every stored article field is a typed, constrained `documents` column; there is no
+free-form metadata object. Source attributes such as organization, tool, source type,
+and credibility live only in `update_sources.yml` and are joined by `source_name`.
+Values derivable from stored text, such as the card excerpt, are computed when served.
+Per-attempt diagnostics and classifier audit details are structured log events, not
+row data. A single `extraction_status` describes the stored text; the API's
+`evidence_level` is derived from it and `ingestion_status`.

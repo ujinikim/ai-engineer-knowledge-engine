@@ -49,16 +49,16 @@ deprecations, and incidents can be published and remain visible when their relev
 tier is `core`. The legacy `include_sparse` option never bypasses ingestion quarantine
 or relevance routing.
 
-A source may explicitly publish a trusted official-feed description as
-`evidence_level = official_feed_excerpt`. Core items use the source wording directly
+A source may explicitly publish a trusted official-feed description; the API reports it
+as `evidence_level = official_feed_excerpt`. Core items use the source wording directly
 and may appear on the dashboard, but their evidence level keeps them out of search
 results and generated-answer context.
 
-Update items expose `content_detail`, `default_feed_eligible`, and
-`default_feed_exclusion_reason`. Publication eligibility is recorded separately as
-`ingestion_status`, `evidence_level`, and `relevance_tier` in canonical document
-columns. `rag_eligible` and `default_feed_eligible` are derived compatibility outputs,
-not independent policy inputs. The
+Publication eligibility is recorded as `ingestion_status`, `extraction_status`, and
+`relevance_tier` in typed document columns. The API's `evidence_level` is derived from
+them: `full_article`, `official_feed_excerpt` for a published feed excerpt, or
+`source_entry`. Source attributes (`organization`, `tool`, `source_type`) come from the
+source registry. The
 `low_lexical_grounding` evaluation warning never controls product visibility.
 
 The response contains ranked article items, structured summaries, the resolved time range, summary statistics, and available facets.

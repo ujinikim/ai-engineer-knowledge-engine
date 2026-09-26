@@ -38,6 +38,8 @@ bodies are never event fields.
 | `source_entry_skipped` | Source slug, URL, and reason, such as `missing_published_date` |
 | `stored_article_retained` | A refresh failed the publication gate; the stored article was kept |
 | `relevance_classification_retained` | Reclassification failed; the prior relevance tier was kept |
+| `relevance_classified` | Model, relevance tier, classification status, and agent focus |
+| `article_quarantined` | Source slug, URL, failure codes, and extraction status |
 | `summary_generation_fallback` | Records deterministic fallback without source text |
 | `collection_completed` | Final status, counts, token usage, estimated cost, and duration |
 | `collection_skipped` | An overlapping run found the PostgreSQL advisory lock held |

@@ -147,7 +147,7 @@ def test_validated_taxonomy_has_one_category_and_one_event() -> None:
 
     assert validated.primary_topic == "agentic-generative-ai"
     assert validated.event_types == ["research"]
-    assert "topic_tags" not in validated.metadata()
+    assert "topic_tags" not in validated.fields()
 
 
 def test_event_default_is_only_used_when_content_has_no_event_signal() -> None:

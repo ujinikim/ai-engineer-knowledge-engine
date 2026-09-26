@@ -54,15 +54,12 @@ class RelevanceDecision:
     agent_focus: str = "absent"
     agent_evidence_quote: str = ""
 
-    def metadata(self) -> dict[str, str | None]:
+    def fields(self) -> dict[str, str | None]:
         return {
             "relevance_tier": self.tier,
             "relevance_reason": self.reason,
-            "relevance_generated_by": self.generated_by,
             "relevance_policy_version": RELEVANCE_POLICY_VERSION,
-            "relevance_classification_status": self.status,
-            "relevance_agent_focus": self.agent_focus,
-            "relevance_agent_evidence_quote": self.agent_evidence_quote,
+            "relevance_status": self.status,
         }
 
 
@@ -115,7 +112,7 @@ class ArticleRelevanceService:
                 agent_focus != "central"
                 or not self._quote_is_supported(title, raw_text, evidence_quote)
             ):
-                return RelevanceDecision(
+                return self._logged(RelevanceDecision(
                     tier="contextual",
                     reason=(
                         "The model proposed core relevance without source-grounded evidence that "
@@ -125,14 +122,14 @@ class ArticleRelevanceService:
                     status="corrected_unsupported_core",
                     agent_focus=agent_focus,
                     agent_evidence_quote=evidence_quote,
-                )
-            return RelevanceDecision(
+                ))
+            return self._logged(RelevanceDecision(
                 tier=tier,
                 reason=reason,
                 generated_by=self.model,
                 agent_focus=agent_focus,
                 agent_evidence_quote=evidence_quote,
-            )
+            ))
         except Exception as error:
             log_event(
                 logger,
@@ -142,6 +139,20 @@ class ArticleRelevanceService:
                 exception_type=type(error).__name__,
             )
             return self._unclassified("Model relevance classification failed.")
+
+    @staticmethod
+    def _logged(decision: RelevanceDecision) -> RelevanceDecision:
+        # Audit details stay out of stored metadata. The evidence quote is model output,
+        # which the logging policy excludes; the stored reason already explains the tier.
+        log_event(
+            logger,
+            "relevance_classified",
+            model=decision.generated_by,
+            relevance_tier=decision.tier,
+            classification_status=decision.status,
+            agent_focus=decision.agent_focus,
+        )
+        return decision
 
     def _unclassified(self, reason: str) -> RelevanceDecision:
         return RelevanceDecision(

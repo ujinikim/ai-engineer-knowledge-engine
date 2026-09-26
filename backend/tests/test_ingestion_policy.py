@@ -4,6 +4,7 @@ from app.services.ingestion_policy import (
     PUBLISHED,
     QUARANTINED,
     evaluate_ingestion_candidate,
+    evidence_level,
 )
 from app.services.update_collector import UpdateCollectorService
 from app.services.article_relevance import RelevanceDecision
@@ -115,10 +116,10 @@ def test_quarantined_candidate_skips_summary_and_embeddings() -> None:
     assert status == "quarantined"
     assert chunk_count == 0
     assert len(collector.db.added) == 1
-    metadata = collector.db.added[0].doc_metadata
-    assert collector.db.added[0].ingestion_status == QUARANTINED
-    assert "ingestion_status" not in metadata
-    assert "default_feed_eligible" not in metadata
+    document = collector.db.added[0]
+    assert document.ingestion_status == QUARANTINED
+    assert document.extraction_status == "feed_excerpt_only"
+    assert document.summary is None
 
 
 def test_approved_feed_excerpt_skips_summary_and_embeddings_but_publishes() -> None:
@@ -176,14 +177,15 @@ def test_approved_feed_excerpt_skips_summary_and_embeddings_but_publishes() -> N
     assert status == "created"
     assert chunk_count == 0
     assert len(collector.db.added) == 1
-    metadata = collector.db.added[0].doc_metadata
-    assert collector.db.added[0].ingestion_status == PUBLISHED
-    assert collector.db.added[0].evidence_level == "official_feed_excerpt"
-    assert "rag_eligible" not in metadata
-    assert "default_feed_eligible" not in metadata
-    assert metadata["summary_generated_by"] == "source-excerpt"
-    assert metadata["taxonomy_generated_by"] == "deterministic-keyword"
-    assert metadata["summary"] == metadata["excerpt"]
+    document = collector.db.added[0]
+    assert document.ingestion_status == PUBLISHED
+    assert document.extraction_status == "feed_excerpt_only"
+    assert evidence_level(
+        extraction_status=document.extraction_status,
+        ingestion_status=document.ingestion_status,
+    ) == "official_feed_excerpt"
+    assert document.summary_generated_by == "source-excerpt"
+    assert document.summary == "OpenAI announced an API for building and operating agents."
 
 
 def test_failed_refresh_does_not_replace_an_existing_published_document(caplog) -> None:
@@ -192,8 +194,7 @@ def test_failed_refresh_does_not_replace_an_existing_published_document(caplog) 
         content_hash="existing-content-hash",
         fetched_at=None,
         ingestion_status=PUBLISHED,
-        evidence_level="full_article",
-        doc_metadata={},
+        extraction_status="full_article",
     )
 
     class FakeDatabase:
@@ -235,7 +236,6 @@ def test_failed_refresh_does_not_replace_an_existing_published_document(caplog) 
     assert existing.raw_text == "Release\n\nA complete article that was previously published."
     assert existing.content_hash == "existing-content-hash"
     assert existing.ingestion_status == PUBLISHED
-    assert not any(key.startswith("last_ingestion_") for key in existing.doc_metadata)
     retained = next(
         record.structured_fields
         for record in caplog.records
@@ -311,22 +311,13 @@ def test_relevance_excluded_article_skips_summary_chunks_and_embeddings() -> Non
     assert status == "created"
     assert chunk_count == 0
     assert len(collector.db.added) == 1
-    metadata = collector.db.added[0].doc_metadata
-    assert collector.db.added[0].ingestion_status == PUBLISHED
-    assert "rag_eligible" not in metadata
-    assert not {
-        "ingestion_status", "evidence_level", "relevance_tier", "relevance_reason",
-        "primary_topic", "ingestion_warning_codes", "taxonomy_main_theme",
-        "extraction_metadata_version",
-    }.intersection(metadata)
-    assert collector.db.added[0].evidence_level == "source_entry"
-    assert collector.db.added[0].relevance_tier == "excluded"
-    assert collector.db.added[0].relevance_reason == "The article is a general cloud dashboard tutorial."
-    assert metadata["summary_generated_by"] == "relevance-excluded"
-    assert collector.db.added[0].relevance_tier == "excluded"
-    assert "relevance_reason" not in metadata
-    assert metadata["relevance_generated_by"] == "gpt-test"
-    assert metadata["relevance_classification_status"] == "classified"
+    document = collector.db.added[0]
+    assert document.ingestion_status == PUBLISHED
+    assert document.extraction_status == "source_entry"
+    assert document.relevance_tier == "excluded"
+    assert document.relevance_reason == "The article is a general cloud dashboard tutorial."
+    assert document.relevance_status == "classified"
+    assert document.summary_generated_by == "relevance-excluded"
 
 
 def test_failed_relevance_stays_unclassified_and_retries_without_content_change() -> None:
@@ -387,8 +378,7 @@ def test_failed_relevance_stays_unclassified_and_retries_without_content_change(
     status, chunks = collector._upsert_entry("example", config, entry)
     assert (status, chunks) == ("created", 0)
     assert collector.db.document.relevance_tier is None
-    assert "rag_eligible" not in collector.db.document.doc_metadata
-    assert "default_feed_eligible" not in collector.db.document.doc_metadata
+    assert collector.db.document.relevance_status == "failed"
 
     status, chunks = collector._upsert_entry("example", config, entry)
     assert (status, chunks) == ("unchanged", 0)
@@ -402,7 +392,7 @@ def test_failed_relevance_stays_unclassified_and_retries_without_content_change(
     collector.summarizer = SimpleNamespace(
         summarize=lambda **_kwargs: SimpleNamespace(
             primary_topic="agentic-generative-ai",
-            metadata=lambda: {"event_types": ["guide"], "summary": "Agent guide summary."},
+            fields=lambda: {"event_types": ["guide"], "summary": "Agent guide summary."},
         )
     )
     collector.chunker = SimpleNamespace(chunk_text=lambda *_args, **_kwargs: [])
@@ -411,7 +401,7 @@ def test_failed_relevance_stays_unclassified_and_retries_without_content_change(
     status, chunks = collector._upsert_entry("example", config, entry)
     assert (status, chunks) == ("changed", 0)
     assert collector.db.document.relevance_tier == "core"
-    assert "default_feed_eligible" not in collector.db.document.doc_metadata
+    assert collector.db.document.summary == "Agent guide summary."
 
 
 def test_failed_reclassification_keeps_existing_good_article(caplog) -> None:
@@ -421,7 +411,8 @@ def test_failed_reclassification_keeps_existing_good_article(caplog) -> None:
         relevance_tier="core",
         fetched_at=None,
         ingestion_status=PUBLISHED,
-        doc_metadata={"relevance_classification_status": "classified"},
+        extraction_status="source_entry",
+        relevance_status="classified",
     )
 
     class FakeDatabase:
@@ -472,7 +463,6 @@ def test_failed_reclassification_keeps_existing_good_article(caplog) -> None:
     assert existing.raw_text == "Original agent article"
     assert existing.content_hash == "original-hash"
     assert existing.relevance_tier == "core"
-    assert "last_relevance_attempt_status" not in existing.doc_metadata
     assert any(
         getattr(record, "event", None) == "relevance_classification_retained"
         for record in caplog.records

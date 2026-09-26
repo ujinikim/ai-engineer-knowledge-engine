@@ -69,9 +69,12 @@ jobs:
         run: |
           uv run --project backend alembic -c backend/alembic.ini upgrade head
           uv run --project backend alembic -c backend/alembic.ini check
-          uv run --project backend python backend/scripts/verification/verify_migration_adoption.py seed
 
-          # Simulate adopting the same schema before it had an Alembic version.
+          # Simulate adopting an unversioned database created by the former SQL
+          # bootstrap, whose schema is the baseline revision.
+          uv run --project backend alembic -c backend/alembic.ini downgrade base
+          uv run --project backend alembic -c backend/alembic.ini upgrade 20260802_0001
+          uv run --project backend python backend/scripts/verification/verify_migration_adoption.py seed
           uv run --project backend alembic -c backend/alembic.ini stamp base
           uv run --project backend alembic -c backend/alembic.ini upgrade head
           uv run --project backend python backend/scripts/verification/verify_migration_adoption.py verify

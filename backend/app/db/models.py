@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from typing import Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
@@ -16,10 +15,15 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+from app.services.taxonomy import EVENT_TYPES, PRIMARY_TOPICS
+
+
+def _sql_list(values) -> str:
+    return ", ".join(f"'{value}'" for value in values)
 
 
 class Document(Base):
@@ -28,8 +32,6 @@ class Document(Base):
         Index("documents_source_name_idx", "source_name"),
         Index("documents_content_hash_idx", "content_hash"),
         Index("documents_published_at_idx", literal_column("published_at DESC")),
-        Index("documents_ingestion_status_idx", "ingestion_status"),
-        Index("documents_relevance_tier_idx", "relevance_tier"),
         Index("documents_primary_topic_idx", "primary_topic"),
         Index(
             "documents_feed_scope_idx",
@@ -43,18 +45,24 @@ class Document(Base):
             name="ck_documents_ingestion_status",
         ),
         CheckConstraint(
-            "evidence_level IN ('full_article', 'source_entry', 'official_feed_excerpt')",
-            name="ck_documents_evidence_level",
+            "extraction_status IN ('full_article', 'source_entry', 'feed_excerpt_only', 'title_only')",
+            name="ck_documents_extraction_status",
+        ),
+        CheckConstraint(
+            "relevance_status IS NULL OR relevance_status IN "
+            "('classified', 'corrected_unsupported_core', 'failed')",
+            name="ck_documents_relevance_status",
+        ),
+        CheckConstraint(
+            f"event_types <@ ARRAY[{_sql_list(EVENT_TYPES)}]::varchar[]",
+            name="ck_documents_event_types",
         ),
         CheckConstraint(
             "relevance_tier IS NULL OR relevance_tier IN ('core', 'contextual', 'excluded')",
             name="ck_documents_relevance_tier",
         ),
         CheckConstraint(
-            "primary_topic IS NULL OR primary_topic IN "
-            "('agentic-generative-ai', 'machine-learning-classical-ai', "
-            "'vision-speech-robotics', 'data-search-retrieval', "
-            "'ai-products-engineering-infrastructure', 'safety-evaluation-governance')",
+            f"primary_topic IS NULL OR primary_topic IN ({_sql_list(PRIMARY_TOPICS)})",
             name="ck_documents_primary_topic",
         ),
     )
@@ -72,15 +80,25 @@ class Document(Base):
     ingestion_status: Mapped[str] = mapped_column(
         String(32), default="published", server_default="published"
     )
-    evidence_level: Mapped[str] = mapped_column(
+    extraction_status: Mapped[str] = mapped_column(
         String(32), default="source_entry", server_default="source_entry"
     )
     relevance_tier: Mapped[str | None] = mapped_column(String(32))
     relevance_reason: Mapped[str | None] = mapped_column(Text)
+    relevance_status: Mapped[str | None] = mapped_column(String(32))
+    relevance_policy_version: Mapped[str | None] = mapped_column(String(64))
     primary_topic: Mapped[str | None] = mapped_column(String(80))
-    doc_metadata: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, default=dict, server_default=text("'{}'::jsonb")
+    event_types: Mapped[list[str]] = mapped_column(
+        ARRAY(String(32)), default=list, server_default=text("'{}'::varchar[]")
     )
+    taxonomy_policy_version: Mapped[str | None] = mapped_column(String(64))
+    display_headline: Mapped[str | None] = mapped_column(Text)
+    summary: Mapped[str | None] = mapped_column(Text)
+    why_it_matters: Mapped[str | None] = mapped_column(Text)
+    key_points: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), default=list, server_default=text("'{}'::text[]")
+    )
+    summary_generated_by: Mapped[str | None] = mapped_column(String(120))
 
     chunks: Mapped[list["Chunk"]] = relationship(back_populates="document")
 
@@ -133,8 +151,5 @@ class Chunk(Base):
     embedding: Mapped[list[float]] = mapped_column(Vector(1536))
     token_count: Mapped[int] = mapped_column(Integer)
     content_hash: Mapped[str] = mapped_column(String(128))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, server_default=func.now()
-    )
 
     document: Mapped[Document] = relationship(back_populates="chunks")

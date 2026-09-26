@@ -59,11 +59,10 @@ Hybrid retrieval for release records uses:
 
 Final retrieval is capped at two chunks per document so one long release note cannot
 consume the entire context window for a multi-update question. Release retrieval derives
-eligibility from canonical `ingestion_status`, `evidence_level`, and `relevance_tier`.
+eligibility from the typed `ingestion_status`, `extraction_status`, and `relevance_tier`
+columns.
 Core records are retrieved by default; contextual records require explicit inclusion;
 excluded, quarantined, and official-feed-excerpt records cannot enter LLM context.
-Legacy `rag_eligible` and `default_feed_eligible` metadata remain compatibility outputs
-and are not trusted as policy inputs.
 
 ## Freshness
 

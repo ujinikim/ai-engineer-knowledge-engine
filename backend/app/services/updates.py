@@ -13,9 +13,15 @@ from app.schemas.updates import (
     UpdateListResponse,
     UpdateSourceItem,
 )
-from app.services.ingestion_policy import PUBLISHED
+from app.services.ingestion_policy import PUBLISHED, evidence_level
 from app.services.article_relevance import visible_relevance_tiers
-from app.services.update_visibility import configured_active_source_slugs, configured_sources
+from app.services.source_extraction import article_excerpt
+from app.services.update_visibility import (
+    configured_active_source_slugs,
+    configured_sources,
+    source_attribute,
+    source_slugs_with,
+)
 
 
 class UpdateService:
@@ -87,7 +93,7 @@ class UpdateService:
         if source_names:
             stmt = stmt.where(Document.source_name.in_(source_names))
         if tools:
-            stmt = stmt.where(Document.doc_metadata["tool"].astext.in_(tools))
+            stmt = stmt.where(Document.source_name.in_(source_slugs_with("tool", tools)))
         documents = list(self.db.scalars(stmt).all())
         explicit_sparse_context = bool(source_names or tools)
         documents = [
@@ -138,7 +144,7 @@ class UpdateService:
             stats=DashboardStats(
                 total_updates=len(documents),
                 source_count=len({document.source_name for document in documents}),
-                tool_count=len({self._metadata(document, "tool") for document in documents}),
+                tool_count=len({self._source(document, "tool") for document in documents}),
                 topic_count=len({self._topic(document) for document in documents}),
                 latest_published_at=self._utc(max(published_dates)) if published_dates else None,
             ),
@@ -150,15 +156,10 @@ class UpdateService:
                     {
                         event_type
                         for document in all_updates
-                        for event_type in document.doc_metadata.get("event_types", [])
+                        for event_type in document.event_types or []
                     }
                 ),
-                source_types=sorted(
-                    {
-                        str(document.doc_metadata.get("source_type") or "official-release")
-                        for document in all_updates
-                    }
-                ),
+                source_types=sorted({self._source_type(document) for document in all_updates}),
             ),
             limit=limit,
             offset=offset,
@@ -178,7 +179,7 @@ class UpdateService:
         published_at = self._aware(document.published_at) if document.published_at else now
         age_days = max(0.0, (now - published_at).total_seconds() / 86400)
         freshness = math.exp(-age_days / 21)
-        credibility = float(document.doc_metadata.get("credibility_weight", 1.0))
+        credibility = float(source_attribute(document.source_name, "credibility_weight", 1.0))
         detail = min(len(document.raw_text) / 4000, 1.0)
         return round(
             (0.45 * credibility)
@@ -188,30 +189,32 @@ class UpdateService:
         )
 
     def _to_item(self, document: Document, now: datetime) -> UpdateItem:
-        metadata = document.doc_metadata
-        excerpt = metadata.get("excerpt") or document.raw_text[:420]
+        excerpt = article_excerpt(document.title, document.raw_text)
         return UpdateItem(
             id=str(document.id),
             title=document.title,
             url=document.url,
             source_name=document.source_name,
-            organization=self._metadata(document, "organization"),
-            tool=self._metadata(document, "tool"),
+            organization=self._source(document, "organization"),
+            tool=self._source(document, "tool"),
             category=self._topic(document),
             primary_topic=self._topic(document),
-            event_types=list(metadata.get("event_types") or []),
-            source_type=str(metadata.get("source_type") or "official-release"),
-            evidence_level=self._evidence_level(document),
+            event_types=list(document.event_types or []),
+            source_type=self._source_type(document),
+            evidence_level=evidence_level(
+                extraction_status=document.extraction_status,
+                ingestion_status=self._ingestion_status(document),
+            ),
             relevance_tier=self._relevance_tier(document),
             relevance_reason=str(
                 getattr(document, "relevance_reason", None)
                 or ""
             ),
             excerpt=excerpt,
-            display_headline=str(metadata.get("display_headline") or document.title),
-            summary=str(metadata.get("summary") or excerpt),
-            why_it_matters=str(metadata.get("why_it_matters") or ""),
-            key_points=list(metadata.get("key_points") or []),
+            display_headline=document.display_headline or document.title,
+            summary=document.summary or excerpt,
+            why_it_matters=document.why_it_matters or "",
+            key_points=list(document.key_points or []),
             published_at=self._utc(document.published_at) or now,
             fetched_at=self._utc(document.fetched_at) or now,
             importance_score=self.importance_score(document, now),
@@ -245,18 +248,12 @@ class UpdateService:
         return tier in visible_relevance_tiers(include_contextual=include_contextual)
 
     def _relevance_tier(self, document: Document) -> str | None:
-        if document.doc_metadata.get("relevance_classification_status") == "fail_open":
-            return None
         canonical = getattr(document, "relevance_tier", None)
         return str(canonical) if canonical in {"core", "contextual", "excluded"} else None
 
     def _ingestion_status(self, document: Document) -> str:
         canonical = getattr(document, "ingestion_status", None)
         return str(canonical) if canonical else PUBLISHED
-
-    def _evidence_level(self, document: Document) -> str:
-        canonical = getattr(document, "evidence_level", None)
-        return str(canonical) if canonical else "source_entry"
 
     def _matches_taxonomy(
         self,
@@ -266,12 +263,11 @@ class UpdateService:
         event_types: list[str] | None,
         source_types: list[str] | None,
     ) -> bool:
-        metadata = document.doc_metadata
         if categories and self._topic(document) not in categories:
             return False
-        if event_types and not set(event_types).intersection(metadata.get("event_types", [])):
+        if event_types and not set(event_types).intersection(document.event_types or []):
             return False
-        if source_types and str(metadata.get("source_type") or "official-release") not in source_types:
+        if source_types and self._source_type(document) not in source_types:
             return False
         return True
 
@@ -281,8 +277,11 @@ class UpdateService:
             or "developer-tools"
         )
 
-    def _metadata(self, document: Document, key: str) -> str:
-        return str(document.doc_metadata.get(key) or "unknown")
+    def _source(self, document: Document, key: str) -> str:
+        return str(source_attribute(document.source_name, key) or "unknown")
+
+    def _source_type(self, document: Document) -> str:
+        return str(source_attribute(document.source_name, "source_type", "official-release"))
 
     def _utc(self, value: datetime | None) -> datetime | None:
         return self._aware(value) if value else None

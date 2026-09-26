@@ -23,6 +23,19 @@ MAX_RETRY_DELAY_SECONDS = 10.0
 RETRYABLE_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
 
 
+def compact_excerpt(text: str, limit: int = 420) -> str:
+    compact = " ".join(text.split())
+    if len(compact) <= limit:
+        return compact
+    return compact[: limit - 1].rstrip() + "..."
+
+
+def article_excerpt(title: str, raw_text: str) -> str:
+    """Card excerpt derived from stored text: the body after the title."""
+    body = raw_text.removeprefix(title).strip() if title else raw_text
+    return compact_excerpt(body or title)
+
+
 class SourceExtractionMixin:
     async def _get_with_retries(self, client: httpx.AsyncClient, url: str) -> httpx.Response:
         """GET a URL, retrying timeouts, connection errors, and transient HTTP statuses."""
@@ -324,7 +337,4 @@ class SourceExtractionMixin:
         return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
 
     def _excerpt(self, text: str, limit: int = 420) -> str:
-        compact = " ".join(text.split())
-        if len(compact) <= limit:
-            return compact
-        return compact[: limit - 1].rstrip() + "..."
+        return compact_excerpt(text, limit)

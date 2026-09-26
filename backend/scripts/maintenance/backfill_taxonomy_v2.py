@@ -14,6 +14,7 @@ from app.db.models import Document
 from app.db.session import SessionLocal
 from app.services.update_visibility import configured_active_source_slugs
 from app.services.article_summary import ArticleSummaryService
+from app.services.source_extraction import article_excerpt
 from app.services.taxonomy import (
     TAXONOMY_POLICY_VERSION,
     classify_topic_with_method,
@@ -29,18 +30,18 @@ def classify_excerpt(
     document: Document,
     config: dict,
 ) -> tuple[str, list[str], str, str | None, str | None, str, str, str | None]:
-    metadata = document.doc_metadata
+    excerpt = article_excerpt(document.title, document.raw_text)
     default_topic = config.get(
         "default_primary_topic",
         "ai-products-engineering-infrastructure",
     )
     default_events = config.get("default_event_types", ["analysis"])
     topic, method = classify_topic_with_method(
-        f"{document.title}\n{document.title}\n{metadata.get('excerpt') or document.raw_text}",
+        f"{document.title}\n{document.title}\n{excerpt}",
         default_topic,
     )
     events = infer_event_types(
-        f"{document.title}\n{metadata.get('excerpt') or document.raw_text}",
+        f"{document.title}\n{excerpt}",
         default_events,
     )
     return (
@@ -85,8 +86,7 @@ def run(
     with SessionLocal() as db:
         documents = list(db.scalars(build_query(source)).all())
         for document in documents:
-            metadata = dict(document.doc_metadata or {})
-            if metadata.get("taxonomy_policy_version") == TAXONOMY_POLICY_VERSION and not force:
+            if document.taxonomy_policy_version == TAXONOMY_POLICY_VERSION and not force:
                 skipped_current += 1
                 continue
             if limit is not None and len(records) >= limit:
@@ -98,7 +98,7 @@ def run(
                 "ai-products-engineering-infrastructure",
             )
             default_events = config.get("default_event_types", ["analysis"])
-            is_excerpt = document.evidence_level == "official_feed_excerpt"
+            is_excerpt = document.extraction_status == "feed_excerpt_only"
             if is_excerpt:
                 (
                     new_topic,
@@ -129,23 +129,13 @@ def run(
 
             before = {
                 "primary_topic": document.primary_topic,
-                "event_types": list(metadata.get("event_types") or []),
-                "taxonomy_policy_version": metadata.get("taxonomy_policy_version"),
-                "taxonomy_generated_by": metadata.get("taxonomy_generated_by"),
-                "taxonomy_classification_reason": metadata.get(
-                    "taxonomy_classification_reason"
-                ),
-                "event_classification_reason": metadata.get(
-                    "event_classification_reason"
-                ),
+                "event_types": list(document.event_types or []),
+                "taxonomy_policy_version": document.taxonomy_policy_version,
             }
             after = {
                 "primary_topic": new_topic,
                 "event_types": new_events[:1],
                 "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-                "taxonomy_generated_by": method,
-                "taxonomy_classification_reason": classification_reason,
-                "event_classification_reason": event_reason,
             }
             changed = before != after
             records.append(
@@ -163,11 +153,9 @@ def run(
                 }
             )
             if apply and changed:
-                document.doc_metadata = {
-                    **metadata,
-                    **{key: value for key, value in after.items() if key != "primary_topic"},
-                }
                 document.primary_topic = new_topic
+                document.event_types = after["event_types"]
+                document.taxonomy_policy_version = TAXONOMY_POLICY_VERSION
 
         if apply:
             db.commit()

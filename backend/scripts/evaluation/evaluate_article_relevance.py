@@ -15,7 +15,7 @@ from app.services.article_relevance import (
     RELEVANCE_POLICY_VERSION,
     ArticleRelevanceService,
 )
-from app.services.ingestion_policy import PUBLISHED
+from app.services.ingestion_policy import PUBLISHED, evidence_level
 from app.services.update_visibility import configured_active_source_slugs
 
 
@@ -53,8 +53,7 @@ def build_query(*, source: str | None, document_id: str | None, limit: int | Non
           d.content_hash,
           d.published_at,
           d.ingestion_status,
-          d.evidence_level,
-          d.doc_metadata
+          d.extraction_status
         FROM documents AS d
         WHERE """
         + " AND ".join(clauses)
@@ -141,7 +140,10 @@ def run(
         if row["ingestion_status"] != PUBLISHED:
             continue
         decision = service.classify(title=row["title"], raw_text=row["raw_text"])
-        level = row["evidence_level"]
+        level = evidence_level(
+            extraction_status=row["extraction_status"],
+            ingestion_status=row["ingestion_status"],
+        )
         evidence_blocked = level == "official_feed_excerpt"
         records.append(
             {

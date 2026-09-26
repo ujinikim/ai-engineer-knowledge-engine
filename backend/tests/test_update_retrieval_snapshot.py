@@ -15,13 +15,9 @@ def test_snapshot_document_preserves_retrieval_identity_and_policy() -> None:
         fetched_at=datetime(2026, 7, 27, 11, 0),
         content_hash="content-hash",
         primary_topic="developer-tools",
-        doc_metadata={
-            "tool": "Example",
-            "event_types": ["product-release"],
-            "source_type": "official-product-news",
-            "taxonomy_policy_version": "policy-v1",
-            "summary_generated_by": "model:source",
-        },
+        event_types=["release-update"],
+        taxonomy_policy_version="policy-v1",
+        summary_generated_by="model:source",
     )
 
     item = snapshot_document(document, chunk_count=3)

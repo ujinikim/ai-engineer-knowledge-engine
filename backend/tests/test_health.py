@@ -17,7 +17,7 @@ from app.services.health import (
 )
 
 
-EXPECTED_HEAD = "20260925_0012"
+EXPECTED_HEAD = "20260925_0014"
 
 
 class StubReadinessChecker:

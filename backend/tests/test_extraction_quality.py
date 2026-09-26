@@ -32,17 +32,13 @@ def make_document(
     return SimpleNamespace(
         id=uuid4(),
         source_name=source_name,
-        relevance_tier=(metadata or {}).get("relevance_tier", "core"),
         title=title,
         url=url,
         raw_text=raw_text,
         content_hash=content_hash or hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
         published_at=published_at,
         fetched_at=fetched_at,
-        doc_metadata=metadata
-        or {
-            "source_type": "official-engineering-blog",
-        },
+        **{"relevance_tier": "core", "extraction_status": "full_article", **(metadata or {})},
     )
 
 
@@ -83,9 +79,6 @@ def test_html_listing_collection_url_warns() -> None:
         raw_text,
         title="June updates",
         url="https://example.com/news/tag/jun-05-2026",
-        metadata={
-            "source_type": "editorial-analysis",
-        },
     )
 
     result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)], source_kind="html_listing")
@@ -123,9 +116,6 @@ def test_short_github_release_is_not_treated_as_excerpt() -> None:
     document = make_document(
         raw_text,
         title="v1.2.3",
-        metadata={
-            "source_type": "official-release",
-        },
     )
 
     result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)], source_kind="github_releases")
@@ -139,9 +129,7 @@ def test_short_official_changelog_is_not_treated_as_excerpt() -> None:
     document = make_document(
         raw_text,
         title="Example product update",
-        metadata={
-            "source_type": "official-changelog",
-        },
+        source_name="github-changelog",
     )
 
     result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
@@ -155,8 +143,7 @@ def test_hydration_failure_is_reported() -> None:
     document = make_document(
         raw_text,
         metadata={
-            "source_type": "official-engineering-blog",
-            "hydration_status": "failed",
+            "extraction_status": "title_only",
         },
     )
 
@@ -170,8 +157,6 @@ def test_feed_excerpt_only_extraction_is_reported() -> None:
     document = make_document(
         raw_text,
         metadata={
-            "source_type": "official-engineering-blog",
-            "hydration_status": "failed",
             "extraction_status": "feed_excerpt_only",
         },
     )
@@ -217,9 +202,6 @@ def test_github_release_repetition_does_not_trigger_duplicate_warning() -> None:
     document = make_document(
         raw_text,
         title="v1.2.3",
-        metadata={
-            "source_type": "official-release",
-        },
     )
 
     result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)], source_kind="github_releases")
@@ -246,7 +228,7 @@ def test_excluded_document_does_not_require_chunks() -> None:
         title="AI Agent Conference",
         metadata={
             "ingestion_status": "published",
-            "evidence_level": "full_article",
+            "extraction_status": "full_article",
             "relevance_tier": "excluded",
         },
     )
