@@ -44,14 +44,14 @@ RELEVANCE_RESPONSE_FORMAT = {
 
 @dataclass(frozen=True)
 class RelevanceDecision:
-    tier: str
+    tier: str | None
     reason: str
     generated_by: str
     status: str = "classified"
     agent_focus: str = "absent"
     agent_evidence_quote: str = ""
 
-    def metadata(self) -> dict[str, str]:
+    def metadata(self) -> dict[str, str | None]:
         return {
             "relevance_tier": self.tier,
             "relevance_reason": self.reason,
@@ -71,7 +71,7 @@ class ArticleRelevanceService:
 
     def classify(self, *, title: str, raw_text: str) -> RelevanceDecision:
         if not self.client:
-            return self._fail_open("Model relevance classification is unavailable.")
+            return self._unclassified("Model relevance classification is unavailable.")
 
         try:
             response = self.client.chat.completions.create(
@@ -107,7 +107,7 @@ class ArticleRelevanceService:
                 or not reason
                 or agent_focus not in {"central", "supporting", "absent"}
             ):
-                return self._fail_open("Model returned an invalid relevance decision.")
+                return self._unclassified("Model returned an invalid relevance decision.")
             if tier == "core" and (
                 agent_focus != "central"
                 or not self._quote_is_supported(title, raw_text, evidence_quote)
@@ -133,19 +133,19 @@ class ArticleRelevanceService:
         except Exception as error:
             log_event(
                 logger,
-                "relevance_generation_fail_open",
+                "relevance_generation_failed",
                 level=logging.WARNING,
                 model=self.model,
                 exception_type=type(error).__name__,
             )
-            return self._fail_open("Model relevance classification failed.")
+            return self._unclassified("Model relevance classification failed.")
 
-    def _fail_open(self, reason: str) -> RelevanceDecision:
+    def _unclassified(self, reason: str) -> RelevanceDecision:
         return RelevanceDecision(
-            tier="core",
-            reason=f"{reason} Retained in core for review.",
-            generated_by="fail-open",
-            status="fail_open",
+            tier=None,
+            reason=f"{reason} Classification pending retry.",
+            generated_by="classification-error",
+            status="failed",
         )
 
     @staticmethod
@@ -193,17 +193,6 @@ class ArticleRelevanceService:
             "actual AI/ML engineering subject and explicitly note that it is not agent-specific; "
             "do not justify it with a hypothetical way agents or agent engineers might use it."
         )
-
-
-def stored_relevance_tier(metadata: dict) -> str:
-    """Treat pre-policy and malformed rows as core during a safe rolling rollout."""
-    tier = str(metadata.get("relevance_tier") or "").strip().lower()
-    return tier if tier in RELEVANCE_TIERS else "core"
-
-
-def relevance_is_visible(metadata: dict, *, include_contextual: bool = False) -> bool:
-    tier = stored_relevance_tier(metadata)
-    return tier in visible_relevance_tiers(include_contextual=include_contextual)
 
 
 def visible_relevance_tiers(*, include_contextual: bool = False) -> tuple[str, ...]:

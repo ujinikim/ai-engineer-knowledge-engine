@@ -41,7 +41,6 @@ def main() -> None:
         documents = list(
             db.scalars(
                 select(Document)
-                .where(Document.source_type == "release")
                 .order_by(Document.source_name, Document.id)
             )
         )

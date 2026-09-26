@@ -14,7 +14,6 @@ sources:
     fetch_full_article: true
     minimum_full_article_characters: 500
     credibility_weight: 1.0
-    quality_tier: primary
     include_terms: [agent, langgraph, langchain, langsmith, evaluation, evals, observability, mcp, context, memory, retrieval, rag, deployment, tool]
   - slug: microsoft-foundry
     name: Microsoft Foundry Blog
@@ -31,7 +30,6 @@ sources:
     content_selector: main
     minimum_full_article_characters: 500
     credibility_weight: 1.0
-    quality_tier: primary
     include_terms: [agent, agent service, agent framework, agentic, mcp, toolbox, retrieval, evaluation, deployment, safety, memory, orchestration, tool]
   - slug: google-developers
     name: Google Developers Blog
@@ -91,7 +89,6 @@ sources:
     minimum_full_article_characters: 500
     require_published_date: true
     credibility_weight: 1.0
-    quality_tier: primary
     include_terms: [agent, agents, agentic, claude code, mcp, tool, harness, eval, context, memory]
   - slug: mcp-blog
     name: Model Context Protocol Blog
@@ -108,7 +105,6 @@ sources:
     content_selector: article
     minimum_full_article_characters: 500
     credibility_weight: 1.0
-    quality_tier: primary
   - slug: letta-blog
     name: Letta Blog
     organization: Letta
@@ -125,7 +121,6 @@ sources:
     minimum_full_article_characters: 500
     require_published_date: true
     credibility_weight: 1.0
-    quality_tier: primary
     include_terms: [agent, agents, agentic, letta, memory, context, harness, tool, eval]
   - slug: crewai-blog
     name: CrewAI Blog
@@ -142,7 +137,6 @@ sources:
     content_selector: .gh-content
     minimum_full_article_characters: 500
     credibility_weight: 0.95
-    quality_tier: primary
     include_terms: [agent, agents, agentic, crewai, orchestration, tool, mcp]
   - slug: simon-agentic-engineering
     name: Simon Willison Agentic Engineering
@@ -159,6 +153,5 @@ sources:
     content_selector: .entryPage
     minimum_full_article_characters: 500
     credibility_weight: 0.9
-    quality_tier: curated
     exclude_title_prefixes: [Quoting]
     exclude_tags: [events]

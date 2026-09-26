@@ -34,7 +34,6 @@ DEFAULT_OUTPUT = (
 AXES = {
     "primary_topic": ("primary_topic_review", "proposed_primary_topic"),
     "event_types": ("event_types_review", "proposed_event_types"),
-    "maturity": ("maturity_review", "proposed_maturity"),
 }
 
 
@@ -55,7 +54,7 @@ def main() -> None:
         documents = {
             str(document.id): document
             for document in db.scalars(
-                select(Document).where(Document.source_type == "release")
+                select(Document)
             )
         }
 

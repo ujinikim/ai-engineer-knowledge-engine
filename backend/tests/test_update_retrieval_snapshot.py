@@ -11,19 +11,15 @@ def test_snapshot_document_preserves_retrieval_identity_and_policy() -> None:
         source_name="example",
         title="Example update",
         url="https://example.com/update",
-        canonical_url=None,
         published_at=datetime(2026, 7, 27, 10, 0),
         fetched_at=datetime(2026, 7, 27, 11, 0),
         content_hash="content-hash",
+        primary_topic="developer-tools",
         doc_metadata={
             "tool": "Example",
-            "primary_topic": "developer-tools",
             "event_types": ["product-release"],
             "source_type": "official-product-news",
-            "maturity": "stable",
-            "content_detail": "detailed",
             "taxonomy_policy_version": "policy-v1",
-            "extraction_metadata_version": "extraction-v1",
             "summary_generated_by": "model:source",
         },
     )
@@ -31,7 +27,8 @@ def test_snapshot_document_preserves_retrieval_identity_and_policy() -> None:
     item = snapshot_document(document, chunk_count=3)
 
     assert item["document_id"] == str(document.id)
-    assert item["canonical_url"] == document.url
+    assert item["url"] == document.url
+    assert "canonical_url" not in item
     assert item["chunk_count"] == 3
     assert item["taxonomy_policy_version"] == "policy-v1"
     assert item["published_at"].endswith("+00:00")

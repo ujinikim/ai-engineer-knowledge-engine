@@ -37,9 +37,8 @@ def load_documents() -> list[Document]:
             db.scalars(
                 select(Document)
                 .where(
-                    Document.source_type == "release",
                     Document.source_name.in_(configured_active_source_slugs()),
-                    Document.doc_metadata["ingestion_status"].astext == "published",
+                    Document.ingestion_status == "published",
                 )
                 .order_by(
                     Document.source_name,
@@ -100,16 +99,12 @@ def classify_document(
     summarizer: ArticleSummaryService,
     source_config: dict,
 ) -> dict:
-    metadata = dict(document.doc_metadata or {})
     default_topic = source_config.get(
         "default_primary_topic",
         "ai-products-engineering-infrastructure",
     )
     default_events = source_config.get("default_event_types", ["analysis"])
-    is_excerpt = (
-        metadata.get("evidence_level") == "official_feed_excerpt"
-        or metadata.get("rag_eligible") is False
-    )
+    is_excerpt = document.evidence_level == "official_feed_excerpt"
     if is_excerpt:
         result = classify_excerpt(document, source_config)
     else:
@@ -204,7 +199,7 @@ def prepare_review(
                 "review_key": review_key(document, generated),
                 "source_name": document.source_name,
                 "title": document.title,
-                "url": document.canonical_url or document.url,
+                "url": document.url,
                 "published_at": document.published_at.isoformat()
                 if document.published_at
                 else None,

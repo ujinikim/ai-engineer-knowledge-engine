@@ -8,7 +8,6 @@ from app.services.taxonomy import (
     classify_topic,
     classify_topic_with_method,
     infer_event_types,
-    infer_maturity,
     normalize_event_types,
 )
 from app.services.update_collector import UpdateCollectorService
@@ -64,35 +63,8 @@ def test_specific_information_retrieval_language_is_still_detected() -> None:
     assert method == "deterministic-keyword"
 
 
-def test_event_and_maturity_inference() -> None:
+def test_event_inference() -> None:
     assert infer_event_types("This API endpoint is deprecated and will sunset.") == ["alert"]
-    assert infer_maturity("v2.0.0-rc.2") == "release-candidate"
-    assert infer_maturity("v2.0.0-rc1: fix download handling") == "release-candidate"
-    assert infer_maturity("v0.26.0rc1") == "release-candidate"
-    assert infer_maturity("V1.2.0_RC.3") == "release-candidate"
-    assert infer_maturity("Feature now in general availability") == "general-availability"
-
-
-def test_maturity_does_not_treat_rc_inside_words_as_release_candidate() -> None:
-    for title in ("Research update", "Architecture notes", "Source release", "PyTorch"):
-        assert infer_maturity(title) == "stable"
-
-
-def test_research_events_infer_research_maturity_without_release_event() -> None:
-    assert (
-        infer_maturity(
-            "Web retrieval study",
-            event_types=["research"],
-        )
-        == "research"
-    )
-    assert (
-        infer_maturity(
-            "Benchmark library v1.0",
-            event_types=["release-update"],
-        )
-        == "stable"
-    )
 
 
 def test_event_normalization_keeps_at_most_one_v2_event() -> None:
@@ -151,7 +123,7 @@ def test_generated_and_fallback_headlines_are_capped_at_90_characters() -> None:
     assert validated.display_headline.endswith("...")
 
 
-def test_validated_taxonomy_has_one_category_one_event_and_no_topic_tags() -> None:
+def test_validated_taxonomy_has_one_category_and_one_event() -> None:
     service = ArticleSummaryService.__new__(ArticleSummaryService)
     fallback = service._fallback(
         title="Agent tool-use research",
@@ -166,7 +138,6 @@ def test_validated_taxonomy_has_one_category_one_event_and_no_topic_tags() -> No
         {
             "primary_topic": "agentic-generative-ai",
             "event_types": ["research", "analysis"],
-            "topic_tags": ["agents"],
         },
         fallback,
         "research-paper",
@@ -176,7 +147,7 @@ def test_validated_taxonomy_has_one_category_one_event_and_no_topic_tags() -> No
 
     assert validated.primary_topic == "agentic-generative-ai"
     assert validated.event_types == ["research"]
-    assert validated.topic_tags == []
+    assert "topic_tags" not in validated.metadata()
 
 
 def test_event_default_is_only_used_when_content_has_no_event_signal() -> None:
@@ -376,7 +347,6 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
     assert collector._entry_datetime(hydrated).isoformat() == "2026-07-20T00:00:00"
     assert hydrated["_hydration_status"] == "full_article"
     assert hydrated["_extraction_status"] == "full_article"
-    assert hydrated["_summary_input_source"] == "full_article"
     assert hydrated["_full_article_fetch_http_status"] == 200
     assert hydrated["_full_article_fetch_error_code"] is None
     assert hydrated["_full_article_fetch_attempted_at"]
@@ -425,7 +395,6 @@ def test_forbidden_article_fetch_becomes_structured_feed_excerpt_fallback() -> N
 
     assert result["_hydration_status"] == "failed"
     assert result["_extraction_status"] == "feed_excerpt_only"
-    assert result["_summary_input_source"] == "feed_excerpt"
     assert result["_full_article_fetch_http_status"] == 403
     assert result["_full_article_fetch_error_code"] == "http_forbidden"
     assert result["_full_article_fetch_attempted_at"]
@@ -440,7 +409,6 @@ def test_incomplete_article_without_excerpt_becomes_title_only() -> None:
     )
 
     assert result["_extraction_status"] == "title_only"
-    assert result["_summary_input_source"] == "title"
     assert result["_full_article_fetch_http_status"] is None
     assert result["_full_article_fetch_error_code"] == "content_incomplete"
 

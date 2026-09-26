@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.db.models import Chunk, Document
 from app.schemas.search import RetrievedChunk, RetrievalMetrics, SearchRequest, SearchResponse
 from app.services.embedding import EmbeddingService
-from app.services.article_relevance import stored_relevance_tier, visible_relevance_tiers
+from app.services.article_relevance import visible_relevance_tiers
 from app.services.ingestion_policy import PUBLISHED
 from app.services.update_visibility import configured_active_source_slugs
 
@@ -299,26 +299,17 @@ class RetrieverService:
             keyword_score=candidate.keyword_score,
             combined_score=round(candidate.combined_score, 4),
             recency_score=round(candidate.recency_score, 4),
-            source_type=candidate.document.source_type,
             published_at=candidate.document.published_at,
             tool=candidate.document.doc_metadata.get("tool"),
-            category=(
-                candidate.document.doc_metadata.get("primary_topic")
-                or candidate.document.doc_metadata.get("category")
-            ),
+            category=candidate.document.primary_topic,
             event_types=list(candidate.document.doc_metadata.get("event_types") or []),
             source_category=candidate.document.doc_metadata.get("source_type"),
-            maturity=candidate.document.doc_metadata.get("maturity"),
-            relevance_tier=(
-                candidate.document.relevance_tier
-                or stored_relevance_tier(candidate.document.doc_metadata)
-            ),
+            relevance_tier=candidate.document.relevance_tier,
         )
 
     def _apply_filters(self, stmt, request: SearchRequest):
         if request.source_names:
             stmt = stmt.where(Document.source_name.in_(request.source_names))
-        stmt = stmt.where(Document.source_type == "release")
         stmt = stmt.where(
             self._retrievable_document_clause(
                 include_contextual=request.include_contextual,
@@ -327,12 +318,7 @@ class RetrieverService:
         if request.tools:
             stmt = stmt.where(Document.doc_metadata["tool"].astext.in_(request.tools))
         if request.categories:
-            stmt = stmt.where(
-                or_(
-                    Document.doc_metadata["primary_topic"].astext.in_(request.categories),
-                    Document.doc_metadata["category"].astext.in_(request.categories),
-                )
-            )
+            stmt = stmt.where(Document.primary_topic.in_(request.categories))
         if request.event_types:
             stmt = stmt.where(
                 or_(
@@ -344,8 +330,6 @@ class RetrieverService:
             )
         if request.source_types:
             stmt = stmt.where(Document.doc_metadata["source_type"].astext.in_(request.source_types))
-        if request.maturities:
-            stmt = stmt.where(Document.doc_metadata["maturity"].astext.in_(request.maturities))
         if request.published_after:
             stmt = stmt.where(Document.published_at >= self._naive_utc(request.published_after))
         if request.published_before:
@@ -353,7 +337,7 @@ class RetrieverService:
         return stmt
 
     def _recency_score(self, document: Document) -> float:
-        if document.source_type != "release" or not document.published_at:
+        if not document.published_at:
             return 0
         published = document.published_at
         if published.tzinfo is None:
@@ -383,13 +367,13 @@ class RetrieverService:
         enabled_sources = configured_active_source_slugs()
         relevance_tiers = visible_relevance_tiers(include_contextual=include_contextual)
         return and_(
-            Document.source_type == "release",
             Document.source_name.in_(enabled_sources),
             Document.ingestion_status == PUBLISHED,
             Document.evidence_level != "official_feed_excerpt",
+            Document.relevance_tier.in_(relevance_tiers),
             or_(
-                Document.relevance_tier.is_(None),
-                Document.relevance_tier.in_(relevance_tiers),
+                Document.doc_metadata["relevance_classification_status"].astext.is_(None),
+                Document.doc_metadata["relevance_classification_status"].astext != "fail_open",
             ),
         )
 

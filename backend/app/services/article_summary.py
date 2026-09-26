@@ -13,10 +13,8 @@ from app.services.taxonomy import (
     PRIMARY_TOPICS,
     TAXONOMY_POLICY_VERSION,
     clean_labels,
-    clean_tags,
     classify_topic_with_method,
     infer_event_types,
-    infer_maturity,
 )
 from app.services.source_detail import classify_content_detail
 
@@ -97,10 +95,6 @@ ARTICLE_SUMMARY_RESPONSE_FORMAT = {
                 "main_theme": {"type": "string"},
                 "primary_topic": {"type": "string", "enum": list(PRIMARY_TOPICS)},
                 "event_type": {"type": "string", "enum": list(EVENT_TYPES)},
-                "entity_tags": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                },
             },
             "required": [
                 "display_headline",
@@ -110,7 +104,6 @@ ARTICLE_SUMMARY_RESPONSE_FORMAT = {
                 "main_theme",
                 "primary_topic",
                 "event_type",
-                "entity_tags",
             ],
             "additionalProperties": False,
         },
@@ -190,13 +183,9 @@ class ArticleSummary:
     why_it_matters: str
     key_points: list[str]
     primary_topic: str
-    topic_tags: list[str]
     event_types: list[str]
-    entity_tags: list[str]
-    maturity: str
     generated_by: str
     taxonomy_generated_by: str
-    taxonomy_main_theme: str | None
 
     def metadata(self) -> dict:
         return {
@@ -205,13 +194,9 @@ class ArticleSummary:
             "why_it_matters": self.why_it_matters,
             "key_points": self.key_points,
             "primary_topic": self.primary_topic,
-            "topic_tags": self.topic_tags,
             "event_types": self.event_types,
-            "entity_tags": self.entity_tags,
-            "maturity": self.maturity,
             "summary_generated_by": self.generated_by,
             "taxonomy_generated_by": self.taxonomy_generated_by,
-            "taxonomy_main_theme": self.taxonomy_main_theme,
             "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
         }
 
@@ -397,15 +382,9 @@ class ArticleSummaryService:
             why_it_matters=self._text(payload.get("why_it_matters"), fallback.why_it_matters, 320),
             key_points=self._text_list(payload.get("key_points"), fallback.key_points, 4, 180),
             primary_topic=primary_topic,
-            topic_tags=[],
             event_types=event_types,
-            entity_tags=clean_tags(payload.get("entity_tags")) or fallback.entity_tags,
-            maturity=infer_maturity(title, raw_text, event_types),
             generated_by=f"{getattr(self, 'model', settings.chat_model)}:{source_type}",
             taxonomy_generated_by=getattr(self, "model", settings.chat_model),
-            taxonomy_main_theme=(
-                self._text(payload.get("main_theme"), "", 180) or None
-            ),
         )
 
     def _fallback(
@@ -433,13 +412,9 @@ class ArticleSummaryService:
             why_it_matters="Review the source for implementation details and compatibility impact.",
             key_points=[self._truncate(sentence, 160) for sentence in sentences[:3] if sentence][:3],
             primary_topic=primary_topic,
-            topic_tags=[],
             event_types=events or ["analysis"],
-            entity_tags=clean_tags([organization, tool]),
-            maturity=infer_maturity(title, raw_text, events),
             generated_by="deterministic-fallback",
             taxonomy_generated_by=taxonomy_method,
-            taxonomy_main_theme=None,
         )
 
     def classify_taxonomy(

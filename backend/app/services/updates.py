@@ -13,9 +13,8 @@ from app.schemas.updates import (
     UpdateListResponse,
     UpdateSourceItem,
 )
-from app.services.source_detail import classify_content_detail
-from app.services.ingestion_policy import PUBLISHED, stored_ingestion_status
-from app.services.article_relevance import stored_relevance_tier, visible_relevance_tiers
+from app.services.ingestion_policy import PUBLISHED
+from app.services.article_relevance import visible_relevance_tiers
 from app.services.update_visibility import configured_active_source_slugs, configured_sources
 
 
@@ -69,7 +68,6 @@ class UpdateService:
         categories: list[str] | None = None,
         event_types: list[str] | None = None,
         source_types: list[str] | None = None,
-        maturities: list[str] | None = None,
         include_sparse: bool = False,
         include_contextual: bool = False,
         start: datetime | None = None,
@@ -81,7 +79,6 @@ class UpdateService:
 
         enabled_sources = configured_active_source_slugs()
         stmt = select(Document).where(
-            Document.source_type == "release",
             Document.source_name.in_(enabled_sources),
         )
         if window_start:
@@ -108,7 +105,6 @@ class UpdateService:
                     categories=categories,
                     event_types=event_types,
                     source_types=source_types,
-                    maturities=maturities,
                 )
             )
         ]
@@ -116,7 +112,6 @@ class UpdateService:
         all_updates = list(
             self.db.scalars(
                 select(Document).where(
-                    Document.source_type == "release",
                     Document.source_name.in_(configured_active_source_slugs()),
                 )
             ).all()
@@ -164,12 +159,6 @@ class UpdateService:
                         for document in all_updates
                     }
                 ),
-                maturities=sorted(
-                    {
-                        str(document.doc_metadata.get("maturity") or "stable")
-                        for document in all_updates
-                    }
-                ),
             ),
             limit=limit,
             offset=offset,
@@ -191,29 +180,15 @@ class UpdateService:
         freshness = math.exp(-age_days / 21)
         credibility = float(document.doc_metadata.get("credibility_weight", 1.0))
         detail = min(len(document.raw_text) / 4000, 1.0)
-        maturity_weights = {
-            "stable": 1.0,
-            "general-availability": 1.0,
-            "beta": 0.75,
-            "preview": 0.7,
-            "release-candidate": 0.6,
-            "development": 0.45,
-            "research": 0.75,
-            "deprecated": 0.8,
-        }
-        maturity = str(document.doc_metadata.get("maturity") or "stable")
-        maturity_score = maturity_weights.get(maturity, 0.7)
         return round(
-            (0.40 * credibility)
-            + (0.40 * freshness)
-            + (0.10 * detail)
-            + (0.10 * maturity_score),
+            (0.45 * credibility)
+            + (0.45 * freshness)
+            + (0.10 * detail),
             4,
         )
 
     def _to_item(self, document: Document, now: datetime) -> UpdateItem:
         metadata = document.doc_metadata
-        visibility = self._visibility(document)
         excerpt = metadata.get("excerpt") or document.raw_text[:420]
         return UpdateItem(
             id=str(document.id),
@@ -224,23 +199,14 @@ class UpdateService:
             tool=self._metadata(document, "tool"),
             category=self._topic(document),
             primary_topic=self._topic(document),
-            topic_tags=list(metadata.get("topic_tags") or []),
             event_types=list(metadata.get("event_types") or []),
-            entity_tags=list(metadata.get("entity_tags") or []),
             source_type=str(metadata.get("source_type") or "official-release"),
-            maturity=str(metadata.get("maturity") or "stable"),
-            content_detail=str(visibility["content_detail"]),
             evidence_level=self._evidence_level(document),
-            rag_eligible=self._rag_eligible(document),
             relevance_tier=self._relevance_tier(document),
             relevance_reason=str(
                 getattr(document, "relevance_reason", None)
-                or metadata.get("relevance_reason")
-                or "Legacy record retained as core."
+                or ""
             ),
-            default_feed_eligible=self._default_feed_eligible(document),
-            default_feed_exclusion_reason=visibility["default_feed_exclusion_reason"],
-            version=metadata.get("version"),
             excerpt=excerpt,
             display_headline=str(metadata.get("display_headline") or document.title),
             summary=str(metadata.get("summary") or excerpt),
@@ -278,50 +244,19 @@ class UpdateService:
         tier = self._relevance_tier(document)
         return tier in visible_relevance_tiers(include_contextual=include_contextual)
 
-    def _relevance_tier(self, document: Document) -> str:
+    def _relevance_tier(self, document: Document) -> str | None:
+        if document.doc_metadata.get("relevance_classification_status") == "fail_open":
+            return None
         canonical = getattr(document, "relevance_tier", None)
-        return str(canonical) if canonical else stored_relevance_tier(document.doc_metadata)
+        return str(canonical) if canonical in {"core", "contextual", "excluded"} else None
 
     def _ingestion_status(self, document: Document) -> str:
         canonical = getattr(document, "ingestion_status", None)
-        return str(canonical) if canonical else stored_ingestion_status(document.doc_metadata)
+        return str(canonical) if canonical else PUBLISHED
 
     def _evidence_level(self, document: Document) -> str:
         canonical = getattr(document, "evidence_level", None)
-        return str(canonical) if canonical else str(
-            document.doc_metadata.get("evidence_level") or "source_entry"
-        )
-
-    def _rag_eligible(self, document: Document) -> bool:
-        return (
-            self._ingestion_status(document) == PUBLISHED
-            and self._evidence_level(document) != "official_feed_excerpt"
-            and self._relevance_tier(document) != "excluded"
-        )
-
-    def _default_feed_eligible(self, document: Document) -> bool:
-        return (
-            self._ingestion_status(document) == PUBLISHED
-            and self._relevance_tier(document) == "core"
-        )
-
-    def _visibility(self, document: Document) -> dict[str, str | bool | None]:
-        metadata = document.doc_metadata
-        content_detail = str(
-            metadata.get("content_detail")
-            or classify_content_detail(str(document.title or ""), str(document.raw_text or ""))
-        )
-        default_eligible = self._default_feed_eligible(document)
-        reason = None
-        if self._ingestion_status(document) != PUBLISHED:
-            reason = "ingestion_quarantined"
-        elif self._relevance_tier(document) != "core":
-            reason = f"relevance_{self._relevance_tier(document)}"
-        return {
-            "content_detail": content_detail,
-            "default_feed_eligible": default_eligible,
-            "default_feed_exclusion_reason": reason,
-        }
+        return str(canonical) if canonical else "source_entry"
 
     def _matches_taxonomy(
         self,
@@ -330,7 +265,6 @@ class UpdateService:
         categories: list[str] | None,
         event_types: list[str] | None,
         source_types: list[str] | None,
-        maturities: list[str] | None,
     ) -> bool:
         metadata = document.doc_metadata
         if categories and self._topic(document) not in categories:
@@ -339,12 +273,11 @@ class UpdateService:
             return False
         if source_types and str(metadata.get("source_type") or "official-release") not in source_types:
             return False
-        return not maturities or str(metadata.get("maturity") or "stable") in maturities
+        return True
 
     def _topic(self, document: Document) -> str:
         return str(
-            document.doc_metadata.get("primary_topic")
-            or document.doc_metadata.get("category")
+            getattr(document, "primary_topic", None)
             or "developer-tools"
         )
 

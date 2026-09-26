@@ -12,7 +12,7 @@ def test_backfill_query_scopes_to_enabled_published_updates() -> None:
         )
     ).lower()
 
-    assert "documents.source_type" in sql
+    assert "documents.source_type" not in sql
     assert "anthropic-engineering" in sql
     assert "ingestion_status" in sql
     assert "documents.source_name" in sql
@@ -21,7 +21,6 @@ def test_backfill_query_scopes_to_enabled_published_updates() -> None:
 def test_excerpt_backfill_is_deterministic() -> None:
     document = Document(
         source_name="openai-news",
-        source_type="release",
         title="Introducing a new agent model",
         url="https://example.com/agent",
         raw_text="Introducing a new agent model\n\nThe model uses tools to complete tasks.",

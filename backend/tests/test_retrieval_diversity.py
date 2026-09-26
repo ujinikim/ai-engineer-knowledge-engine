@@ -121,7 +121,7 @@ def test_update_retrieval_only_queries_published_documents() -> None:
         )
     )
 
-    assert "documents.source_type = 'release'" in sql
+    assert "documents.source_type" not in sql
     assert "ingestion_status" in sql
     assert "published" in sql
     assert "evidence_level" in sql
@@ -129,6 +129,7 @@ def test_update_retrieval_only_queries_published_documents() -> None:
     assert "anthropic-engineering" in sql
     assert "relevance_tier" in sql
     assert "core" in sql
+    assert "documents.relevance_tier IS NULL" not in sql
 
 
 def test_search_and_answers_accept_only_article_collection() -> None:

@@ -11,7 +11,6 @@ from app.services.taxonomy import (
     EVENT_TYPES,
     LEGACY_EVENT_TYPES,
     LEGACY_PRIMARY_TOPICS,
-    MATURITY_LEVELS,
     PRIMARY_TOPICS,
     TAXONOMY_POLICY_VERSION,
 )
@@ -91,10 +90,7 @@ class SummaryEvaluation:
     why_it_matters: str
     key_points: list[str]
     primary_topic: str
-    topic_tags: list[str]
     event_types: list[str]
-    entity_tags: list[str]
-    maturity: str
     source_detail: str
     headline_characters: int
     summary_word_count: int
@@ -122,16 +118,11 @@ class SummaryQualityService:
         summary = self._text(metadata.get("summary"))
         why_it_matters = self._text(metadata.get("why_it_matters"))
         key_points = self._text_list(metadata.get("key_points"))
-        primary_topic = self._text(metadata.get("primary_topic"))
-        topic_tags = self._text_list(metadata.get("topic_tags"))
+        primary_topic = self._text(getattr(document, "primary_topic", None))
         event_types = self._text_list(metadata.get("event_types"))
-        entity_tags = self._text_list(metadata.get("entity_tags"))
-        maturity = self._text(metadata.get("maturity"))
         generated_by = self._text(metadata.get("summary_generated_by")) or "unknown"
         source_type = self._text(metadata.get("source_type")) or "unknown"
-        source_detail = self._text(metadata.get("content_detail"))
-        if source_detail not in {"detailed", "sparse"}:
-            source_detail = classify_content_detail(str(document.title or ""), source_text)
+        source_detail = classify_content_detail(str(document.title or ""), source_text)
 
         generated_text = " ".join(
             [display_headline, summary, why_it_matters, *key_points]
@@ -151,8 +142,6 @@ class SummaryQualityService:
             "key_points": key_points,
             "primary_topic": primary_topic,
             "event_types": event_types,
-            "entity_tags": entity_tags,
-            "maturity": maturity,
         }
         for field, value in required_fields.items():
             if not value:
@@ -188,10 +177,6 @@ class SummaryQualityService:
             failures.append("invalid_event_type")
         if is_v2 and len(event_types) > 1:
             failures.append("multiple_event_types")
-        if is_v2 and topic_tags:
-            failures.append("unexpected_topic_tags")
-        if maturity and maturity not in MATURITY_LEVELS:
-            failures.append("invalid_maturity")
         if generated_by == "deterministic-fallback":
             warnings.append("deterministic_fallback_summary")
         if (
@@ -208,17 +193,14 @@ class SummaryQualityService:
             source_name=str(document.source_name),
             source_type=source_type,
             title=str(document.title or ""),
-            url=str(document.canonical_url or document.url or ""),
+            url=str(document.url or ""),
             generated_by=generated_by,
             display_headline=display_headline,
             summary=summary,
             why_it_matters=why_it_matters,
             key_points=key_points,
             primary_topic=primary_topic,
-            topic_tags=topic_tags,
             event_types=event_types,
-            entity_tags=entity_tags,
-            maturity=maturity,
             source_detail=source_detail,
             headline_characters=len(display_headline),
             summary_word_count=summary_word_count,

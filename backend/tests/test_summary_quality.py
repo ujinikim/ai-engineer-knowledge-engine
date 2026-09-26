@@ -29,20 +29,18 @@ def make_document(
         "topic_tags": ["models-apis"],
         "event_types": ["product-release"],
         "entity_tags": ["example-runtime"],
-        "maturity": "stable",
         "summary_generated_by": "gpt-test:official-engineering-blog",
         "hydration_status": "full_article",
     }
     return SimpleNamespace(
         id=uuid4(),
         source_name=source_name,
-        source_type="release",
         title="Inference runtime update",
         url="https://example.com/update",
-        canonical_url="https://example.com/update",
         raw_text=raw_text,
         content_hash="content-hash",
         doc_metadata=metadata,
+        primary_topic=metadata.get("primary_topic"),
     )
 
 
@@ -147,7 +145,7 @@ def test_sparse_sources_use_a_stricter_grounding_threshold() -> None:
         sparse_low_grounding_overlap=1.0,
     )
     document = make_document()
-    document.doc_metadata = {**document.doc_metadata, "content_detail": "sparse"}
+    document.raw_text = "Inference runtime update\n\nShort release notice."
 
     result = SummaryQualityService(thresholds).evaluate(document)
 
@@ -160,10 +158,9 @@ def test_missing_fields_and_invalid_taxonomy_fail() -> None:
     document.doc_metadata = {
         **document.doc_metadata,
         "summary": "",
-        "primary_topic": "unknown-topic",
         "event_types": ["unknown-event"],
-        "maturity": "unknown",
     }
+    document.primary_topic = "unknown-topic"
 
     result = SummaryQualityService().evaluate(document)
 
@@ -171,23 +168,20 @@ def test_missing_fields_and_invalid_taxonomy_fail() -> None:
     assert "missing_summary" in result.failures
     assert "invalid_primary_topic" in result.failures
     assert "invalid_event_type" in result.failures
-    assert "invalid_maturity" in result.failures
 
 
-def test_taxonomy_v2_rejects_multiple_events_and_topic_tags() -> None:
+def test_taxonomy_v2_rejects_multiple_events() -> None:
     document = make_document()
     document.doc_metadata = {
         **document.doc_metadata,
         "primary_topic": "agentic-generative-ai",
         "event_types": ["research", "analysis"],
-        "topic_tags": ["agents"],
         "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
     }
 
     result = SummaryQualityService().evaluate(document)
 
     assert "multiple_event_types" in result.failures
-    assert "unexpected_topic_tags" in result.failures
 
 
 def test_fallback_and_incomplete_source_are_visible() -> None:
@@ -211,7 +205,6 @@ def test_successful_model_summary_can_still_use_incomplete_source_content() -> N
         "summary_generated_by": "gpt-test:official-product-news",
         "hydration_status": "failed",
         "extraction_status": "feed_excerpt_only",
-        "summary_input_source": "feed_excerpt",
     }
 
     result = SummaryQualityService().evaluate(document)

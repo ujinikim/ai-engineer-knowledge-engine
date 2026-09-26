@@ -15,7 +15,7 @@ from app.services.article_relevance import (
     RELEVANCE_POLICY_VERSION,
     ArticleRelevanceService,
 )
-from app.services.ingestion_policy import PUBLISHED, stored_ingestion_status
+from app.services.ingestion_policy import PUBLISHED
 from app.services.update_visibility import configured_active_source_slugs
 
 
@@ -30,7 +30,7 @@ DEFAULT_OUTPUT = (
 
 
 def build_query(*, source: str | None, document_id: str | None, limit: int | None):
-    clauses = ["d.source_type = 'release'", "d.source_name = ANY(:active_sources)"]
+    clauses = ["d.source_name = ANY(:active_sources)"]
     parameters: dict[str, object] = {"active_sources": list(configured_active_source_slugs())}
     if source:
         clauses.append("d.source_name = :source")
@@ -49,10 +49,11 @@ def build_query(*, source: str | None, document_id: str | None, limit: int | Non
           d.source_name,
           d.title,
           d.url,
-          d.canonical_url,
           d.raw_text,
           d.content_hash,
           d.published_at,
+          d.ingestion_status,
+          d.evidence_level,
           d.doc_metadata
         FROM documents AS d
         WHERE """
@@ -61,15 +62,6 @@ def build_query(*, source: str | None, document_id: str | None, limit: int | Non
         + limit_sql
     )
     return statement, parameters
-
-
-def evidence_level(metadata: dict) -> str:
-    explicit = str(metadata.get("evidence_level") or "").strip()
-    if explicit:
-        return explicit
-    if metadata.get("extraction_status") == "full_article":
-        return "full_article"
-    return "source_entry"
 
 
 def summarize(records: list[dict]) -> dict:
@@ -146,18 +138,17 @@ def run(
         rows = list(db.execute(statement, parameters).mappings())
 
     for index, row in enumerate(rows, start=1):
-        metadata = dict(row["doc_metadata"] or {})
-        if stored_ingestion_status(metadata) != PUBLISHED:
+        if row["ingestion_status"] != PUBLISHED:
             continue
         decision = service.classify(title=row["title"], raw_text=row["raw_text"])
-        level = evidence_level(metadata)
+        level = row["evidence_level"]
         evidence_blocked = level == "official_feed_excerpt"
         records.append(
             {
                 "document_id": row["document_id"],
                 "source": row["source_name"],
                 "title": row["title"],
-                "url": row["canonical_url"] or row["url"],
+                "url": row["url"],
                 "content_hash": row["content_hash"],
                 "published_at": row["published_at"],
                 "evidence_level": level,

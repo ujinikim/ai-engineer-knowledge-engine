@@ -59,14 +59,6 @@ def extraction_values(document: Document, metadata: dict) -> dict:
     else:
         extraction_status = "source_entry"
 
-    summary_input_source = str(metadata.get("summary_input_source") or "").strip()
-    if not summary_input_source:
-        summary_input_source = {
-            "full_article": "full_article",
-            "feed_excerpt_only": "feed_excerpt",
-            "title_only": "title",
-        }.get(extraction_status, "source_entry")
-
     attempted = metadata.get("full_article_fetch_attempted_at")
     if attempted is None and hydration_status in {
         "full_article",
@@ -89,11 +81,9 @@ def extraction_values(document: Document, metadata: dict) -> dict:
         "hydration_status": hydration_status,
         "hydration_error": hydration_error or None,
         "extraction_status": extraction_status,
-        "summary_input_source": summary_input_source,
         "full_article_fetch_attempted_at": attempted,
         "full_article_fetch_http_status": status,
         "full_article_fetch_error_code": fetch_error_code,
-        "extraction_metadata_version": METADATA_VERSION,
     }
 
 
@@ -111,7 +101,6 @@ def main() -> None:
         documents = list(
             db.scalars(
                 select(Document)
-                .where(Document.source_type == "release")
                 .order_by(Document.source_name, Document.id)
             )
         )

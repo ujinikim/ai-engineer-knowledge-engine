@@ -32,10 +32,9 @@ def make_document(
     return SimpleNamespace(
         id=uuid4(),
         source_name=source_name,
-        source_type="release",
+        relevance_tier=(metadata or {}).get("relevance_tier", "core"),
         title=title,
         url=url,
-        canonical_url=url,
         raw_text=raw_text,
         content_hash=content_hash or hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
         published_at=published_at,
@@ -43,8 +42,6 @@ def make_document(
         doc_metadata=metadata
         or {
             "source_type": "official-engineering-blog",
-            "source_kind": "rss",
-            "quality_tier": "primary",
         },
     )
 
@@ -68,6 +65,17 @@ def test_complete_article_passes_extraction_evaluation() -> None:
     assert not result.suspected_collection_page
 
 
+def test_unclassified_article_does_not_expect_search_chunks() -> None:
+    raw_text = "Example engineering update\n\n" + ("Agent evaluation details. " * 30)
+    document = make_document(raw_text)
+    document.relevance_tier = None
+
+    result = ExtractionQualityService().evaluate(document, [])
+
+    assert result.chunks_expected is False
+    assert "missing_chunks" not in result.failures
+
+
 def test_html_listing_collection_url_warns() -> None:
     body = " ".join(["A complete-looking article preview with technical detail."] * 30)
     raw_text = f"June updates\n\n{body}"
@@ -77,12 +85,10 @@ def test_html_listing_collection_url_warns() -> None:
         url="https://example.com/news/tag/jun-05-2026",
         metadata={
             "source_type": "editorial-analysis",
-            "source_kind": "html_listing",
-            "quality_tier": "curated",
         },
     )
 
-    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)], source_kind="html_listing")
 
     assert result.suspected_collection_page
     assert "suspected_collection_page" in result.warnings
@@ -119,12 +125,10 @@ def test_short_github_release_is_not_treated_as_excerpt() -> None:
         title="v1.2.3",
         metadata={
             "source_type": "official-release",
-            "source_kind": "github_releases",
-            "quality_tier": "primary",
         },
     )
 
-    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)], source_kind="github_releases")
 
     assert not result.suspected_excerpt
     assert "suspected_excerpt" not in result.warnings
@@ -137,8 +141,6 @@ def test_short_official_changelog_is_not_treated_as_excerpt() -> None:
         title="Example product update",
         metadata={
             "source_type": "official-changelog",
-            "source_kind": "rss",
-            "quality_tier": "primary",
         },
     )
 
@@ -154,8 +156,6 @@ def test_hydration_failure_is_reported() -> None:
         raw_text,
         metadata={
             "source_type": "official-engineering-blog",
-            "source_kind": "rss",
-            "quality_tier": "primary",
             "hydration_status": "failed",
         },
     )
@@ -171,11 +171,8 @@ def test_feed_excerpt_only_extraction_is_reported() -> None:
         raw_text,
         metadata={
             "source_type": "official-engineering-blog",
-            "source_kind": "rss",
-            "quality_tier": "primary",
             "hydration_status": "failed",
             "extraction_status": "feed_excerpt_only",
-            "summary_input_source": "feed_excerpt",
         },
     )
 
@@ -222,12 +219,10 @@ def test_github_release_repetition_does_not_trigger_duplicate_warning() -> None:
         title="v1.2.3",
         metadata={
             "source_type": "official-release",
-            "source_kind": "github_releases",
-            "quality_tier": "primary",
         },
     )
 
-    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)], source_kind="github_releases")
 
     assert result.duplicate_line_count == 3
     assert "high_duplicate_line_ratio" not in result.warnings

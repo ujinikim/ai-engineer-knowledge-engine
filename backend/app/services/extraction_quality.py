@@ -39,7 +39,6 @@ class ExtractionEvaluation:
     url: str
     extraction_method: str
     source_category: str
-    quality_tier: str
     published_at: str | None
     fetched_at: str | None
     body_characters: int
@@ -81,6 +80,7 @@ class ExtractionQualityService:
         document: Any,
         chunks: Iterable[Any],
         *,
+        source_kind: str = "unknown",
         now: datetime | None = None,
     ) -> ExtractionEvaluation:
         chunks = sorted(chunks, key=lambda chunk: chunk.chunk_index)
@@ -91,32 +91,20 @@ class ExtractionQualityService:
         lines = [self._normalize(line) for line in raw_text.splitlines() if line.strip()]
         paragraphs = [part.strip() for part in re.split(r"\n\s*\n", raw_text) if part.strip()]
         words = re.findall(r"\b\w+[+#.-]*\b", raw_text)
-        source_category = str(metadata.get("source_type") or document.source_type or "unknown")
-        extraction_method = str(metadata.get("source_kind") or "unknown")
-        ingestion_status = str(
-            getattr(document, "ingestion_status", None)
-            or metadata.get("ingestion_status")
-            or "published"
-        )
-        evidence_level = str(
-            getattr(document, "evidence_level", None)
-            or metadata.get("evidence_level")
-            or "source_entry"
-        )
-        relevance_tier = str(
-            getattr(document, "relevance_tier", None)
-            or metadata.get("relevance_tier")
-            or "core"
-        )
+        source_category = str(metadata.get("source_type") or "unknown")
+        extraction_method = source_kind
+        ingestion_status = str(getattr(document, "ingestion_status", None) or "published")
+        evidence_level = str(getattr(document, "evidence_level", None) or "source_entry")
+        relevance_tier = getattr(document, "relevance_tier", None)
         chunks_expected = (
             ingestion_status == "published"
             and evidence_level != "official_feed_excerpt"
-            and relevance_tier != "excluded"
+            and relevance_tier in {"core", "contextual"}
         )
         warnings: list[str] = []
         failures: list[str] = []
 
-        valid_url = self._valid_url(str(document.canonical_url or document.url or ""))
+        valid_url = self._valid_url(str(document.url or ""))
         title_present = bool(title and title.lower() in raw_text[: max(1000, len(title) * 3)].lower())
         content_hash_valid = bool(
             raw_text
@@ -140,7 +128,7 @@ class ExtractionQualityService:
         boilerplate_ratio = self._boilerplate_ratio(lines)
         suspected_excerpt = self._suspected_excerpt(len(raw_text), source_category, extraction_method)
         suspected_collection_page = self._suspected_collection_page(
-            str(document.canonical_url or document.url or ""),
+            str(document.url or ""),
             extraction_method,
         )
         date_confidence = self._date_confidence(document, now or datetime.now(), warnings)
@@ -152,7 +140,7 @@ class ExtractionQualityService:
         elif not title_present:
             warnings.append("title_not_found_in_body")
         if not valid_url:
-            failures.append("invalid_canonical_url")
+            failures.append("invalid_url")
         if raw_text and not content_hash_valid:
             failures.append("content_hash_mismatch")
         if chunks_expected and not chunks:
@@ -193,10 +181,9 @@ class ExtractionQualityService:
             document_id=str(document.id),
             source_name=str(document.source_name),
             title=title,
-            url=str(document.canonical_url or document.url or ""),
+            url=str(document.url or ""),
             extraction_method=extraction_method,
             source_category=source_category,
-            quality_tier=str(metadata.get("quality_tier") or "unknown"),
             published_at=self._iso(document.published_at),
             fetched_at=self._iso(document.fetched_at),
             body_characters=len(raw_text),

@@ -22,7 +22,6 @@ def result(**overrides):
         "category": "inference-serving",
         "event_types": ["library-release"],
         "source_category": "official-release",
-        "maturity": "stable",
         "published_at": datetime(2026, 7, 27, tzinfo=timezone.utc),
     }
     return SimpleNamespace(**{**values, **overrides})

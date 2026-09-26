@@ -60,25 +60,6 @@ SOURCE_TYPES = (
     "community-signal",
 )
 
-MATURITY_LEVELS = (
-    "stable",
-    "general-availability",
-    "beta",
-    "preview",
-    "release-candidate",
-    "development",
-    "research",
-    "deprecated",
-)
-
-RELEASE_EVENT_TYPES = frozenset({"release-update"})
-
-RC_VERSION_PATTERN = re.compile(
-    r"(?<![a-z0-9])v?\d+(?:\.\d+)+(?:[-_.]?rc(?:[.-]?\d+)?)(?![a-z0-9])",
-    re.IGNORECASE,
-)
-
-
 TOPIC_KEYWORDS = {
     "agentic-generative-ai": (
         "agent",
@@ -243,43 +224,8 @@ def normalize_event_types(source_name: str, event_types: list[str]) -> list[str]
     return clean_labels(event_types, EVENT_TYPES, limit=1)
 
 
-def infer_maturity(
-    title: str,
-    text: str = "",
-    event_types: list[str] | None = None,
-) -> str:
-    value = f"{title} {text[:500]}".lower()
-    if "deprecated" in value or "deprecation" in value or "sunset" in value:
-        return "deprecated"
-    if RC_VERSION_PATTERN.search(value):
-        return "release-candidate"
-    if "alpha" in value or "dev." in value or "development" in value:
-        return "development"
-    if "beta" in value:
-        return "beta"
-    if "preview" in value:
-        return "preview"
-    if "general availability" in value or re.search(r"\bga\b", value):
-        return "general-availability"
-    events = set(event_types or [])
-    if "research" in events and not events.intersection(RELEASE_EVENT_TYPES):
-        return "research"
-    return "stable"
-
-
 def clean_labels(values: object, allowed: tuple[str, ...], limit: int = 8) -> list[str]:
     if not isinstance(values, list):
         return []
     labels = [str(value).strip().lower().replace("_", "-") for value in values]
     return [value for value in dict.fromkeys(labels) if value in allowed][:limit]
-
-
-def clean_tags(values: object, limit: int = 8) -> list[str]:
-    if not isinstance(values, list):
-        return []
-    tags = []
-    for value in values:
-        tag = re.sub(r"[^a-z0-9+#.]+", "-", str(value).strip().lower()).strip("-")
-        if tag and tag not in tags:
-            tags.append(tag)
-    return tags[:limit]

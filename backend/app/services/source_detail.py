@@ -28,16 +28,3 @@ def classify_content_detail(title: str, raw_text: str) -> str:
     ):
         return "sparse"
     return "detailed"
-
-
-def sparse_visibility_metadata(
-    content_detail: str,
-    event_types: list[str] | None,
-) -> dict[str, str | bool | None]:
-    important_event = bool(IMPORTANT_SPARSE_EVENT_TYPES.intersection(event_types or []))
-    eligible = content_detail != "sparse" or important_event
-    return {
-        "content_detail": content_detail,
-        "default_feed_eligible": eligible,
-        "default_feed_exclusion_reason": None if eligible else "low_source_detail",
-    }

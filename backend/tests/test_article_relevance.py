@@ -6,8 +6,6 @@ from app.core.model_usage import ModelUsage
 from app.services.article_relevance import (
     RELEVANCE_POLICY_VERSION,
     ArticleRelevanceService,
-    relevance_is_visible,
-    stored_relevance_tier,
 )
 
 
@@ -51,7 +49,7 @@ def test_relevance_classification_uses_strict_agent_engineering_schema() -> None
     assert usage.chat_input_tokens == 30
 
 
-def test_relevance_failure_is_explicit_and_fails_open_to_core() -> None:
+def test_relevance_failure_is_unclassified() -> None:
     service = ArticleRelevanceService.__new__(ArticleRelevanceService)
     service.model = "gpt-test"
     service.usage = None
@@ -60,24 +58,10 @@ def test_relevance_failure_is_explicit_and_fails_open_to_core() -> None:
 
     decision = service.classify(title="Unknown update", raw_text="Unknown update")
 
-    assert decision.tier == "core"
-    assert decision.status == "fail_open"
-    assert decision.generated_by == "fail-open"
-    assert "retained in core for review" in decision.reason.lower()
-
-
-def test_legacy_relevance_is_core_and_excluded_is_never_visible() -> None:
-    assert stored_relevance_tier({}) == "core"
-    assert relevance_is_visible({}) is True
-    assert relevance_is_visible({"relevance_tier": "contextual"}) is False
-    assert relevance_is_visible(
-        {"relevance_tier": "contextual"},
-        include_contextual=True,
-    )
-    assert not relevance_is_visible(
-        {"relevance_tier": "excluded"},
-        include_contextual=True,
-    )
+    assert decision.tier is None
+    assert decision.status == "failed"
+    assert decision.generated_by == "classification-error"
+    assert "pending retry" in decision.reason.lower()
 
 
 def test_unsupported_core_claim_is_deterministically_demoted() -> None:

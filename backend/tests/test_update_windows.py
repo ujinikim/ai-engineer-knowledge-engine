@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
+from sqlalchemy.dialects import postgresql
+
 from app.services.updates import UpdateService
 from app.services.update_collector import UpdateCollectorService
 
@@ -24,15 +26,6 @@ def test_update_windows_are_rolling_ranges():
     assert UpdateService.window_start("all", end) is None
 
 
-def test_release_channels_distinguish_prereleases():
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
-
-    assert collector._release_channel("v1.4.0") == "stable"
-    assert collector._release_channel("v1.5.0-rc.2") == "prerelease"
-    assert collector._release_channel("v2.0.0-beta1") == "prerelease"
-    assert collector._release_channel("v3.0.0-dev.4") == "prerelease"
-
-
 def test_document_urls_normalize_trailing_slashes_without_losing_fragments():
     collector = UpdateCollectorService.__new__(UpdateCollectorService)
 
@@ -54,3 +47,26 @@ def test_document_urls_normalize_hosts_queries_and_tracking_parameters():
     assert collector._normalize_document_url(
         "HTTPS://Example.COM:443/article/?b=2&utm_source=email&a=1#section"
     ) == "https://example.com/article?a=1&b=2#section"
+
+
+def test_existing_document_lookup_uses_url_without_duplicate_column():
+    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector.db = MagicMock()
+    collector.db.scalar.return_value = None
+
+    collector._find_existing_document(
+        source_slug="example",
+        raw_url="https://example.com/article/",
+        title="Agent article",
+        content_hash="hash",
+    )
+
+    statement = collector.db.scalar.call_args.args[0]
+    sql = str(
+        statement.compile(
+            dialect=postgresql.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    )
+    assert "documents.url IN ('https://example.com/article', 'https://example.com/article/')" in sql
+    assert "canonical_url" not in sql

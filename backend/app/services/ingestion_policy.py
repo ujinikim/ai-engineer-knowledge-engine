@@ -20,14 +20,11 @@ class IngestionDecision:
     def publishable(self) -> bool:
         return self.status == PUBLISHED
 
-    def metadata(self) -> dict[str, str | bool | list[str] | None]:
+    def metadata(self) -> dict[str, str | list[str]]:
         return {
             "ingestion_status": self.status,
             "ingestion_failure_codes": list(self.failure_codes),
-            "ingestion_warning_codes": list(self.warning_codes),
-            "quarantine_reason": self.failure_codes[0] if self.failure_codes else None,
             "evidence_level": self.evidence_level,
-            "rag_eligible": self.rag_eligible,
         }
 
 
@@ -78,18 +75,3 @@ def evaluate_ingestion_candidate(
         rag_eligible=not approved_feed_excerpt and not unique_failures,
         default_feed_eligible=approved_feed_excerpt or not unique_failures,
     )
-
-
-def stored_ingestion_status(metadata: dict) -> str:
-    """Interpret pre-migration metadata safely during rolling deployments."""
-    explicit = str(metadata.get("ingestion_status") or "").strip().lower()
-    if explicit in {PUBLISHED, QUARANTINED}:
-        return explicit
-
-    decision = evaluate_ingestion_candidate(
-        content_detail=str(metadata.get("content_detail") or "detailed"),
-        hydration_status=str(metadata.get("hydration_status") or "not_requested"),
-        extraction_status=str(metadata.get("extraction_status") or "source_entry"),
-        event_types=list(metadata.get("event_types") or []),
-    )
-    return decision.status

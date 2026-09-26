@@ -11,8 +11,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.models import Document
 from app.db.session import SessionLocal
-from app.services.source_detail import classify_content_detail, sparse_visibility_metadata
-from app.services.taxonomy import infer_maturity, normalize_event_types
+from app.services.taxonomy import normalize_event_types
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -36,18 +35,6 @@ POLICY_VERSION = "2026-07-26-v1"
 def load_decisions(path: Path) -> dict[str, dict]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     return dict(payload.get("decisions") or {})
-
-
-def policy_maturity(
-    title: str,
-    raw_text: str,
-    event_types: list[str],
-    current: str,
-) -> str:
-    inferred = infer_maturity(title, raw_text, event_types)
-    # Preserve an existing non-stable lifecycle label when the deterministic
-    # rules do not find a stronger signal.
-    return inferred if inferred != "stable" else (current or "stable")
 
 
 def main() -> None:
@@ -74,7 +61,6 @@ def main() -> None:
         documents = list(
             db.scalars(
                 select(Document)
-                .where(Document.source_type == "release")
                 .order_by(Document.source_name, Document.id)
             )
         )
@@ -86,9 +72,8 @@ def main() -> None:
 
             metadata = dict(document.doc_metadata or {})
             before = {
-                "primary_topic": metadata.get("primary_topic"),
+                "primary_topic": document.primary_topic,
                 "event_types": list(metadata.get("event_types") or []),
-                "maturity": metadata.get("maturity"),
             }
             after = dict(before)
             reasons: list[str] = []
@@ -101,16 +86,6 @@ def main() -> None:
                 after["event_types"] = normalized_events
                 reasons.append("source_event_invariant")
 
-            inferred_maturity = policy_maturity(
-                str(document.title or ""),
-                str(document.raw_text or ""),
-                after["event_types"],
-                str(after["maturity"] or ""),
-            )
-            if inferred_maturity != after["maturity"]:
-                after["maturity"] = inferred_maturity
-                reasons.append("deterministic_maturity")
-
             if decision.get("primary_topic_review") == "change_required":
                 proposed = decision.get("proposed_primary_topic")
                 if proposed and proposed != after["primary_topic"]:
@@ -121,30 +96,16 @@ def main() -> None:
                 if proposed and proposed != after["event_types"]:
                     after["event_types"] = proposed
                     reasons.append("reviewed_event_types")
-            if decision.get("maturity_review") == "change_required":
-                proposed = decision.get("proposed_maturity")
-                if proposed and proposed != after["maturity"]:
-                    after["maturity"] = proposed
-                    reasons.append("reviewed_maturity")
-
             for field in before:
                 if before[field] != after[field]:
                     field_changes[field] += 1
 
-            content_detail = classify_content_detail(
-                str(document.title or ""),
-                str(document.raw_text or ""),
-            )
-            visibility = sparse_visibility_metadata(
-                content_detail,
-                after["event_types"],
-            )
             updated_metadata = {
                 **metadata,
-                **after,
-                **visibility,
+                **{key: value for key, value in after.items() if key != "primary_topic"},
                 "taxonomy_policy_version": POLICY_VERSION,
             }
+            document.primary_topic = after["primary_topic"]
             if updated_metadata != metadata:
                 document.doc_metadata = updated_metadata
 
@@ -156,7 +117,7 @@ def main() -> None:
                         "document_id": document_id,
                         "source_name": document.source_name,
                         "title": document.title,
-                        "url": document.canonical_url or document.url,
+                        "url": document.url,
                         "before": before,
                         "after": after,
                         "reasons": reasons,
@@ -188,8 +149,7 @@ def main() -> None:
                 "date": "2026-07-26",
                 "change": (
                     "Applied reviewed change_required decisions, versioned-library "
-                    "event invariants, attached-RC maturity parsing, research maturity "
-                    "inference, and refreshed sparse visibility."
+                    "event invariants and primary topic corrections."
                 ),
                 "uncertain_decisions_applied": False,
             }

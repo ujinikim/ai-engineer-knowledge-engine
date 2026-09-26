@@ -28,7 +28,6 @@ def main(limit: int | None, force: bool) -> None:
         documents = list(
             db.scalars(
                 select(Document)
-                .where(Document.source_type == "release")
                 .order_by(Document.published_at.desc())
             ).all()
         )
@@ -43,8 +42,7 @@ def main(limit: int | None, force: bool) -> None:
             metadata = dict(document.doc_metadata)
             default_topic = config.get(
                 "default_primary_topic",
-                metadata.get("primary_topic")
-                or metadata.get("category")
+                document.primary_topic
                 or "ai-products-engineering-infrastructure",
             )
             source_type = config.get(
@@ -62,10 +60,10 @@ def main(limit: int | None, force: bool) -> None:
             )
             document.doc_metadata = {
                 **metadata,
-                "category": article.primary_topic,
                 "source_type": source_type,
-                **article.metadata(),
+                **{key: value for key, value in article.metadata().items() if key != "primary_topic"},
             }
+            document.primary_topic = article.primary_topic
             db.commit()
             updated += 1
             print(f"[{updated}] {document.source_name}: {document.title[:80]}")

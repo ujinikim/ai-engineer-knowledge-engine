@@ -114,7 +114,6 @@ class SourceExtractionMixin:
             "_hydration_status": "full_article",
             "_hydration_error": "",
             "_extraction_status": "full_article",
-            "_summary_input_source": "full_article",
             "_full_article_fetch_attempted_at": datetime.now(timezone.utc).isoformat(),
             "_full_article_fetch_http_status": response.status_code,
             "_full_article_fetch_error_code": None,
@@ -127,7 +126,6 @@ class SourceExtractionMixin:
     ) -> dict:
         feed_text = self._clean_html(self._entry_html(entry)).strip()
         extraction_status = "feed_excerpt_only" if feed_text else "title_only"
-        summary_input_source = "feed_excerpt" if feed_text else "title"
 
         http_status = None
         if isinstance(error, httpx.HTTPStatusError):
@@ -151,7 +149,6 @@ class SourceExtractionMixin:
             "_hydration_status": "failed",
             "_hydration_error": str(error)[:500],
             "_extraction_status": extraction_status,
-            "_summary_input_source": summary_input_source,
             "_full_article_fetch_attempted_at": datetime.now(timezone.utc).isoformat(),
             "_full_article_fetch_http_status": http_status,
             "_full_article_fetch_error_code": error_code,
@@ -275,7 +272,3 @@ class SourceExtractionMixin:
         if len(compact) <= limit:
             return compact
         return compact[: limit - 1].rstrip() + "..."
-
-    def _release_channel(self, title: str) -> str:
-        prerelease_pattern = r"(?:^|[.\-_])(rc|dev|alpha|beta|preview|canary)\d*(?:$|[.\-_])"
-        return "prerelease" if re.search(prerelease_pattern, title.lower()) else "stable"

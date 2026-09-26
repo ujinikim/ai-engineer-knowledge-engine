@@ -27,12 +27,10 @@ class Document(Base):
     __table_args__ = (
         Index("documents_source_name_idx", "source_name"),
         Index("documents_content_hash_idx", "content_hash"),
-        Index("documents_source_type_idx", "source_type"),
         Index("documents_published_at_idx", literal_column("published_at DESC")),
         Index("documents_ingestion_status_idx", "ingestion_status"),
         Index("documents_relevance_tier_idx", "relevance_tier"),
         Index("documents_primary_topic_idx", "primary_topic"),
-        Index("documents_event_type_idx", "event_type"),
         Index(
             "documents_feed_scope_idx",
             "ingestion_status",
@@ -59,19 +57,12 @@ class Document(Base):
             "'ai-products-engineering-infrastructure', 'safety-evaluation-governance')",
             name="ck_documents_primary_topic",
         ),
-        CheckConstraint(
-            "event_type IS NULL OR event_type IN "
-            "('release-update', 'research', 'guide', 'analysis', 'alert')",
-            name="ck_documents_event_type",
-        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     source_name: Mapped[str] = mapped_column(String(120))
-    source_type: Mapped[str] = mapped_column(String(80), default="release", server_default="release")
     title: Mapped[str] = mapped_column(String(500))
     url: Mapped[str] = mapped_column(Text, unique=True)
-    canonical_url: Mapped[str | None] = mapped_column(Text)
     raw_text: Mapped[str] = mapped_column(Text)
     content_hash: Mapped[str] = mapped_column(String(128))
     fetched_at: Mapped[datetime] = mapped_column(
@@ -87,11 +78,6 @@ class Document(Base):
     relevance_tier: Mapped[str | None] = mapped_column(String(32))
     relevance_reason: Mapped[str | None] = mapped_column(Text)
     primary_topic: Mapped[str | None] = mapped_column(String(80))
-    event_type: Mapped[str | None] = mapped_column(String(32))
-    summary: Mapped[str | None] = mapped_column(Text)
-    processing_metadata: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, default=dict, server_default=text("'{}'::jsonb")
-    )
     doc_metadata: Mapped[dict[str, Any]] = mapped_column(
         JSONB, default=dict, server_default=text("'{}'::jsonb")
     )
@@ -147,11 +133,6 @@ class Chunk(Base):
     embedding: Mapped[list[float]] = mapped_column(Vector(1536))
     token_count: Mapped[int] = mapped_column(Integer)
     content_hash: Mapped[str] = mapped_column(String(128))
-    embedding_model: Mapped[str | None] = mapped_column(String(120))
-    chunking_version: Mapped[str | None] = mapped_column(String(80))
-    chunk_metadata: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, default=dict, server_default=text("'{}'::jsonb")
-    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, server_default=func.now()
     )

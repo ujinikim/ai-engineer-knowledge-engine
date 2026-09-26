@@ -28,7 +28,6 @@ HUMAN_RATINGS = {
 def load_documents(source: str | None) -> list[Document]:
     stmt = (
         select(Document)
-        .where(Document.source_type == "release")
         .order_by(Document.source_name, Document.published_at.desc().nullslast(), Document.id)
     )
     if source:
@@ -76,10 +75,7 @@ def build_review_sample(
                     "why_it_matters": evaluation.why_it_matters,
                     "key_points": evaluation.key_points,
                     "primary_topic": evaluation.primary_topic,
-                    "topic_tags": evaluation.topic_tags,
                     "event_types": evaluation.event_types,
-                    "entity_tags": evaluation.entity_tags,
-                    "maturity": evaluation.maturity,
                 },
                 "automated_metrics": {
                     "headline_characters": evaluation.headline_characters,

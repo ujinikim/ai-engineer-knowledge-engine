@@ -59,9 +59,8 @@ def build_query(source: str | None):
     query = (
         select(Document)
         .where(
-            Document.source_type == "release",
             Document.source_name.in_(configured_active_source_slugs()),
-            Document.doc_metadata["ingestion_status"].astext == "published",
+            Document.ingestion_status == "published",
         )
         .order_by(Document.published_at.desc(), Document.id)
     )
@@ -99,16 +98,13 @@ def run(
                 "ai-products-engineering-infrastructure",
             )
             default_events = config.get("default_event_types", ["analysis"])
-            is_excerpt = (
-                metadata.get("evidence_level") == "official_feed_excerpt"
-                or metadata.get("rag_eligible") is False
-            )
+            is_excerpt = document.evidence_level == "official_feed_excerpt"
             if is_excerpt:
                 (
                     new_topic,
                     new_events,
                     method,
-                    main_theme,
+                    _main_theme,
                     classification_reason,
                     _relevance_tier,
                     _relevance_reason,
@@ -119,7 +115,7 @@ def run(
                     new_topic,
                     new_events,
                     method,
-                    main_theme,
+                    _main_theme,
                     classification_reason,
                     _relevance_tier,
                     _relevance_reason,
@@ -132,12 +128,10 @@ def run(
                 )
 
             before = {
-                "primary_topic": metadata.get("primary_topic"),
+                "primary_topic": document.primary_topic,
                 "event_types": list(metadata.get("event_types") or []),
-                "topic_tags": list(metadata.get("topic_tags") or []),
                 "taxonomy_policy_version": metadata.get("taxonomy_policy_version"),
                 "taxonomy_generated_by": metadata.get("taxonomy_generated_by"),
-                "taxonomy_main_theme": metadata.get("taxonomy_main_theme"),
                 "taxonomy_classification_reason": metadata.get(
                     "taxonomy_classification_reason"
                 ),
@@ -148,10 +142,8 @@ def run(
             after = {
                 "primary_topic": new_topic,
                 "event_types": new_events[:1],
-                "topic_tags": [],
                 "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
                 "taxonomy_generated_by": method,
-                "taxonomy_main_theme": main_theme,
                 "taxonomy_classification_reason": classification_reason,
                 "event_classification_reason": event_reason,
             }
@@ -161,7 +153,7 @@ def run(
                     "document_id": str(document.id),
                     "source": document.source_name,
                     "title": document.title,
-                    "url": document.canonical_url or document.url,
+                    "url": document.url,
                     "classification_method": method,
                     "classification_reason": classification_reason,
                     "event_reason": event_reason,
@@ -173,9 +165,9 @@ def run(
             if apply and changed:
                 document.doc_metadata = {
                     **metadata,
-                    "category": new_topic,
-                    **after,
+                    **{key: value for key, value in after.items() if key != "primary_topic"},
                 }
+                document.primary_topic = new_topic
 
         if apply:
             db.commit()

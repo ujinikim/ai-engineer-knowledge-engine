@@ -149,7 +149,6 @@ export function FeedSection({
                         </section>
                       ) : null}
                       <div className="detail-taxonomy" aria-label="Article classification">
-                        <span>{labelize(item.maturity)}</span>
                         {item.event_types.slice(0, 1).map((event) => <span key={event}>{labelize(event)}</span>)}
                         <span>{labelize(item.source_type)}</span>
                       </div>

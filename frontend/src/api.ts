@@ -28,15 +28,9 @@ export type UpdateItem = {
   primary_topic: string;
   event_types: string[];
   source_type: string;
-  maturity: string;
-  content_detail: "sparse" | "detailed";
   evidence_level: "full_article" | "source_entry" | "official_feed_excerpt";
-  rag_eligible: boolean;
   relevance_tier: RelevanceTier;
   relevance_reason: string;
-  default_feed_eligible: boolean;
-  default_feed_exclusion_reason: string | null;
-  version: string | null;
   excerpt: string;
   display_headline: string;
   summary: string;
@@ -66,7 +60,6 @@ export type UpdateListResponse = {
     categories: string[];
     event_types: string[];
     source_types: string[];
-    maturities: string[];
   };
 };
 
@@ -74,7 +67,6 @@ export type RetrievedChunk = {
   chunk_id: string;
   document_title: string;
   source_name: string;
-  source_type: string;
   url: string;
   content: string;
   similarity: number;
@@ -83,7 +75,6 @@ export type RetrievedChunk = {
   category: string | null;
   event_types: string[];
   source_category: string | null;
-  maturity: string | null;
   relevance_tier: RelevanceTier;
   vector_similarity: number | null;
   keyword_score: number | null;

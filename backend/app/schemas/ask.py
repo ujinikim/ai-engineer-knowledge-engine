@@ -14,7 +14,6 @@ class AskRequest(BaseModel):
     categories: list[str] | None = None
     event_types: list[str] | None = None
     source_types: list[str] | None = None
-    maturities: list[str] | None = None
     include_contextual: bool = False
     collection: Literal["updates"] = "updates"
     published_after: datetime | None = None
@@ -30,7 +29,6 @@ class AskRequest(BaseModel):
         "categories",
         "event_types",
         "source_types",
-        "maturities",
         mode="before",
     )
     @classmethod

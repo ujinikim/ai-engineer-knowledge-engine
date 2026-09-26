@@ -29,19 +29,11 @@ class UpdateItem(BaseModel):
     tool: str
     category: str
     primary_topic: str
-    topic_tags: list[str] = Field(default_factory=list)
     event_types: list[str] = Field(default_factory=list)
-    entity_tags: list[str] = Field(default_factory=list)
     source_type: str
-    maturity: str
-    content_detail: Literal["sparse", "detailed"]
     evidence_level: Literal["full_article", "source_entry", "official_feed_excerpt"]
-    rag_eligible: bool
-    relevance_tier: Literal["core", "contextual", "excluded"] = "core"
-    relevance_reason: str = "Legacy record retained as core."
-    default_feed_eligible: bool
-    default_feed_exclusion_reason: str | None = None
-    version: str | None = None
+    relevance_tier: Literal["core", "contextual", "excluded"] | None = None
+    relevance_reason: str = ""
     excerpt: str
     display_headline: str
     summary: str
@@ -66,7 +58,6 @@ class UpdateFacets(BaseModel):
     categories: list[str]
     event_types: list[str]
     source_types: list[str]
-    maturities: list[str]
 
 
 class UpdateListResponse(BaseModel):

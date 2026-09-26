@@ -383,7 +383,6 @@ def main() -> None:
         documents = list(
             db.scalars(
                 select(Document)
-                .where(Document.source_type == "release")
                 .order_by(
                     Document.published_at.desc().nullslast(),
                     Document.source_name,
@@ -422,7 +421,7 @@ def main() -> None:
                 "source_name": document.source_name,
                 "source_type": metadata.get("source_type"),
                 "title": document.title,
-                "url": document.canonical_url or document.url,
+                "url": document.url,
                 "published_at": (
                     document.published_at.isoformat()
                     if document.published_at
@@ -432,13 +431,7 @@ def main() -> None:
                 "recommended_reasons": reasons,
                 "recommendation_confidence": confidence,
                 "current_visibility": {
-                    "content_detail": metadata.get("content_detail"),
-                    "default_feed_eligible": metadata.get("default_feed_eligible"),
-                    "default_feed_exclusion_reason": metadata.get(
-                        "default_feed_exclusion_reason"
-                    ),
                     "extraction_status": metadata.get("extraction_status"),
-                    "summary_input_source": metadata.get("summary_input_source"),
                     "full_article_fetch_http_status": metadata.get(
                         "full_article_fetch_http_status"
                     ),
@@ -448,9 +441,8 @@ def main() -> None:
                     "hydration_status": metadata.get("hydration_status"),
                 },
                 "taxonomy": {
-                    "primary_topic": metadata.get("primary_topic"),
+                    "primary_topic": document.primary_topic,
                     "event_types": list(metadata.get("event_types") or []),
-                    "maturity": metadata.get("maturity"),
                 },
                 "generated_card": {
                     "display_headline": metadata.get("display_headline"),

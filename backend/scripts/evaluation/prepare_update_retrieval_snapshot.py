@@ -41,19 +41,15 @@ def snapshot_document(document: Document, chunk_count: int) -> dict[str, Any]:
         "source_name": document.source_name,
         "title": document.title,
         "url": document.url,
-        "canonical_url": document.canonical_url or document.url,
         "published_at": isoformat(document.published_at),
         "fetched_at": isoformat(document.fetched_at),
         "content_hash": document.content_hash,
         "chunk_count": chunk_count,
         "tool": metadata.get("tool"),
-        "primary_topic": metadata.get("primary_topic") or metadata.get("category"),
+        "primary_topic": document.primary_topic,
         "event_types": list(metadata.get("event_types") or []),
         "source_category": metadata.get("source_type"),
-        "maturity": metadata.get("maturity"),
-        "content_detail": metadata.get("content_detail"),
         "taxonomy_policy_version": metadata.get("taxonomy_policy_version"),
-        "extraction_metadata_version": metadata.get("extraction_metadata_version"),
         "summary_generated_by": metadata.get("summary_generated_by"),
     }
 
@@ -82,7 +78,6 @@ def main() -> None:
         documents = list(
             db.scalars(
                 select(Document)
-                .where(Document.source_type == "release")
                 .order_by(Document.source_name, Document.published_at, Document.id)
             )
         )
@@ -90,7 +85,6 @@ def main() -> None:
             db.execute(
                 select(Chunk.document_id, func.count(Chunk.id))
                 .join(Document, Chunk.document_id == Document.id)
-                .where(Document.source_type == "release")
                 .group_by(Chunk.document_id)
             ).all()
         )

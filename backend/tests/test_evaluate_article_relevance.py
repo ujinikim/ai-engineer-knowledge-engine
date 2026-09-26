@@ -1,12 +1,4 @@
-from scripts.evaluation.evaluate_article_relevance import evidence_level, summarize
-
-
-def test_evidence_level_prefers_explicit_state_and_derives_legacy_full_article() -> None:
-    assert evidence_level({"evidence_level": "official_feed_excerpt"}) == (
-        "official_feed_excerpt"
-    )
-    assert evidence_level({"extraction_status": "full_article"}) == "full_article"
-    assert evidence_level({}) == "source_entry"
+from scripts.evaluation.evaluate_article_relevance import summarize
 
 
 def test_summary_separates_default_contextual_and_evidence_eligibility() -> None:

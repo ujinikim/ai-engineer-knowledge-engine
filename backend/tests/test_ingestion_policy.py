@@ -4,7 +4,6 @@ from app.services.ingestion_policy import (
     PUBLISHED,
     QUARANTINED,
     evaluate_ingestion_candidate,
-    stored_ingestion_status,
 )
 from app.services.update_collector import UpdateCollectorService
 from app.services.article_relevance import RelevanceDecision
@@ -68,20 +67,6 @@ def test_approved_official_feed_excerpt_is_dashboard_only_evidence() -> None:
     assert decision.rag_eligible is False
 
 
-def test_legacy_status_is_derived_conservatively() -> None:
-    assert stored_ingestion_status({"content_detail": "detailed"}) == PUBLISHED
-    assert (
-        stored_ingestion_status(
-            {
-                "content_detail": "sparse",
-                "hydration_status": "failed",
-                "event_types": ["product-release"],
-            }
-        )
-        == QUARANTINED
-    )
-
-
 def test_quarantined_candidate_skips_summary_and_embeddings() -> None:
     class FakeDatabase:
         def __init__(self) -> None:
@@ -123,7 +108,6 @@ def test_quarantined_candidate_skips_summary_and_embeddings() -> None:
             "summary": "A short feed excerpt.",
             "_hydration_status": "failed",
             "_extraction_status": "feed_excerpt_only",
-            "_summary_input_source": "feed_excerpt",
             "_full_article_fetch_error_code": "http_forbidden",
         },
     )
@@ -132,9 +116,9 @@ def test_quarantined_candidate_skips_summary_and_embeddings() -> None:
     assert chunk_count == 0
     assert len(collector.db.added) == 1
     metadata = collector.db.added[0].doc_metadata
-    assert metadata["ingestion_status"] == QUARANTINED
-    assert metadata["default_feed_eligible"] is False
-    assert metadata["default_feed_exclusion_reason"] == "ingestion_quarantined"
+    assert collector.db.added[0].ingestion_status == QUARANTINED
+    assert "ingestion_status" not in metadata
+    assert "default_feed_eligible" not in metadata
 
 
 def test_approved_feed_excerpt_skips_summary_and_embeddings_but_publishes() -> None:
@@ -185,7 +169,6 @@ def test_approved_feed_excerpt_skips_summary_and_embeddings_but_publishes() -> N
             "summary": "OpenAI announced an API for building and operating agents.",
             "_hydration_status": "failed",
             "_extraction_status": "feed_excerpt_only",
-            "_summary_input_source": "feed_excerpt",
             "_full_article_fetch_error_code": "http_forbidden",
         },
     )
@@ -194,10 +177,10 @@ def test_approved_feed_excerpt_skips_summary_and_embeddings_but_publishes() -> N
     assert chunk_count == 0
     assert len(collector.db.added) == 1
     metadata = collector.db.added[0].doc_metadata
-    assert metadata["ingestion_status"] == PUBLISHED
-    assert metadata["evidence_level"] == "official_feed_excerpt"
-    assert metadata["rag_eligible"] is False
-    assert metadata["default_feed_eligible"] is True
+    assert collector.db.added[0].ingestion_status == PUBLISHED
+    assert collector.db.added[0].evidence_level == "official_feed_excerpt"
+    assert "rag_eligible" not in metadata
+    assert "default_feed_eligible" not in metadata
     assert metadata["summary_generated_by"] == "source-excerpt"
     assert metadata["taxonomy_generated_by"] == "deterministic-keyword"
     assert metadata["summary"] == metadata["excerpt"]
@@ -208,7 +191,9 @@ def test_failed_refresh_does_not_replace_an_existing_published_document() -> Non
         raw_text="Release\n\nA complete article that was previously published.",
         content_hash="existing-content-hash",
         fetched_at=None,
-        doc_metadata={"ingestion_status": PUBLISHED, "content_detail": "detailed"},
+        ingestion_status=PUBLISHED,
+        evidence_level="full_article",
+        doc_metadata={},
     )
 
     class FakeDatabase:
@@ -249,7 +234,7 @@ def test_failed_refresh_does_not_replace_an_existing_published_document() -> Non
     assert chunk_count == 0
     assert existing.raw_text == "Release\n\nA complete article that was previously published."
     assert existing.content_hash == "existing-content-hash"
-    assert existing.doc_metadata["ingestion_status"] == PUBLISHED
+    assert existing.ingestion_status == PUBLISHED
     assert existing.doc_metadata["last_ingestion_attempt_status"] == PUBLISHED
     assert existing.doc_metadata["last_ingestion_failure_codes"] == []
     assert existing.doc_metadata["last_ingestion_warning_codes"] == [
@@ -321,16 +306,164 @@ def test_relevance_excluded_article_skips_summary_chunks_and_embeddings() -> Non
     assert chunk_count == 0
     assert len(collector.db.added) == 1
     metadata = collector.db.added[0].doc_metadata
-    assert metadata["ingestion_status"] == PUBLISHED
-    assert metadata["rag_eligible"] is False
+    assert collector.db.added[0].ingestion_status == PUBLISHED
+    assert "rag_eligible" not in metadata
+    assert not {
+        "ingestion_status", "evidence_level", "relevance_tier", "relevance_reason",
+        "primary_topic", "ingestion_warning_codes", "taxonomy_main_theme",
+        "extraction_metadata_version",
+    }.intersection(metadata)
     assert collector.db.added[0].evidence_level == "source_entry"
-    assert metadata["relevance_tier"] == "excluded"
-    assert metadata["relevance_reason"] == "The article is a general cloud dashboard tutorial."
+    assert collector.db.added[0].relevance_tier == "excluded"
+    assert collector.db.added[0].relevance_reason == "The article is a general cloud dashboard tutorial."
     assert metadata["summary_generated_by"] == "relevance-excluded"
     assert collector.db.added[0].relevance_tier == "excluded"
-    assert collector.db.added[0].relevance_reason == metadata["relevance_reason"]
-    assert collector.db.added[0].processing_metadata["relevance"] == {
-        "generated_by": "gpt-test",
-        "policy_version": metadata["relevance_policy_version"],
-        "classification_status": "classified",
+    assert "relevance_reason" not in metadata
+    assert metadata["relevance_generated_by"] == "gpt-test"
+    assert metadata["relevance_classification_status"] == "classified"
+
+
+def test_failed_relevance_stays_unclassified_and_retries_without_content_change() -> None:
+    class FakeDatabase:
+        def __init__(self) -> None:
+            self.document = None
+
+        def scalar(self, _statement):
+            return self.document
+
+        def add(self, document) -> None:
+            self.document = document
+
+        def execute(self, _statement) -> None:
+            pass
+
+        def flush(self) -> None:
+            pass
+
+    class MustNotRun:
+        def __getattr__(self, name):
+            raise AssertionError(f"{name} should not run before relevance classification")
+
+    attempts = []
+
+    def classify(**_kwargs):
+        attempts.append(True)
+        return RelevanceDecision(tier=None, reason="Model unavailable.", generated_by="classification-error", status="failed")
+
+    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector.db = FakeDatabase()
+    collector.relevance = SimpleNamespace(classify=classify)
+    collector.summarizer = MustNotRun()
+    collector.chunker = MustNotRun()
+    collector.embedder = MustNotRun()
+    config = {
+        "organization": "Example",
+        "tool": "Agent SDK",
+        "category": "agentic-generative-ai",
+        "default_primary_topic": "agentic-generative-ai",
+        "source_type": "official-engineering-blog",
+        "default_event_types": ["guide"],
     }
+    entry = {
+        "title": "Build reliable agents",
+        "link": "https://example.com/agents",
+        "summary": " ".join(
+            [
+                "This guide explains how to build reliable agents with tools and clear boundaries.",
+                "It shows how to test tool calls against realistic user tasks and failures.",
+                "The workflow records traces so engineers can diagnose broken agent decisions.",
+                "A deployment section covers retries, permissions, and monitoring in production.",
+                "The examples compare expected results with observed agent behavior.",
+            ]
+        ),
+    }
+
+    status, chunks = collector._upsert_entry("example", config, entry)
+    assert (status, chunks) == ("created", 0)
+    assert collector.db.document.relevance_tier is None
+    assert "rag_eligible" not in collector.db.document.doc_metadata
+    assert "default_feed_eligible" not in collector.db.document.doc_metadata
+
+    status, chunks = collector._upsert_entry("example", config, entry)
+    assert (status, chunks) == ("unchanged", 0)
+    assert len(attempts) == 2
+
+    collector.relevance = SimpleNamespace(
+        classify=lambda **_kwargs: RelevanceDecision(
+            tier="core", reason="Direct agent engineering guide.", generated_by="gpt-test"
+        )
+    )
+    collector.summarizer = SimpleNamespace(
+        summarize=lambda **_kwargs: SimpleNamespace(
+            primary_topic="agentic-generative-ai",
+            metadata=lambda: {"event_types": ["guide"], "summary": "Agent guide summary."},
+        )
+    )
+    collector.chunker = SimpleNamespace(chunk_text=lambda *_args, **_kwargs: [])
+    collector.embedder = SimpleNamespace(embed_texts=lambda *_args, **_kwargs: [])
+
+    status, chunks = collector._upsert_entry("example", config, entry)
+    assert (status, chunks) == ("changed", 0)
+    assert collector.db.document.relevance_tier == "core"
+    assert "default_feed_eligible" not in collector.db.document.doc_metadata
+
+
+def test_failed_reclassification_keeps_existing_good_article() -> None:
+    existing = SimpleNamespace(
+        raw_text="Original agent article",
+        content_hash="original-hash",
+        relevance_tier="core",
+        fetched_at=None,
+        ingestion_status=PUBLISHED,
+        doc_metadata={"relevance_classification_status": "classified"},
+    )
+
+    class FakeDatabase:
+        def scalar(self, _statement):
+            return existing
+
+    class MustNotRun:
+        def __getattr__(self, name):
+            raise AssertionError(f"{name} should not run for failed reclassification")
+
+    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector.db = FakeDatabase()
+    collector.relevance = SimpleNamespace(
+        classify=lambda **_kwargs: RelevanceDecision(
+            tier=None,
+            reason="Model unavailable.",
+            generated_by="classification-error",
+            status="failed",
+        )
+    )
+    collector.summarizer = MustNotRun()
+    collector.chunker = MustNotRun()
+    collector.embedder = MustNotRun()
+    body = " ".join(
+        [
+            "This article explains how to build reliable agents with tools and clear boundaries.",
+            "It shows how to test tool calls against realistic user tasks and failures.",
+            "The workflow records traces so engineers can diagnose broken agent decisions.",
+            "A deployment section covers retries, permissions, and monitoring in production.",
+            "The examples compare expected results with observed agent behavior.",
+        ]
+    )
+
+    status, chunks = collector._upsert_entry(
+        "example",
+        {
+            "organization": "Example",
+            "tool": "Agent SDK",
+            "category": "agentic-generative-ai",
+            "default_primary_topic": "agentic-generative-ai",
+            "source_type": "official-engineering-blog",
+            "default_event_types": ["guide"],
+        },
+        {"title": "Changed agent article", "link": "https://example.com/agents", "summary": body},
+    )
+
+    assert (status, chunks) == ("unchanged", 0)
+    assert existing.raw_text == "Original agent article"
+    assert existing.content_hash == "original-hash"
+    assert existing.relevance_tier == "core"
+    assert existing.doc_metadata["last_relevance_attempt_status"] == "failed"

@@ -148,7 +148,7 @@ function App() {
   }
 
   const facets = feed?.facets ?? {
-    sources: [], tools: [], categories: [], event_types: [], source_types: [], maturities: [],
+    sources: [], tools: [], categories: [], event_types: [], source_types: [],
   };
   const visibleItems = feed?.items.slice(0, visibleCount) ?? [];
   const featuredItem = visibleItems[0] ?? null;

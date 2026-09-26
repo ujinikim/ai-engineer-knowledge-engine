@@ -6,7 +6,6 @@ def document(document_id: str, source_name: str) -> Document:
     return Document(
         id=document_id,
         source_name=source_name,
-        source_type="release",
         title=document_id,
         url=f"https://example.com/{document_id}",
         raw_text="Example source text",

@@ -1,7 +1,6 @@
 import argparse
 import hashlib
 import json
-import re
 import sys
 from collections import Counter
 from datetime import datetime, timezone
@@ -15,7 +14,7 @@ from scripts._source_config import update_source_map
 
 from app.db.models import Document
 from app.db.session import SessionLocal
-from app.services.taxonomy import EVENT_TYPES, MATURITY_LEVELS, PRIMARY_TOPICS
+from app.services.taxonomy import EVENT_TYPES, PRIMARY_TOPICS
 
 
 DEFAULT_OUTPUT = (
@@ -24,10 +23,6 @@ DEFAULT_OUTPUT = (
     / "eval"
     / "summaries"
     / "taxonomy_review_sample.json"
-)
-RC_VERSION_PATTERN = re.compile(
-    r"\bv?\d+(?:\.\d+)+(?:[-_.]?rc(?:[.-]?\d+)?)\b",
-    re.IGNORECASE,
 )
 REVIEW_VALUES = ("not_reviewed", "correct", "change_required", "uncertain")
 
@@ -41,7 +36,6 @@ def load_documents() -> list[Document]:
         return list(
             db.scalars(
                 select(Document)
-                .where(Document.source_type == "release")
                 .order_by(
                     Document.source_name,
                     Document.published_at.desc().nullslast(),
@@ -89,16 +83,10 @@ def review_focus(document: Document, config: dict, taxonomy: dict) -> list[str]:
     reasons: list[str] = []
     event_types = set(taxonomy["event_types"])
     default_events = set(config.get("default_event_types", []))
-    title = str(document.title or "")
-
-    if RC_VERSION_PATTERN.search(title) and taxonomy["maturity"] != "release-candidate":
-        reasons.append("release_candidate_mismatch")
     if taxonomy["primary_topic"] != config.get("default_primary_topic"):
         reasons.append("primary_topic_overrides_source_default")
     if default_events and event_types != default_events:
         reasons.append("event_types_differ_from_source_default")
-    if taxonomy["maturity"] != "stable":
-        reasons.append("non_stable_maturity")
     if len(event_types) > 1:
         reasons.append("multiple_event_types")
     return reasons
@@ -115,18 +103,6 @@ def select_sample(items: list[dict], sample_size: int) -> list[dict]:
         if item["document_id"] not in seen and len(selected) < sample_size:
             selected.append(item)
             seen.add(item["document_id"])
-
-    priority_limits = {
-        "release_candidate_mismatch": 6,
-    }
-    for reason, limit in priority_limits.items():
-        added = 0
-        for item in items:
-            if reason in item["review_focus"] and added < limit:
-                before = len(selected)
-                append(item)
-                if len(selected) > before:
-                    added += 1
 
     for source_name in sorted({item["source_name"] for item in items}):
         candidate = next(item for item in items if item["source_name"] == source_name)
@@ -150,18 +126,6 @@ def select_sample(items: list[dict], sample_size: int) -> list[dict]:
                 item
                 for item in items
                 if event_type in item["generated_taxonomy"]["event_types"]
-            ),
-            None,
-        )
-        if candidate:
-            append(candidate)
-
-    for maturity in MATURITY_LEVELS:
-        candidate = next(
-            (
-                item
-                for item in items
-                if item["generated_taxonomy"]["maturity"] == maturity
             ),
             None,
         )
@@ -195,24 +159,19 @@ def main() -> None:
 
     topics: Counter[str] = Counter()
     events: Counter[str] = Counter()
-    maturities: Counter[str] = Counter()
     focus_counts: Counter[str] = Counter()
     all_items: list[dict] = []
 
     for document in documents:
         metadata = dict(document.doc_metadata or {})
         taxonomy = {
-            "primary_topic": str(metadata.get("primary_topic") or ""),
-            "topic_tags": list(metadata.get("topic_tags") or []),
+            "primary_topic": str(document.primary_topic or ""),
             "event_types": list(metadata.get("event_types") or []),
-            "entity_tags": list(metadata.get("entity_tags") or []),
-            "maturity": str(metadata.get("maturity") or ""),
         }
         config = configs[document.source_name]
         focus = review_focus(document, config, taxonomy)
         topics[taxonomy["primary_topic"]] += 1
         events.update(taxonomy["event_types"])
-        maturities[taxonomy["maturity"]] += 1
         focus_counts.update(focus)
         key = review_key(document, taxonomy)
         prior = prior_reviews.get(key, {})
@@ -223,7 +182,7 @@ def main() -> None:
                 "source_name": document.source_name,
                 "source_type": str(metadata.get("source_type") or "unknown"),
                 "title": document.title,
-                "url": document.canonical_url or document.url,
+                "url": document.url,
                 "published_at": document.published_at.isoformat()
                 if document.published_at
                 else None,
@@ -245,8 +204,6 @@ def main() -> None:
                 "proposed_primary_topic": prior.get("proposed_primary_topic"),
                 "event_types_review": preserved_value(prior, "event_types_review"),
                 "proposed_event_types": list(prior.get("proposed_event_types") or []),
-                "maturity_review": preserved_value(prior, "maturity_review"),
-                "proposed_maturity": prior.get("proposed_maturity"),
                 "taxonomy_notes": str(prior.get("taxonomy_notes") or ""),
             }
         )
@@ -257,9 +214,7 @@ def main() -> None:
     payload = {
         "schema_version": 1,
         "generated_at": generated_at,
-        "purpose": (
-            "Human review of primary topic, event types, and maturity as separate axes."
-        ),
+        "purpose": "Human review of primary topic and event types.",
         "change_history": [
             *prior_payload.get("change_history", []),
             {
@@ -271,13 +226,11 @@ def main() -> None:
         ],
         "review_order": [
             "Review event_types first using docs/archive/TAXONOMY_REMEDIATION_PLAN.md.",
-            "Review maturity second as artifact lifecycle.",
-            "Review primary_topic last after event and maturity decisions stabilize.",
+            "Review primary_topic after event types.",
         ],
         "allowed_review_values": list(REVIEW_VALUES),
         "allowed_primary_topics": list(PRIMARY_TOPICS),
         "allowed_event_types": list(EVENT_TYPES),
-        "allowed_maturity_levels": list(MATURITY_LEVELS),
         "instructions": {
             "correct": "Keep the generated value and leave the corresponding proposed field empty.",
             "change_required": "Populate the corresponding proposed field and explain why in taxonomy_notes.",
@@ -288,7 +241,6 @@ def main() -> None:
             "documents": len(documents),
             "topic_counts": dict(topics.most_common()),
             "event_type_counts": dict(events.most_common()),
-            "maturity_counts": dict(maturities.most_common()),
             "review_focus_counts": dict(focus_counts.most_common()),
         },
         "items": sampled_items,

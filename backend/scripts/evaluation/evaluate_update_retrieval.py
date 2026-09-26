@@ -123,9 +123,6 @@ def filter_violations(
                 request.source_types is None
                 or result.source_category in request.source_types
             ),
-            "maturities": (
-                request.maturities is None or result.maturity in request.maturities
-            ),
             "published_after": (
                 request.published_after is None
                 or (

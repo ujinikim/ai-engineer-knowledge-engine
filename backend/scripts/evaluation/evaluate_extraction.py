@@ -13,6 +13,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from app.db.models import Document
 from app.db.session import SessionLocal
 from app.services.extraction_quality import ExtractionQualityService
+from scripts._source_config import update_source_map
 from scripts._review_io import review_items_by_key
 
 
@@ -31,7 +32,6 @@ def load_documents(source: str | None) -> list[Document]:
     stmt = (
         select(Document)
         .options(selectinload(Document.chunks))
-        .where(Document.source_type == "release")
         .order_by(Document.source_name, Document.published_at.desc().nullslast(), Document.id)
     )
     if source:
@@ -110,7 +110,15 @@ def main() -> None:
 
     service = ExtractionQualityService()
     documents = load_documents(arguments.source)
-    evaluations = [service.evaluate(document, document.chunks) for document in documents]
+    source_configs = update_source_map()
+    evaluations = [
+        service.evaluate(
+            document,
+            document.chunks,
+            source_kind=source_configs.get(document.source_name, {}).get("source_kind", "unknown"),
+        )
+        for document in documents
+    ]
     if arguments.status:
         evaluations = [
             evaluation
