@@ -6,7 +6,8 @@ from datetime import datetime
 
 from app.ingestion.content_detail import classify_content_detail
 from app.ingestion.parsing import clean_html, compact_excerpt, entry_datetime, entry_html
-from app.ingestion.store import normalize_url
+from app.ingestion.urls import normalize_url
+from app.sources import SourceConfig
 from app.ingestion.taxonomy import (
     classify_topic_with_method,
     infer_event_types,
@@ -24,7 +25,6 @@ class ArticleCandidate:
     content_hash: str
     published_at: datetime | None
     fetched_at: datetime
-    hydration_status: str
     extraction_status: str
     content_detail: str
     excerpt: str
@@ -35,7 +35,7 @@ class ArticleCandidate:
     provisional_events: list[str]
 
 
-def prepare_candidate(source_slug: str, config: dict, entry, *, now: datetime) -> ArticleCandidate:
+def prepare_candidate(source_slug: str, config: SourceConfig, entry, *, now: datetime) -> ArticleCandidate:
     raw_url = str(entry.get("link") or entry.get("id") or "").strip()
     url = normalize_url(raw_url)
     if not url:
@@ -44,14 +44,7 @@ def prepare_candidate(source_slug: str, config: dict, entry, *, now: datetime) -
 
     body_text = clean_html(entry_html(entry))
     raw_text = f"{title}\n\n{body_text}".strip()
-    hydration_status = str(entry.get("_hydration_status") or "not_requested")
-    extraction_status = str(
-        entry.get("_extraction_status")
-        or {
-            "full_article": "full_article",
-            "failed": "feed_excerpt_only" if body_text else "title_only",
-        }.get(hydration_status, "source_entry")
-    )
+    extraction_status = str(entry.get("_extraction_status") or "source_entry")
     default_topic = config.get("default_primary_topic", config["category"])
     default_event_types = config.get("default_event_types", ["analysis"])
     provisional_topic, _ = classify_topic_with_method(f"{title}\n{title}\n{raw_text}", default_topic)
@@ -65,7 +58,6 @@ def prepare_candidate(source_slug: str, config: dict, entry, *, now: datetime) -
         content_hash=hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
         published_at=entry_datetime(entry),
         fetched_at=now,
-        hydration_status=hydration_status,
         extraction_status=extraction_status,
         content_detail=classify_content_detail(title, raw_text),
         excerpt=compact_excerpt(body_text or title),

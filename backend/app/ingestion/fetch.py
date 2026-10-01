@@ -7,6 +7,7 @@ import httpx
 
 from app.core.structured_logging import get_logger, log_event, safe_url
 from app.ingestion.parsing import clean_html, entry_html, parse_article_page
+from app.sources import SourceConfig
 
 
 logger = get_logger("collector.fetch")
@@ -62,7 +63,7 @@ def retry_delay(attempt: int, retry_after: str | None) -> float:
 
 
 async def fetch_full_article(
-    client: httpx.AsyncClient, config: dict, entry: dict, *, run_id: str | None = None
+    client: httpx.AsyncClient, config: SourceConfig, entry: dict, *, run_id: str | None = None
 ) -> dict:
     """Fetch an entry's article page and replace its content with the full text."""
     response = await get_with_retries(client, entry["link"], run_id=run_id)
@@ -93,7 +94,6 @@ def failed_fetch_entry(entry: dict, error: Exception) -> dict:
 
     return {
         **entry,
-        "_hydration_status": "failed",
         "_extraction_status": extraction_status,
         "_full_article_fetch_http_status": http_status,
         "_full_article_fetch_error_code": error_code,

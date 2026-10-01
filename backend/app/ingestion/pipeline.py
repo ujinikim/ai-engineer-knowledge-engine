@@ -1,14 +1,7 @@
-"""Collect configured sources: fetch entries, decide what each becomes, and store it.
+"""Run a collection: fetch each configured source, filter its entries, and ingest them.
 
-For every entry, `_upsert_entry` prepares a candidate, applies the publication gate,
-and routes it:
-
-- keep the stored article when a refresh is worse than what is already stored
-- publishable, awaiting relevance: store provisional labels and retry next run
-- publishable, excluded or feed-excerpt evidence: store a card from the source excerpt
-- unchanged content that is already classified: refresh dates and status only
-- not publishable: quarantine without a card, chunks, or embeddings
-- otherwise: summarize, chunk, and embed
+This file owns the run (sources, retries, run records, counts). What happens to each
+entry is decided in `ingest.py`.
 """
 
 import logging
@@ -16,7 +9,7 @@ import time
 import uuid
 from contextlib import aclosing
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 
 import httpx
 from sqlalchemy.orm import Session
@@ -25,28 +18,16 @@ from app.core.embedding import EmbeddingService
 from app.core.model_usage import ModelUsage
 from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event, safe_url
-from app.db.models import CollectionSourceRun, Document
-from app.ingestion.candidate import ArticleCandidate, prepare_candidate
+from app.db.models import CollectionSourceRun
 from app.ingestion.chunking import ChunkingService
-from app.ingestion.content_detail import classify_content_detail
+from app.ingestion.ingest import ArticleIngestor, utc_now
 from app.ingestion.fetch import failed_fetch_entry, fetch_full_article, get_with_retries
 from app.ingestion.parsing import entry_datetime, matches_config, source_entries
-from app.ingestion.policy import IngestionDecision, evaluate_ingestion_candidate
 from app.ingestion.relevance import (
-    RELEVANCE_POLICY_VERSION,
-    RELEVANCE_TIERS,
     ArticleRelevanceService,
 )
-from app.ingestion.store import (
-    add_chunks,
-    apply_fields,
-    current_fields,
-    delete_chunks,
-    find_existing_article,
-    save_article,
-)
 from app.ingestion.summary import ArticleSummaryService
-from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION, normalize_event_types
+from app.sources import SourceConfig
 
 
 logger = get_logger("collector")
@@ -77,8 +58,6 @@ class CollectionResult:
 
 
 class IngestionPipeline:
-    run_id: str | None = None
-
     def __init__(self, db: Session) -> None:
         self.db = db
         self.chunker = ChunkingService()
@@ -86,16 +65,29 @@ class IngestionPipeline:
         self.embedder = EmbeddingService(usage=self.usage)
         self.summarizer = ArticleSummaryService(usage=self.usage)
         self.relevance = ArticleRelevanceService(usage=self.usage)
+        self.run_id: str | None = None
+        self.ingestor = self._new_ingestor()
+
+    def _new_ingestor(self) -> ArticleIngestor:
+        return ArticleIngestor(
+            self.db,
+            relevance=self.relevance,
+            summarizer=self.summarizer,
+            chunker=self.chunker,
+            embedder=self.embedder,
+            run_id=self.run_id,
+        )
 
     # Collection run ---------------------------------------------------------
 
     async def collect(
         self,
-        source_configs: list[dict],
+        source_configs: list[SourceConfig],
         max_items_per_source: int = 12,
         run_id: str | None = None,
     ) -> CollectionResult:
         self.run_id = run_id or uuid.uuid4().hex
+        self.ingestor = self._new_ingestor()
         totals = dict.fromkeys(("sources_processed", "errors", *SOURCE_COUNT_KEYS), 0)
 
         async with httpx.AsyncClient(
@@ -122,18 +114,18 @@ class IngestionPipeline:
         )
 
     async def _collect_source(
-        self, client: httpx.AsyncClient, config: dict, max_items: int
+        self, client: httpx.AsyncClient, config: SourceConfig, max_items: int
     ) -> dict[str, int] | None:
         """Ingest one source and record its run; None when the source failed."""
         source_slug = config["slug"]
-        started_at = _utc_now()
+        started_at = utc_now()
         started = time.perf_counter()
         counts = dict.fromkeys(SOURCE_COUNT_KEYS, 0)
         matched_items = 0
         try:
             async with aclosing(self._matching_entries(client, config)) as entries:
                 async for entry in entries:
-                    status, chunks_written = self._upsert_entry(source_slug, config, entry)
+                    status, chunks_written = self.ingestor.ingest(source_slug, config, entry)
                     counts[f"updates_{status}"] += 1
                     counts["chunks_written"] += chunks_written
                     matched_items += 1
@@ -173,7 +165,7 @@ class IngestionPipeline:
             )
             return None
 
-    async def _matching_entries(self, client: httpx.AsyncClient, config: dict):
+    async def _matching_entries(self, client: httpx.AsyncClient, config: SourceConfig):
         """Yield the source's entries that pass its filters, with full articles fetched."""
         source_slug = config["slug"]
         is_listing = config.get("source_kind") == "html_listing"
@@ -219,257 +211,11 @@ class IngestionPipeline:
                 run_id=self.run_id,
                 source_slug=source_slug,
                 started_at=started_at,
-                finished_at=_utc_now(),
+                finished_at=utc_now(),
                 **fields,
             )
         )
         self.db.commit()
-
-    # One entry ----------------------------------------------------------------
-
-    def _upsert_entry(self, source_slug: str, config: dict, entry) -> tuple[str, int]:
-        """Store one entry and return its status and the number of chunks written."""
-        candidate = prepare_candidate(source_slug, config, entry, now=_utc_now())
-        decision = evaluate_ingestion_candidate(
-            content_detail=candidate.content_detail,
-            hydration_status=candidate.hydration_status,
-            extraction_status=candidate.extraction_status,
-            event_types=candidate.provisional_events,
-            publish_feed_excerpt=bool(config.get("publish_feed_excerpt", False)),
-        )
-        existing = find_existing_article(self.db, candidate)
-
-        if existing and not decision.rag_eligible and _has_full_evidence(existing):
-            return self._keep_stored_article(existing, candidate, decision)
-
-        fields = {
-            "primary_topic": candidate.default_topic,
-            "extraction_status": candidate.extraction_status,
-            **decision.fields(),
-        }
-        if decision.publishable:
-            fields.update(self._relevance_fields(existing, candidate))
-            tier = fields.get("relevance_tier")
-            if tier is None:
-                return self._save_awaiting_relevance(existing, candidate, fields)
-            if tier == "excluded":
-                return self._save_excerpt_card(existing, candidate, fields, "relevance-excluded")
-            if not decision.rag_eligible:
-                return self._save_excerpt_card(existing, candidate, fields, "source-excerpt")
-
-        if (
-            existing
-            and existing.content_hash == candidate.content_hash
-            and existing.relevance_tier in RELEVANCE_TIERS
-        ):
-            return self._refresh_unchanged(existing, candidate, fields, decision)
-        if not decision.publishable:
-            return self._save_quarantined(existing, candidate, fields, decision)
-        return self._save_summarized(existing, candidate, fields, config)
-
-    def _relevance_fields(self, existing: Document | None, candidate: ArticleCandidate) -> dict:
-        """Reuse a current decision for unchanged content; otherwise classify."""
-        if (
-            existing
-            and existing.content_hash == candidate.content_hash
-            and existing.relevance_policy_version == RELEVANCE_POLICY_VERSION
-            and existing.relevance_tier in RELEVANCE_TIERS
-        ):
-            return {
-                "relevance_tier": existing.relevance_tier,
-                "relevance_reason": existing.relevance_reason,
-                "relevance_policy_version": existing.relevance_policy_version,
-                "relevance_status": existing.relevance_status,
-            }
-        return self.relevance.classify(title=candidate.title, raw_text=candidate.raw_text).fields()
-
-    # Routes -------------------------------------------------------------------
-
-    def _keep_stored_article(
-        self, existing: Document, candidate: ArticleCandidate, decision: IngestionDecision
-    ) -> tuple[str, int]:
-        """A refresh with weaker evidence never replaces a stored full article."""
-        existing.fetched_at = candidate.fetched_at
-        log_event(
-            logger,
-            "stored_article_retained",
-            run_id=self.run_id,
-            source_slug=candidate.source_slug,
-            url=safe_url(candidate.url),
-            attempt_status=decision.status,
-            failure_codes=list(decision.failure_codes),
-            warning_codes=list(decision.warning_codes),
-            evidence_level=decision.evidence_level,
-        )
-        return "unchanged", 0
-
-    def _save_awaiting_relevance(
-        self, existing: Document | None, candidate: ArticleCandidate, fields: dict
-    ) -> tuple[str, int]:
-        """Classification failed: keep a prior decision, or store provisional labels."""
-        if existing and existing.relevance_tier in RELEVANCE_TIERS:
-            existing.fetched_at = candidate.fetched_at
-            log_event(
-                logger,
-                "relevance_classification_retained",
-                level=logging.WARNING,
-                run_id=self.run_id,
-                source_slug=candidate.source_slug,
-                url=safe_url(candidate.url),
-                relevance_tier=existing.relevance_tier,
-            )
-            return "unchanged", 0
-
-        status = _write_status(existing, candidate)
-        save_article(
-            self.db,
-            existing,
-            candidate,
-            {
-                **fields,
-                "primary_topic": candidate.provisional_topic,
-                "event_types": candidate.provisional_events,
-            },
-        )
-        return status, 0
-
-    def _save_excerpt_card(
-        self,
-        existing: Document | None,
-        candidate: ArticleCandidate,
-        fields: dict,
-        generated_by: str,
-    ) -> tuple[str, int]:
-        """Build the card from the source excerpt; nothing is summarized or embedded."""
-        status = _write_status(existing, candidate)
-        save_article(
-            self.db,
-            existing,
-            candidate,
-            {
-                **fields,
-                "primary_topic": candidate.provisional_topic,
-                "display_headline": candidate.title[:90],
-                "summary": candidate.excerpt,
-                "why_it_matters": "",
-                "key_points": [],
-                "event_types": candidate.provisional_events,
-                "summary_generated_by": generated_by,
-                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-            },
-        )
-        return status, 0
-
-    def _refresh_unchanged(
-        self,
-        existing: Document,
-        candidate: ArticleCandidate,
-        fields: dict,
-        decision: IngestionDecision,
-    ) -> tuple[str, int]:
-        """Same content: keep the card and taxonomy, refresh dates and gate status."""
-        existing.fetched_at = candidate.fetched_at
-        existing.published_at = candidate.published_at
-        if not decision.publishable:
-            delete_chunks(self.db, existing)
-        save_fields = {
-            **current_fields(existing),
-            **fields,
-            "primary_topic": existing.primary_topic,
-            "event_types": existing.event_types,
-            "taxonomy_policy_version": existing.taxonomy_policy_version,
-        }
-        apply_fields(existing, save_fields)
-        if not decision.publishable:
-            self._log_quarantine(candidate, decision)
-            return "quarantined", 0
-        return "unchanged", 0
-
-    def _save_quarantined(
-        self,
-        existing: Document | None,
-        candidate: ArticleCandidate,
-        fields: dict,
-        decision: IngestionDecision,
-    ) -> tuple[str, int]:
-        save_article(
-            self.db,
-            existing,
-            candidate,
-            {
-                **fields,
-                "event_types": candidate.provisional_events,
-                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-            },
-            update_url=True,
-        )
-        self._log_quarantine(candidate, decision)
-        return "quarantined", 0
-
-    def _save_summarized(
-        self,
-        existing: Document | None,
-        candidate: ArticleCandidate,
-        fields: dict,
-        config: dict,
-    ) -> tuple[str, int]:
-        article = self.summarizer.summarize(
-            title=candidate.title,
-            raw_text=candidate.raw_text,
-            organization=config["organization"],
-            tool=config["tool"],
-            source_type=config.get("source_type", "official-release"),
-            default_topic=candidate.default_topic,
-            default_event_types=candidate.default_event_types,
-        )
-        article_fields = article.fields()
-        status = "changed" if existing else "created"
-        document = save_article(
-            self.db,
-            existing,
-            candidate,
-            {
-                **fields,
-                **article_fields,
-                "event_types": normalize_event_types(
-                    candidate.source_slug,
-                    list(article_fields.get("event_types") or candidate.default_event_types),
-                ),
-                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
-            },
-        )
-        chunks = self.chunker.chunk_text(candidate.raw_text, max_tokens=650, overlap_tokens=80)
-        embeddings = self.embedder.embed_texts([chunk.content for chunk in chunks])
-        return status, add_chunks(self.db, document, chunks, embeddings)
-
-    def _log_quarantine(self, candidate: ArticleCandidate, decision: IngestionDecision) -> None:
-        log_event(
-            logger,
-            "article_quarantined",
-            run_id=self.run_id,
-            source_slug=candidate.source_slug,
-            url=safe_url(candidate.url),
-            failure_codes=list(decision.failure_codes),
-            extraction_status=candidate.extraction_status,
-        )
-
-
-def _has_full_evidence(document: Document) -> bool:
-    return (
-        document.extraction_status == "full_article"
-        or classify_content_detail(document.title or "", document.raw_text) == "detailed"
-    )
-
-
-def _write_status(existing: Document | None, candidate: ArticleCandidate) -> str:
-    """Status of a write, judged before the stored content is overwritten."""
-    if existing is None:
-        return "created"
-    return "changed" if existing.content_hash != candidate.content_hash else "unchanged"
-
-
-def _utc_now() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def _elapsed_ms(started: float) -> int:

@@ -9,12 +9,14 @@ from urllib.parse import urljoin, urlparse
 import feedparser
 from bs4 import BeautifulSoup
 
+from app.sources import SourceConfig
+
 
 BLOCKED_PAGE_MARKERS = ("enable javascript and cookies", "challenge-error-text")
 ALWAYS_REMOVED_SELECTORS = ("script", "style", "noscript", "nav", "footer", "form", "svg")
 
 
-def source_entries(config: dict, text: str, content: bytes) -> list[dict]:
+def source_entries(config: SourceConfig, text: str, content: bytes) -> list[dict]:
     """Entries from a source's feed or HTML listing page."""
     if config.get("source_kind") == "html_listing":
         return html_listing_entries(config, text)
@@ -25,7 +27,7 @@ def source_entries(config: dict, text: str, content: bytes) -> list[dict]:
     return list(feed.entries)
 
 
-def html_listing_entries(config: dict, html: str) -> list[dict]:
+def html_listing_entries(config: SourceConfig, html: str) -> list[dict]:
     pattern = re.compile(config["link_pattern"])
     base_url = config.get("homepage_url") or config["feed_url"]
     entries: list[dict] = []
@@ -54,7 +56,7 @@ def html_listing_entries(config: dict, html: str) -> list[dict]:
     return entries
 
 
-def parse_article_page(config: dict, entry: dict, html: str, final_url: str) -> dict:
+def parse_article_page(config: SourceConfig, entry: dict, html: str, final_url: str) -> dict:
     """Replace an entry's content with the full article page, or raise ValueError."""
     soup = BeautifulSoup(html, "html.parser")
     content = soup.select_one(config.get("content_selector", "main")) or soup.body or soup
@@ -87,12 +89,11 @@ def parse_article_page(config: dict, entry: dict, html: str, final_url: str) -> 
         "published": published,
         "published_parsed": None if article_published else entry.get("published_parsed"),
         "updated_parsed": None if article_published else entry.get("updated_parsed"),
-        "_hydration_status": "full_article",
         "_extraction_status": "full_article",
     }
 
 
-def _article_title(config: dict, entry: dict, soup: BeautifulSoup, content) -> str:
+def _article_title(config: SourceConfig, entry: dict, soup: BeautifulSoup, content) -> str:
     # Listing pages link with short anchor text, so they take the article's heading;
     # feeds already carry the publisher's title.
     is_listing = config.get("source_kind") == "html_listing"
@@ -112,7 +113,7 @@ def _article_title(config: dict, entry: dict, soup: BeautifulSoup, content) -> s
     return title
 
 
-def matches_config(config: dict, entry) -> bool:
+def matches_config(config: SourceConfig, entry) -> bool:
     """Apply a source's title-prefix, tag, and include/exclude term filters."""
     title = str(entry.get("title") or "").strip().lower()
     if any(

@@ -6,8 +6,9 @@ tests, lint, and a real collection run.
 
 ## Phase 1: Readable ingestion (done)
 
-- `pipeline.py` routes each entry through small named steps; the 342-line
-  `_upsert_entry` is now 39 lines.
+- `pipeline.py` runs a collection (sources, retries, run records); `ingest.py` decides
+  what one entry becomes. The 342-line `_upsert_entry` is now `ArticleIngestor.ingest`,
+  39 lines.
 - `candidate.py` prepares an entry; `store.py` owns database reads and writes, with one
   `save_article` replacing five copied create-or-update blocks.
 - The extraction mixin became plain functions: `fetch.py` (HTTP and retries) and
@@ -15,8 +16,10 @@ tests, lint, and a real collection run.
 - `summary.py` keeps summarizing only; prompts and schemas live in `prompts.py`, and
   the three-step taxonomy classifier in `taxonomy_classifier.py`, which returns a
   named result instead of an eight-item tuple.
-- Characterization tests (`test_ingestion_paths.py`, `test_taxonomy_classifier.py`)
-  pin every ingestion route.
+- Characterization tests pin every ingestion route and the classifier.
+- Follow-up readability pass: URL helpers in `urls.py` (no import cycle between
+  `candidate` and `store`), `SourceConfig` documents every source option in one typed
+  place, and the redundant `hydration_status` is gone (`extraction_status` says it).
 
 ## Phase 2: Consistent names and dead code
 
@@ -40,10 +43,17 @@ tests, lint, and a real collection run.
 - Left in place: the `relevance` entry in the taxonomy v2 review output, which keeps
   existing review keys stable.
 
-## Phase 4: Tests
+## Phase 4: Tests (done)
 
-- Mirror the app layout: `tests/ingestion/`, `tests/serving/`, `tests/evaluation/`.
-- Share one set of document and chunk factories in `conftest.py`.
+- `tests/` mirrors `app/`; each file covers one module. Old catch-all files were split
+  by subject (for example `test_article_taxonomy.py` became `test_taxonomy.py`,
+  `test_summary.py`, `test_prompts.py`, `test_parsing.py`, and `test_fetch.py`).
+- `tests/factories.py` replaces five copies of `make_document` and uses real column
+  names; `tests/fakes.py` replaces six copies of a fake database and a "must not run"
+  stub. The old fixtures still set `doc_metadata` and `evidence_level`, which no
+  longer exist.
+- One test removed: it set a stored `summary_quality_warnings` value that nothing
+  stores or reads, so it could not fail.
 
 ## Phase 5: Frontend
 

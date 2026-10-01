@@ -1,0 +1,222 @@
+from datetime import datetime
+
+from app.evaluation.extraction_quality import ExtractionQualityService
+from tests.factories import make_article, make_chunk
+
+
+def make_document(raw_text: str, *, metadata: dict | None = None, **overrides):
+    return make_article(raw_text=raw_text, **(metadata or {}), **overrides)
+
+
+def test_complete_article_passes_extraction_evaluation() -> None:
+    body = " ".join(["The release improves inference latency and reliability."] * 24)
+    raw_text = f"Example engineering update\n\n{body}"
+    document = make_document(raw_text)
+
+    result = ExtractionQualityService().evaluate(
+        document,
+        [make_chunk(raw_text)],
+        now=datetime(2026, 7, 23),
+    )
+
+    assert result.quality_status == "pass"
+    assert result.content_hash_valid
+    assert result.embeddings_complete
+    assert result.publication_date_confidence == "high"
+    assert not result.suspected_excerpt
+    assert not result.suspected_collection_page
+
+
+def test_unclassified_article_does_not_expect_search_chunks() -> None:
+    raw_text = "Example engineering update\n\n" + ("Agent evaluation details. " * 30)
+    document = make_document(raw_text)
+    document.relevance_tier = None
+
+    result = ExtractionQualityService().evaluate(document, [])
+
+    assert result.chunks_expected is False
+    assert "missing_chunks" not in result.failures
+
+
+def test_html_listing_collection_url_warns() -> None:
+    body = " ".join(["A complete-looking article preview with technical detail."] * 30)
+    raw_text = f"June updates\n\n{body}"
+    document = make_document(
+        raw_text,
+        title="June updates",
+        url="https://example.com/news/tag/jun-05-2026",
+    )
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)], source_kind="html_listing")
+
+    assert result.suspected_collection_page
+    assert "suspected_collection_page" in result.warnings
+
+
+def test_short_article_with_collection_timestamp_warns() -> None:
+    fetched_at = datetime(2026, 7, 22, 12, 0, 0)
+    raw_text = "Example engineering update\n\nShort announcement."
+    document = make_document(raw_text, published_at=fetched_at, fetched_at=fetched_at)
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+
+    assert result.quality_status == "warning"
+    assert "suspected_excerpt" in result.warnings
+    assert "published_at_matches_collection_time" in result.warnings
+    assert result.publication_date_confidence == "low"
+
+
+def test_article_feed_preview_over_old_threshold_warns() -> None:
+    body = "Preview sentence with technical context. " * 18
+    raw_text = f"Example engineering update\n\n{body}"
+    document = make_document(raw_text)
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+
+    assert 300 < len(raw_text) < 1000
+    assert "suspected_excerpt" in result.warnings
+
+
+def test_short_github_release_is_not_treated_as_excerpt() -> None:
+    raw_text = "v1.2.3\n\nFix a scheduler counter."
+    document = make_document(
+        raw_text,
+        title="v1.2.3",
+    )
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)], source_kind="github_releases")
+
+    assert not result.suspected_excerpt
+    assert "suspected_excerpt" not in result.warnings
+
+
+def test_short_official_changelog_is_not_treated_as_excerpt() -> None:
+    raw_text = "Example product update\n\n" + ("A concise changelog detail. " * 20)
+    document = make_document(
+        raw_text,
+        title="Example product update",
+        source_name="github-changelog",
+    )
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+
+    assert len(raw_text) < 1000
+    assert "suspected_excerpt" not in result.warnings
+
+
+def test_hydration_failure_is_reported() -> None:
+    raw_text = "Example engineering update\n\n" + ("Feed preview. " * 80)
+    document = make_document(
+        raw_text,
+        metadata={
+            "extraction_status": "title_only",
+        },
+    )
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+
+    assert "article_hydration_failed" in result.warnings
+
+
+def test_feed_excerpt_only_extraction_is_reported() -> None:
+    raw_text = "Example engineering update\n\n" + ("Feed preview. " * 80)
+    document = make_document(
+        raw_text,
+        metadata={
+            "extraction_status": "feed_excerpt_only",
+        },
+    )
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+
+    assert "article_hydration_failed" in result.warnings
+
+
+def test_single_repeated_footer_does_not_trigger_duplicate_warning() -> None:
+    repeated = "The post Example appeared first on The GitHub Blog. " * 6
+    unique_a = "Detailed implementation information about billing controls. " * 6
+    unique_b = "Additional rollout information for administrators and teams. " * 6
+    raw_text = f"Example engineering update\n{repeated}\n{repeated}\n{unique_a}\n{unique_b}"
+    document = make_document(raw_text)
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+
+    assert result.duplicate_line_ratio > 0.15
+    assert result.duplicate_line_count == 1
+    assert "high_duplicate_line_ratio" not in result.warnings
+
+
+def test_multiple_repeated_lines_trigger_duplicate_warning() -> None:
+    repeated = "Repeated changelog section with enough meaningful text. " * 6
+    unique_a = "Detailed implementation information about billing controls. " * 6
+    unique_b = "Additional rollout information for administrators and teams. " * 6
+    raw_text = (
+        "Example engineering update\n"
+        f"{repeated}\n{repeated}\n{repeated}\n{repeated}\n{unique_a}\n{unique_b}"
+    )
+    document = make_document(raw_text)
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)])
+
+    assert result.duplicate_line_count == 3
+    assert "high_duplicate_line_ratio" in result.warnings
+
+
+def test_github_release_repetition_does_not_trigger_duplicate_warning() -> None:
+    repeated = "Repeated release-note prose with enough words to resemble a full paragraph. " * 4
+    raw_text = f"v1.2.3\n{repeated}\n{repeated}\n{repeated}\n{repeated}"
+    document = make_document(
+        raw_text,
+        title="v1.2.3",
+    )
+
+    result = ExtractionQualityService().evaluate(document, [make_chunk(raw_text)], source_kind="github_releases")
+
+    assert result.duplicate_line_count == 3
+    assert "high_duplicate_line_ratio" not in result.warnings
+
+
+def test_integrity_failures_are_reported() -> None:
+    raw_text = "Example engineering update\n\n" + ("Useful body. " * 40)
+    document = make_document(raw_text, content_hash="incorrect")
+
+    result = ExtractionQualityService().evaluate(document, [])
+
+    assert result.quality_status == "fail"
+    assert "content_hash_mismatch" in result.failures
+    assert "missing_chunks" in result.failures
+
+
+def test_excluded_document_does_not_require_chunks() -> None:
+    raw_text = "AI Agent Conference\n\n" + ("Event announcement details. " * 80)
+    document = make_document(
+        raw_text,
+        title="AI Agent Conference",
+        metadata={
+            "ingestion_status": "published",
+            "extraction_status": "full_article",
+            "relevance_tier": "excluded",
+        },
+    )
+
+    result = ExtractionQualityService().evaluate(document, [])
+
+    assert result.chunks_expected is False
+    assert result.quality_status == "pass"
+    assert "missing_chunks" not in result.failures
+
+
+def test_aggregation_and_sample_cover_sources() -> None:
+    service = ExtractionQualityService()
+    evaluations = []
+    for source in ("alpha", "beta", "gamma"):
+        raw_text = f"Example engineering update\n\n{source} " + ("technical detail " * 80)
+        document = make_document(raw_text, source_name=source)
+        evaluations.append(service.evaluate(document, [make_chunk(raw_text)]))
+
+    summary = service.aggregate(evaluations)
+    sample = service.select_review_sample(evaluations, sample_size=3)
+
+    assert summary["documents_evaluated"] == 3
+    assert summary["status_counts"] == {"pass": 3, "warning": 0, "fail": 0}
+    assert {item.source_name for item in sample} == {"alpha", "beta", "gamma"}

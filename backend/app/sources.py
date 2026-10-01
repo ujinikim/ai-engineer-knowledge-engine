@@ -2,12 +2,52 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import NotRequired, TypedDict
 
 import yaml
 
 
+class SourceConfig(TypedDict):
+    """One entry of `data/update_sources.yml`, with every option the pipeline reads."""
+
+    # Identity and display
+    slug: str
+    name: str
+    organization: str
+    tool: str
+    homepage_url: str
+    feed_url: str
+    enabled: NotRequired[bool]
+    # What the source is and how much to trust it
+    source_kind: str  # rss, atom, or html_listing
+    source_type: NotRequired[str]  # official-engineering-blog, official-changelog, ...
+    credibility_weight: NotRequired[float]  # feed ranking weight, default 1.0
+    # Taxonomy defaults, used only when classification has no better evidence
+    category: str
+    default_primary_topic: NotRequired[str]
+    default_event_types: NotRequired[list[str]]
+    # Which entries to keep
+    include_terms: NotRequired[list[str]]
+    exclude_terms: NotRequired[list[str]]
+    exclude_title_prefixes: NotRequired[list[str]]
+    exclude_tags: NotRequired[list[str]]
+    require_published_date: NotRequired[bool]
+    # html_listing sources: which links on the listing page are articles
+    link_pattern: NotRequired[str]
+    link_selector: NotRequired[str]
+    # Full-article fetching and extraction
+    fetch_full_article: NotRequired[bool]
+    content_selector: NotRequired[str]
+    content_remove_selectors: NotRequired[list[str]]
+    date_selector: NotRequired[str]
+    title_prefix: NotRequired[str]
+    minimum_full_article_characters: NotRequired[int]
+    # Publish the feed's own text when the article page cannot be fetched
+    publish_feed_excerpt: NotRequired[bool]
+
+
 @lru_cache(maxsize=1)
-def configured_sources() -> tuple[dict, ...]:
+def configured_sources() -> tuple[SourceConfig, ...]:
     source_file = Path(__file__).resolve().parents[1] / "data" / "update_sources.yml"
     with source_file.open("r", encoding="utf-8") as file:
         sources = yaml.safe_load(file)["sources"]
@@ -41,5 +81,5 @@ def source_slugs_with(key: str, values: list[str], default=None) -> list[str]:
     ]
 
 
-def sources_by_slug() -> dict[str, dict]:
+def sources_by_slug() -> dict[str, SourceConfig]:
     return {source["slug"]: source for source in configured_sources()}

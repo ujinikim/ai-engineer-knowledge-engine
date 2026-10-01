@@ -5,6 +5,7 @@ from app.ingestion.content_detail import IMPORTANT_SPARSE_EVENT_TYPES
 
 PUBLISHED = "published"
 QUARANTINED = "quarantined"
+FETCH_FAILED_STATUSES = ("feed_excerpt_only", "title_only")
 
 
 @dataclass(frozen=True)
@@ -36,7 +37,6 @@ def evidence_level(*, extraction_status: str, ingestion_status: str) -> str:
 def evaluate_ingestion_candidate(
     *,
     content_detail: str,
-    hydration_status: str,
     extraction_status: str,
     event_types: list[str] | None,
     publish_feed_excerpt: bool = False,
@@ -44,14 +44,13 @@ def evaluate_ingestion_candidate(
     """Apply the deterministic boundary between stored candidates and published evidence."""
     failures: list[str] = []
     warnings: list[str] = []
-    approved_feed_excerpt = bool(
-        publish_feed_excerpt
-        and hydration_status == "failed"
-        and extraction_status == "feed_excerpt_only"
-    )
-    if hydration_status == "failed" and not approved_feed_excerpt:
+    # The article page could not be used when only the feed's own text (or just the
+    # title) is left; a source may approve publishing that feed excerpt anyway.
+    fetch_failed = extraction_status in FETCH_FAILED_STATUSES
+    approved_feed_excerpt = bool(publish_feed_excerpt and extraction_status == "feed_excerpt_only")
+    if fetch_failed and not approved_feed_excerpt:
         failures.append("article_hydration_failed")
-    elif hydration_status == "failed":
+    elif fetch_failed:
         warnings.append("article_hydration_failed")
     if extraction_status == "title_only":
         failures.append("title_only_source")

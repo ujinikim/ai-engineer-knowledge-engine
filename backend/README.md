@@ -108,3 +108,17 @@ frontend origin is introduced later, list its exact HTTPS origin explicitly.
 The container also supports Docker-style secret files named `database_url` and
 `openai_api_key` under `/run/secrets`. Normal environment variables retain higher
 priority for local development and CI.
+
+## Tests
+
+```bash
+cd backend
+uv run pytest
+```
+
+`tests/` mirrors `app/` (`ingestion/`, `serving/`, `evaluation/`, `core/`, `db/`, `api/`),
+with `scripts/` for the command-line tools and `test_sources.py` for the source
+registry. Shared helpers: `tests/factories.py` builds articles with the real column
+names (`make_article`), and `tests/fakes.py` holds the database and collaborator
+stand-ins used to test ingestion routes (`tests/ingestion/test_ingest.py`).
+
