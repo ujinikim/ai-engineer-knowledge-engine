@@ -6,12 +6,9 @@ from dataclasses import asdict, dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from app.domain import EVENT_TYPES, PRIMARY_TOPICS
 from app.ingestion.content_detail import classify_content_detail
 from app.sources import source_attribute
-from app.ingestion.taxonomy import (
-    EVENT_TYPES,
-    PRIMARY_TOPICS,
-)
 
 
 STOPWORDS = {

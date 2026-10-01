@@ -9,12 +9,12 @@ from openai import OpenAI
 from app.core.model_usage import ModelUsage
 from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event
+from app.domain import RELEVANCE_TIERS
 
 
 logger = get_logger("relevance")
 
 RELEVANCE_POLICY_VERSION = "2026-09-25-agent-engineering-v3"
-RELEVANCE_TIERS = ("core", "contextual", "excluded")
 QUOTE_TOKEN_COVERAGE = 0.8
 
 RELEVANCE_RESPONSE_FORMAT = {
@@ -218,7 +218,3 @@ class ArticleRelevanceService:
             "actual AI/ML engineering subject and explicitly note that it is not agent-specific; "
             "do not justify it with a hypothetical way agents or agent engineers might use it."
         )
-
-
-def visible_relevance_tiers(*, include_contextual: bool = False) -> tuple[str, ...]:
-    return ("core", "contextual") if include_contextual else ("core",)

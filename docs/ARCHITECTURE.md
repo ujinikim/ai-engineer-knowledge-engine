@@ -87,3 +87,19 @@ One thing, three names; use the right one for the layer:
 | document | database | The `documents` table row that stores an article (`chunks` belong to it) |
 | update | API paths and `collection_source_runs` counters | Legacy name for an article in the feed; kept for URL and schema stability |
 
+## Layers and the dependency rule
+
+```
+api/  ->  serving/  ->  db/, domain, sources, core/
+                         ^
+ingestion/  ------------'      (evaluation/ reads both; nothing imports api/)
+```
+
+- `domain.py` holds the shared vocabulary and rules (publish status, relevance tiers,
+  taxonomy labels, the API evidence label, the card excerpt) as pure definitions.
+- `serving/visibility.py` is the single rule for which articles users may see; the
+  feed and search both start from it.
+- `serving/`, `db/`, and `api/` never import `ingestion/`, so the API process does not
+  load the feed parser, HTML parser, or classifier. `tests/api/test_import_boundary.py`
+  fails if that changes.
+

@@ -228,16 +228,3 @@ def date_from_text(value: str) -> str:
         re.IGNORECASE,
     )
     return match.group(0) if match else ""
-
-
-def compact_excerpt(text: str, limit: int = 420) -> str:
-    compact = " ".join(text.split())
-    if len(compact) <= limit:
-        return compact
-    return compact[: limit - 1].rstrip() + "..."
-
-
-def article_excerpt(title: str, raw_text: str) -> str:
-    """Card excerpt derived from stored text: the body after the title."""
-    body = raw_text.removeprefix(title).strip() if title else raw_text
-    return compact_excerpt(body or title)

@@ -1,7 +1,8 @@
 from sqlalchemy.dialects import postgresql
 
 from app.db.models import Document
-from app.ingestion.taxonomy import EVENT_TYPES, PRIMARY_TOPICS, TAXONOMY_POLICY_VERSION
+from app.domain import EVENT_TYPES, PRIMARY_TOPICS
+from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION
 from scripts.maintenance.backfill_taxonomy_v2 import build_query, classify_excerpt, load_sources
 
 

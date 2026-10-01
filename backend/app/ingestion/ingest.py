@@ -17,10 +17,11 @@ from sqlalchemy.orm import Session
 
 from app.core.structured_logging import get_logger, log_event, safe_url
 from app.db.models import Document
+from app.domain import RELEVANCE_TIERS
 from app.ingestion.candidate import ArticleCandidate, prepare_candidate
 from app.ingestion.content_detail import classify_content_detail
 from app.ingestion.policy import IngestionDecision, evaluate_ingestion_candidate
-from app.ingestion.relevance import RELEVANCE_POLICY_VERSION, RELEVANCE_TIERS
+from app.ingestion.relevance import RELEVANCE_POLICY_VERSION
 from app.ingestion.store import (
     add_chunks,
     apply_fields,

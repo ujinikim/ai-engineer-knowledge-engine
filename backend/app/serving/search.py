@@ -10,10 +10,8 @@ from sqlalchemy.orm import Session
 from app.db.models import Chunk, Document
 from app.schemas.search import RetrievedChunk, RetrievalMetrics, SearchRequest, SearchResponse
 from app.core.embedding import EmbeddingService
-from app.ingestion.relevance import visible_relevance_tiers
-from app.ingestion.policy import PUBLISHED
+from app.serving.visibility import visible_article_clause
 from app.sources import (
-    configured_active_source_slugs,
     source_attribute,
     source_slugs_with,
 )
@@ -365,13 +363,10 @@ class SearchService:
         )
 
     def _retrievable_document_clause(self, *, include_contextual: bool = False):
-        enabled_sources = configured_active_source_slugs()
-        relevance_tiers = visible_relevance_tiers(include_contextual=include_contextual)
+        # Feed excerpts have no chunks and are never used as evidence.
         return and_(
-            Document.source_name.in_(enabled_sources),
-            Document.ingestion_status == PUBLISHED,
+            visible_article_clause(include_contextual=include_contextual),
             Document.extraction_status != "feed_excerpt_only",
-            Document.relevance_tier.in_(relevance_tiers),
         )
 
     def _diversify_documents(

@@ -14,6 +14,7 @@ from openai import OpenAI
 from app.core.model_usage import ModelUsage
 from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event
+from app.domain import EVENT_TYPES, PRIMARY_TOPICS
 from app.ingestion.prompts import (
     CATEGORY_RESPONSE_FORMAT,
     EVENT_RESPONSE_FORMAT,
@@ -22,13 +23,7 @@ from app.ingestion.prompts import (
     event_prompt,
     main_theme_prompt,
 )
-from app.ingestion.taxonomy import (
-    EVENT_TYPES,
-    PRIMARY_TOPICS,
-    clean_labels,
-    classify_topic_with_method,
-    infer_event_types,
-)
+from app.ingestion.taxonomy import clean_labels, classify_topic_with_method, infer_event_types
 from app.ingestion.text import clean_text
 
 

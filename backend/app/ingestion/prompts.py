@@ -1,6 +1,6 @@
+from app.domain import EVENT_TYPES, PRIMARY_TOPICS
 """Prompt text and structured-output schemas for article summaries and taxonomy."""
 
-from app.ingestion.taxonomy import EVENT_TYPES, PRIMARY_TOPICS
 
 
 CATEGORY_DESCRIPTIONS = {

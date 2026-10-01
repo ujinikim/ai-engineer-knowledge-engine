@@ -1,9 +1,5 @@
-from app.ingestion.parsing import (
-    article_excerpt,
-    entry_datetime,
-    html_listing_entries,
-    matches_config,
-)
+from app.domain import article_excerpt
+from app.ingestion.parsing import entry_datetime, html_listing_entries, matches_config
 
 
 def test_feed_filtering_uses_title_and_body() -> None:

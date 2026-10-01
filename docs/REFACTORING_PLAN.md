@@ -55,6 +55,14 @@ tests, lint, and a real collection run.
 - One test removed: it set a stored `summary_quality_warnings` value that nothing
   stores or reads, so it could not fail.
 
+## Boundary pass (done)
+
+- `app/domain.py` holds the vocabulary shared by ingestion, serving, and the database;
+  `db/models.py` no longer imports ingestion.
+- `serving/visibility.py` is the one visibility rule; the feed now filters in SQL
+  like search instead of loading everything and filtering in Python.
+- A test asserts the API process loads no ingestion code.
+
 ## Phase 5: Frontend
 
 - Move `App.tsx` state into hooks (`useFeed`, `useAsk`, `useUrlFilters`) and components

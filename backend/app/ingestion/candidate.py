@@ -4,8 +4,9 @@ import hashlib
 from dataclasses import dataclass
 from datetime import datetime
 
+from app.domain import compact_excerpt
 from app.ingestion.content_detail import classify_content_detail
-from app.ingestion.parsing import clean_html, compact_excerpt, entry_datetime, entry_html
+from app.ingestion.parsing import clean_html, entry_datetime, entry_html
 from app.ingestion.urls import normalize_url
 from app.sources import SourceConfig
 from app.ingestion.taxonomy import (

@@ -10,20 +10,14 @@ from openai import OpenAI
 from app.core.model_usage import ModelUsage
 from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event
+from app.domain import EVENT_TYPES, PRIMARY_TOPICS
 from app.ingestion.content_detail import classify_content_detail
 from app.ingestion.prompts import (
     ARTICLE_SUMMARY_RESPONSE_FORMAT,
     summary_system_prompt,
     summary_user_prompt,
 )
-from app.ingestion.taxonomy import (
-    EVENT_TYPES,
-    PRIMARY_TOPICS,
-    TAXONOMY_POLICY_VERSION,
-    clean_labels,
-    classify_topic_with_method,
-    infer_event_types,
-)
+from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION, clean_labels, classify_topic_with_method, infer_event_types
 from app.ingestion.text import clean_text, clean_text_list, shorten_at_word_boundary
 
 

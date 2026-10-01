@@ -10,9 +10,10 @@ from sqlalchemy import select
 
 from app.db.models import Document
 from app.db.session import SessionLocal
+from app.domain import EVENT_TYPES, PRIMARY_TOPICS
 from app.sources import configured_active_source_slugs
 from app.ingestion.taxonomy_classifier import TaxonomyClassifier
-from app.ingestion.taxonomy import EVENT_TYPES, PRIMARY_TOPICS, TAXONOMY_POLICY_VERSION
+from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION
 from scripts.maintenance.backfill_taxonomy_v2 import classify_excerpt, load_sources
 
 

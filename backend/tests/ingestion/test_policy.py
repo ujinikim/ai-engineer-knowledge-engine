@@ -1,8 +1,5 @@
-from app.ingestion.policy import (
-    PUBLISHED,
-    QUARANTINED,
-    evaluate_ingestion_candidate,
-)
+from app.domain import PUBLISHED, QUARANTINED
+from app.ingestion.policy import evaluate_ingestion_candidate
 
 
 def test_detailed_source_is_publishable() -> None:

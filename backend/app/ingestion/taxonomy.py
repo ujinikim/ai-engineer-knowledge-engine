@@ -1,24 +1,8 @@
 import re
 
+from app.domain import EVENT_TYPES, PRIMARY_TOPICS
 
 TAXONOMY_POLICY_VERSION = "2026-09-12-v2"
-
-PRIMARY_TOPICS = (
-    "agentic-generative-ai",
-    "machine-learning-classical-ai",
-    "vision-speech-robotics",
-    "data-search-retrieval",
-    "ai-products-engineering-infrastructure",
-    "safety-evaluation-governance",
-)
-
-EVENT_TYPES = (
-    "release-update",
-    "research",
-    "guide",
-    "analysis",
-    "alert",
-)
 
 SOURCE_TYPES = (
     "official-release",

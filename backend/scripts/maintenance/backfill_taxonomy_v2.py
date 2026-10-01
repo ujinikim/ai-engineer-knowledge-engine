@@ -5,13 +5,13 @@ from collections import Counter
 from sqlalchemy import select
 
 
+from app.domain import article_excerpt
 from app.sources import sources_by_slug
 
 from app.db.models import Document
 from app.db.session import SessionLocal
 from app.sources import configured_active_source_slugs
 from app.ingestion.taxonomy_classifier import TaxonomyClassification, TaxonomyClassifier
-from app.ingestion.parsing import article_excerpt
 from app.ingestion.taxonomy import (
     TAXONOMY_POLICY_VERSION,
     classify_topic_with_method,

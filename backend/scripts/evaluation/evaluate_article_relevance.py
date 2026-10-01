@@ -10,11 +10,11 @@ from sqlalchemy import text
 
 from app.core.model_usage import ModelUsage, estimate_chat_cost_usd
 from app.db.session import SessionLocal
+from app.domain import PUBLISHED, evidence_level
 from app.ingestion.relevance import (
     RELEVANCE_POLICY_VERSION,
     ArticleRelevanceService,
 )
-from app.ingestion.policy import PUBLISHED, evidence_level
 from app.sources import configured_active_source_slugs
 
 

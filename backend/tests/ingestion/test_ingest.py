@@ -5,8 +5,8 @@ import uuid
 from types import SimpleNamespace
 
 from app.db.models import Chunk, Document
+from app.domain import PUBLISHED, QUARANTINED, evidence_level
 from app.ingestion.ingest import ArticleIngestor
-from app.ingestion.policy import PUBLISHED, QUARANTINED, evidence_level
 from app.ingestion.relevance import RELEVANCE_POLICY_VERSION, RelevanceDecision
 from app.ingestion.summary import ArticleSummary
 from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION

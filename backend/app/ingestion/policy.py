@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 
+from app.domain import PUBLISHED, QUARANTINED
 from app.ingestion.content_detail import IMPORTANT_SPARSE_EVENT_TYPES
 
 
-PUBLISHED = "published"
-QUARANTINED = "quarantined"
 FETCH_FAILED_STATUSES = ("feed_excerpt_only", "title_only")
 
 
@@ -23,15 +22,6 @@ class IngestionDecision:
 
     def fields(self) -> dict[str, str]:
         return {"ingestion_status": self.status}
-
-
-def evidence_level(*, extraction_status: str, ingestion_status: str) -> str:
-    """API evidence label; a published feed excerpt is one its source approved."""
-    if extraction_status == "full_article":
-        return "full_article"
-    if extraction_status == "feed_excerpt_only" and ingestion_status == PUBLISHED:
-        return "official_feed_excerpt"
-    return "source_entry"
 
 
 def evaluate_ingestion_candidate(

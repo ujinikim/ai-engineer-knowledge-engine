@@ -1,10 +1,11 @@
 import math
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import CollectionSourceRun, Document
+from app.domain import article_excerpt, evidence_level
 from app.schemas.updates import (
     DashboardStats,
     TimeWindow,
@@ -13,15 +14,17 @@ from app.schemas.updates import (
     UpdateListResponse,
     UpdateSourceItem,
 )
-from app.ingestion.policy import PUBLISHED, evidence_level
-from app.ingestion.relevance import RELEVANCE_TIERS, visible_relevance_tiers
-from app.ingestion.parsing import article_excerpt
+from app.serving.visibility import visible_article_clause
 from app.sources import (
     configured_active_source_slugs,
     configured_sources,
     source_attribute,
     source_slugs_with,
 )
+
+
+DEFAULT_TOPIC = "developer-tools"  # shown for an article stored without a topic
+DEFAULT_SOURCE_TYPE = "official-release"
 
 
 class FeedService:
@@ -74,7 +77,6 @@ class FeedService:
         categories: list[str] | None = None,
         event_types: list[str] | None = None,
         source_types: list[str] | None = None,
-        include_sparse: bool = False,
         include_contextual: bool = False,
         start: datetime | None = None,
         end: datetime | None = None,
@@ -83,10 +85,8 @@ class FeedService:
         window_end = self._aware(end) if end else now
         window_start = self._aware(start) if start else self.window_start(window, window_end)
 
-        enabled_sources = configured_active_source_slugs()
-        stmt = select(Document).where(
-            Document.source_name.in_(enabled_sources),
-        )
+        visible = visible_article_clause(include_contextual=include_contextual)
+        stmt = select(Document).where(visible)
         if window_start:
             stmt = stmt.where(Document.published_at >= self._naive(window_start))
         stmt = stmt.where(Document.published_at <= self._naive(window_end))
@@ -94,44 +94,29 @@ class FeedService:
             stmt = stmt.where(Document.source_name.in_(source_names))
         if tools:
             stmt = stmt.where(Document.source_name.in_(source_slugs_with("tool", tools)))
+        if categories:
+            stmt = stmt.where(func.coalesce(Document.primary_topic, DEFAULT_TOPIC).in_(categories))
+        if event_types:
+            stmt = stmt.where(Document.event_types.overlap(event_types))
+        if source_types:
+            stmt = stmt.where(
+                Document.source_name.in_(source_slugs_with("source_type", source_types, DEFAULT_SOURCE_TYPE))
+            )
         documents = list(self.db.scalars(stmt).all())
-        explicit_sparse_context = bool(source_names or tools)
-        documents = [
-            document
-            for document in documents
-            if (
-                self._is_feed_visible(
-                    document,
-                    include_sparse=include_sparse,
-                    explicit_sparse_context=explicit_sparse_context,
-                    include_contextual=include_contextual,
-                )
-                and self._matches_taxonomy(
-                    document,
-                    categories=categories,
-                    event_types=event_types,
-                    source_types=source_types,
-                )
-            )
-        ]
         enabled_sources = configured_sources()
-        all_updates = list(
-            self.db.scalars(
-                select(Document).where(
-                    Document.source_name.in_(configured_active_source_slugs()),
-                )
-            ).all()
+        # Facets describe everything visible, not just the current page of filters.
+        all_updates = list(self.db.scalars(select(Document).where(visible)).all())
+        # Equal scores are common (date-only publish dates), so break ties explicitly:
+        # newest first, then by id, so the order never depends on the database's row order.
+        ranked = sorted(
+            documents,
+            key=lambda document: (
+                self.importance_score(document, now),
+                document.published_at or datetime.min,
+                str(document.id),
+            ),
+            reverse=True,
         )
-        all_updates = [
-            document
-            for document in all_updates
-            if self._ingestion_status(document) == PUBLISHED
-            and self._relevance_is_visible(
-                document,
-                include_contextual=include_contextual,
-            )
-        ]
-        ranked = sorted(documents, key=lambda document: self.importance_score(document, now), reverse=True)
         page = ranked[offset : offset + limit]
         published_dates = [document.published_at for document in documents if document.published_at]
 
@@ -203,9 +188,9 @@ class FeedService:
             source_type=self._source_type(document),
             evidence_level=evidence_level(
                 extraction_status=document.extraction_status,
-                ingestion_status=self._ingestion_status(document),
+                ingestion_status=document.ingestion_status,
             ),
-            relevance_tier=self._relevance_tier(document),
+            relevance_tier=document.relevance_tier,
             relevance_reason=document.relevance_reason or "",
             excerpt=excerpt,
             display_headline=document.display_headline or document.title,
@@ -217,63 +202,14 @@ class FeedService:
             importance_score=self.importance_score(document, now),
         )
 
-    def _is_feed_visible(
-        self,
-        document: Document,
-        *,
-        include_sparse: bool,
-        explicit_sparse_context: bool,
-        include_contextual: bool = False,
-    ) -> bool:
-        if self._ingestion_status(document) != PUBLISHED:
-            return False
-        if not self._relevance_is_visible(
-            document,
-            include_contextual=include_contextual,
-        ):
-            return False
-        del include_sparse, explicit_sparse_context
-        return True
-
-    def _relevance_is_visible(
-        self,
-        document: Document,
-        *,
-        include_contextual: bool,
-    ) -> bool:
-        tier = self._relevance_tier(document)
-        return tier in visible_relevance_tiers(include_contextual=include_contextual)
-
-    def _relevance_tier(self, document: Document) -> str | None:
-        return document.relevance_tier if document.relevance_tier in RELEVANCE_TIERS else None
-
-    def _ingestion_status(self, document: Document) -> str:
-        return document.ingestion_status or PUBLISHED
-
-    def _matches_taxonomy(
-        self,
-        document: Document,
-        *,
-        categories: list[str] | None,
-        event_types: list[str] | None,
-        source_types: list[str] | None,
-    ) -> bool:
-        if categories and self._topic(document) not in categories:
-            return False
-        if event_types and not set(event_types).intersection(document.event_types or []):
-            return False
-        if source_types and self._source_type(document) not in source_types:
-            return False
-        return True
-
     def _topic(self, document: Document) -> str:
-        return document.primary_topic or "developer-tools"
+        return document.primary_topic or DEFAULT_TOPIC
 
     def _source(self, document: Document, key: str) -> str:
         return str(source_attribute(document.source_name, key) or "unknown")
 
     def _source_type(self, document: Document) -> str:
-        return str(source_attribute(document.source_name, "source_type", "official-release"))
+        return str(source_attribute(document.source_name, "source_type", DEFAULT_SOURCE_TYPE))
 
     def _utc(self, value: datetime | None) -> datetime | None:
         return self._aware(value) if value else None
