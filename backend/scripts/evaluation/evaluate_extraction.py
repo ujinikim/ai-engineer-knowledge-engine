@@ -1,6 +1,5 @@
 import argparse
 import json
-import sys
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,12 +7,11 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.models import Document
 from app.db.session import SessionLocal
 from app.evaluation.extraction_quality import ExtractionQualityService
-from scripts._source_config import update_source_map
+from app.sources import sources_by_slug
 from scripts._review_io import review_items_by_key
 
 
@@ -110,7 +108,7 @@ def main() -> None:
 
     service = ExtractionQualityService()
     documents = load_documents(arguments.source)
-    source_configs = update_source_map()
+    source_configs = sources_by_slug()
     evaluations = [
         service.evaluate(
             document,

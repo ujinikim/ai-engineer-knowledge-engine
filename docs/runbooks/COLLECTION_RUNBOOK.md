@@ -6,7 +6,7 @@
 docker compose up -d postgres
 cd backend
 uv sync
-uv run python scripts/create_db.py
+uv run python -m scripts.create_db
 ```
 
 ## Review Sources
@@ -23,14 +23,14 @@ pages keep the publication date outside the content selector can set `date_selec
 ## Collect Once
 
 ```bash
-uv run python scripts/collect_updates.py --max-items 12
+uv run python -m scripts.collect_updates --max-items 12
 ```
 
 Collect one or more sources during remediation:
 
 ```bash
-uv run python scripts/collect_updates.py --max-items 12 --source langchain-blog
-uv run python scripts/collect_updates.py --max-items 12 \
+uv run python -m scripts.collect_updates --max-items 12 --source langchain-blog
+uv run python -m scripts.collect_updates --max-items 12 \
   --source langchain-blog --source microsoft-foundry --source anthropic-engineering
 ```
 
@@ -86,8 +86,8 @@ start, per-source, token/cost, completion, overlap, and failure events. See
 ## Backfill Existing Updates
 
 ```bash
-uv run python scripts/maintenance/backfill_article_summaries.py
-uv run python scripts/maintenance/backfill_taxonomy_v2.py --dry-run --limit 25
+uv run python -m scripts.maintenance.backfill_article_summaries
+uv run python -m scripts.maintenance.backfill_taxonomy_v2 --dry-run --limit 25
 ```
 
 The summary backfill generates missing article cards. Use `--force` to regenerate
@@ -139,7 +139,7 @@ embedded, or retrieved.
 ## Run Continuously
 
 ```bash
-uv run python scripts/collect_updates.py --max-items 12 --interval-minutes 60
+uv run python -m scripts.collect_updates --max-items 12 --interval-minutes 60
 ```
 
 The interval option remains useful for local development. Production uses a one-shot

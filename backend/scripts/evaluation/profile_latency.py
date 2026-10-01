@@ -1,11 +1,9 @@
 import json
 import statistics
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.session import SessionLocal
 from app.schemas.ask import AskRequest

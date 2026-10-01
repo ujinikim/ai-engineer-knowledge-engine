@@ -1,13 +1,11 @@
 import argparse
 import json
-import sys
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import select
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.models import Document
 from app.db.session import SessionLocal

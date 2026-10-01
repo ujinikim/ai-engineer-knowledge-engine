@@ -25,6 +25,7 @@ LABEL org.opencontainers.image.source="https://github.com/ujinikim/ai-engineer-k
 
 ENV APP_ENVIRONMENT=production \
     PATH="/app/.venv/bin:${PATH}" \
+    PYTHONPATH=/app \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 

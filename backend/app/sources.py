@@ -39,3 +39,7 @@ def source_slugs_with(key: str, values: list[str], default=None) -> list[str]:
         for source in configured_sources()
         if source.get(key, default) in values
     ]
+
+
+def sources_by_slug() -> dict[str, dict]:
+    return {source["slug"]: source for source in configured_sources()}

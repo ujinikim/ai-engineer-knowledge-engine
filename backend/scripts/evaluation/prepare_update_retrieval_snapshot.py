@@ -1,7 +1,6 @@
 import argparse
 import hashlib
 import json
-import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -9,7 +8,6 @@ from typing import Any
 
 from sqlalchemy import func, select
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.core.settings import settings
 from app.db.models import Chunk, Document

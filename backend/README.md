@@ -8,11 +8,11 @@ FastAPI backend for ingestion, retrieval, and answer generation.
 uv sync
 docker compose up -d postgres
 uv run alembic upgrade head
-uv run python scripts/collect_updates.py --max-items 12
+uv run python -m scripts.collect_updates --max-items 12
 uv run fastapi dev app/main.py
 ```
 
-`uv run python scripts/create_db.py` remains as a compatibility command and now runs
+`uv run python -m scripts.create_db` remains as a compatibility command and now runs
 the same Alembic upgrade rather than executing a separate SQL schema file.
 
 ## Database migrations

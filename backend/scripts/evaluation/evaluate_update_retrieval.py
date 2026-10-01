@@ -1,7 +1,6 @@
 import argparse
 import json
 import statistics
-import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -9,7 +8,6 @@ from typing import Any, Iterable
 
 import yaml
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.session import SessionLocal
 from app.schemas.search import RetrievedChunk, SearchRequest

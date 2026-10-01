@@ -1,10 +1,7 @@
 import argparse
-from pathlib import Path
-import sys
 
 from sqlalchemy import text
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.session import engine
 

@@ -1,14 +1,11 @@
 import argparse
 import json
-import sys
 from collections import Counter
-from pathlib import Path
 
 from sqlalchemy import select
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from scripts._source_config import update_source_map
+from app.sources import sources_by_slug
 
 from app.db.models import Document
 from app.db.session import SessionLocal
@@ -23,7 +20,7 @@ from app.ingestion.taxonomy import (
 
 
 def load_sources() -> dict[str, dict]:
-    return update_source_map()
+    return sources_by_slug()
 
 
 def classify_excerpt(document: Document, config: dict) -> TaxonomyClassification:

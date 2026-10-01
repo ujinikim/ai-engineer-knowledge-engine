@@ -65,6 +65,7 @@ jobs:
       - name: Verify database migration lifecycle
         env:
           APP_ENVIRONMENT: test
+          PYTHONPATH: backend
           DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/knowledge_engine
         run: |
           uv run --project backend alembic -c backend/alembic.ini upgrade head

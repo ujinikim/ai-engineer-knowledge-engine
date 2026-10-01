@@ -26,13 +26,19 @@ tests, lint, and a real collection run.
 - Remove legacy taxonomy lists (the database now rejects legacy values), defensive
   `getattr(document, ...)` fallbacks left from untyped rows, and `datetime.utcnow`.
 
-## Phase 3: Scripts
+## Phase 3: Scripts (done)
 
-- Run scripts as `python -m scripts...` and drop the `sys.path.append` lines.
-- Remove the `_source_config.py` wrapper around `app/sources.py`.
-- Retire stale review tooling: hardcoded IDs and titles from removed sources in
-  `prepare_feed_relevance_review.py`, the taxonomy v1 review, and the always-empty
-  relevance field in the taxonomy v2 review output.
+- Scripts run as `python -m scripts.<module>`; the 17 `sys.path.append` lines are gone.
+  The image sets `PYTHONPATH=/app`, so the production command
+  `python scripts/collect_updates.py` is unchanged (the Terraform user-data template
+  replaces the instance on change, so it was deliberately not edited), and CI sets
+  `PYTHONPATH: backend` for its verification step.
+- Removed the `_source_config.py` wrapper; scripts use `app.sources.sources_by_slug()`.
+- Retired the taxonomy v1 review tools and archived their runbook, and removed hardcoded
+  article IDs and titles from removed sources in `prepare_feed_relevance_review.py`
+  (with the five tests that only pinned those lookups).
+- Left in place: the `relevance` entry in the taxonomy v2 review output, which keeps
+  existing review keys stable.
 
 ## Phase 4: Tests
 

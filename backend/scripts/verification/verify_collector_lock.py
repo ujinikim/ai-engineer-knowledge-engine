@@ -1,9 +1,6 @@
-import sys
-from pathlib import Path
 
 from sqlalchemy import text
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.session import engine
 from app.ingestion.lock import COLLECTOR_LOCK_NAME, collector_run_lock

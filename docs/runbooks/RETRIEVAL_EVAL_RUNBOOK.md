@@ -20,13 +20,13 @@ Create or intentionally refresh a snapshot:
 
 ```bash
 cd backend
-uv run python scripts/evaluation/prepare_update_retrieval_snapshot.py
+uv run python -m scripts.evaluation.prepare_update_retrieval_snapshot
 ```
 
 Run the exact-document evaluator:
 
 ```bash
-uv run python scripts/evaluation/evaluate_update_retrieval.py \
+uv run python -m scripts.evaluation.evaluate_update_retrieval \
   --search-mode hybrid \
   --retrieval-strategy standard \
   --output data/eval/retrieval/updates_tuned_hybrid_standard.json
@@ -35,11 +35,11 @@ uv run python scripts/evaluation/evaluate_update_retrieval.py \
 Useful isolated runs:
 
 ```bash
-uv run python scripts/evaluation/evaluate_update_retrieval.py \
+uv run python -m scripts.evaluation.evaluate_update_retrieval \
   --split calibration \
   --search-mode hybrid
 
-uv run python scripts/evaluation/evaluate_update_retrieval.py \
+uv run python -m scripts.evaluation.evaluate_update_retrieval \
   --intent exact_lookup \
   --top-k 5 \
   --search-mode hybrid

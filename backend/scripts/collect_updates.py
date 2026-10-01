@@ -1,15 +1,12 @@
 import argparse
 import asyncio
 import logging
-import sys
 import time
 import uuid
 from dataclasses import asdict
-from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from scripts._source_config import load_update_sources
+from app.sources import configured_sources
 from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event
 from app.db.session import SessionLocal, engine
@@ -25,7 +22,7 @@ class CollectionRunFailed(RuntimeError):
 
 
 def load_sources(source_slugs: list[str] | None = None) -> list[dict]:
-    sources = load_update_sources()
+    sources = list(configured_sources())
     if not source_slugs:
         return [source for source in sources if source.get("enabled", True)]
 

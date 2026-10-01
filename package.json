@@ -7,7 +7,7 @@
     "db:up": "docker compose up -d postgres",
     "db:stop": "docker compose stop postgres",
     "db:logs": "docker compose logs -f postgres",
-    "db:migrate": "cd backend && uv run python scripts/create_db.py",
-    "ingest": "cd backend && uv run python scripts/collect_updates.py"
+    "db:migrate": "cd backend && uv run python -m scripts.create_db",
+    "ingest": "cd backend && uv run python -m scripts.collect_updates"
   }
 }

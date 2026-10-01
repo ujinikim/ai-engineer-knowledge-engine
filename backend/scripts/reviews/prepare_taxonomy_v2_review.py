@@ -1,14 +1,12 @@
 import argparse
 import hashlib
 import json
-import sys
 from collections import Counter, defaultdict, deque
 from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import select
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.models import Document
 from app.db.session import SessionLocal

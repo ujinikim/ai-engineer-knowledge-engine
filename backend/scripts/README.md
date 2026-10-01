@@ -1,6 +1,6 @@
 # Backend commands
 
-Run these from `backend/` with `uv run python scripts/<path>.py`.
+Run these from `backend/` with `uv run python -m scripts.<module>` (for example `scripts.collect_updates`).
 
 | Location | Purpose |
 | --- | --- |

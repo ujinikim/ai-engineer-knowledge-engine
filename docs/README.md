@@ -14,14 +14,14 @@ earlier decisions or evaluations; they are not current instructions.
 
 ## Operating guides
 
-- [Collection](runbooks/COLLECTION_RUNBOOK.md), [extraction review](runbooks/EXTRACTION_EVAL_RUNBOOK.md), [summary review](runbooks/SUMMARY_EVAL_RUNBOOK.md), [taxonomy review](runbooks/TAXONOMY_REVIEW_RUNBOOK.md), [feed relevance review](runbooks/FEED_RELEVANCE_REVIEW_RUNBOOK.md), and [retrieval evaluation](runbooks/RETRIEVAL_EVAL_RUNBOOK.md).
+- [Collection](runbooks/COLLECTION_RUNBOOK.md), [extraction review](runbooks/EXTRACTION_EVAL_RUNBOOK.md), [summary review](runbooks/SUMMARY_EVAL_RUNBOOK.md), [feed relevance review](runbooks/FEED_RELEVANCE_REVIEW_RUNBOOK.md), and [retrieval evaluation](runbooks/RETRIEVAL_EVAL_RUNBOOK.md).
 - [Deployment plan](DEPLOYMENT_PLAN.md), [EC2 runtime](runbooks/EC2_RUNTIME_RUNBOOK.md), [AWS observability](runbooks/AWS_OBSERVABILITY_RUNBOOK.md), and [application observability](runbooks/OBSERVABILITY_RUNBOOK.md).
 - [Terraform instructions](../infra/terraform/README.md) and [demo script](DEMO_SCRIPT.md).
 
 ## Historical plans and findings
 
 - [Original documentation pipeline plan](archive/AFTER_COLLECTION_PLAN.md), [quality improvement plan](archive/QUALITY_IMPROVEMENT_PLAN.md), [MVP status snapshot](archive/MVP_STATUS.md), and [evaluation overview](EVALUATION.md).
-- [Phase 2 remediation backlog](archive/PHASE2_REMEDIATION_BACKLOG.md), [taxonomy remediation plan](archive/TAXONOMY_REMEDIATION_PLAN.md), and [taxonomy findings](archive/TAXONOMY_REVIEW_FINDINGS_2026-07-26.md).
+- [Phase 2 remediation backlog](archive/PHASE2_REMEDIATION_BACKLOG.md), [taxonomy remediation plan](archive/TAXONOMY_REMEDIATION_PLAN.md), and [taxonomy findings](archive/TAXONOMY_REVIEW_FINDINGS_2026-07-26.md), and the [v1 taxonomy review runbook](archive/TAXONOMY_REVIEW_RUNBOOK_V1.md).
 - [Phase 3 benchmark plan](archive/PHASE3_RETRIEVAL_BENCHMARK_PLAN.md), [baseline findings](archive/PHASE3_RETRIEVAL_BASELINE_FINDINGS_2026-07-27.md), [retrieval upgrades](archive/RETRIEVAL_UPGRADES.md), and [closeout](archive/PHASE3_CLOSEOUT_2026-07-29.md).
 - [Original feed relevance proposal](archive/FEED_RELEVANCE_POLICY_PROPOSAL.md) and [August 2026 deployment record](archive/DEPLOYMENT_RECORD_2026-08-04.md).
 

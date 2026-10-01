@@ -7,7 +7,6 @@ from pathlib import Path
 
 from sqlalchemy import text
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.core.model_usage import ModelUsage, estimate_chat_cost_usd
 from app.db.session import SessionLocal

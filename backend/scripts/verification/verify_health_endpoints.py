@@ -1,10 +1,7 @@
 import asyncio
-from pathlib import Path
-import sys
 
 from httpx import ASGITransport, AsyncClient
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.main import app
 
