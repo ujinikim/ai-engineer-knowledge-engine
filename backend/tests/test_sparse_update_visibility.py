@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 from app.ingestion.content_detail import classify_content_detail
-from app.serving.feed import UpdateService
+from app.serving.feed import FeedService
 
 
 def make_document(
@@ -40,7 +40,7 @@ def test_content_detail_classifies_sparse_and_detailed_sources() -> None:
 
 
 def test_sparse_detail_alone_does_not_hide_published_core_document() -> None:
-    service = UpdateService.__new__(UpdateService)
+    service = FeedService.__new__(FeedService)
     document = make_document()
 
     assert service._is_feed_visible(
@@ -51,7 +51,7 @@ def test_sparse_detail_alone_does_not_hide_published_core_document() -> None:
 
 
 def test_explicit_inclusion_and_source_or_tool_context_show_sparse_document() -> None:
-    service = UpdateService.__new__(UpdateService)
+    service = FeedService.__new__(FeedService)
     document = make_document()
 
     assert service._is_feed_visible(
@@ -67,7 +67,7 @@ def test_explicit_inclusion_and_source_or_tool_context_show_sparse_document() ->
 
 
 def test_quarantined_document_stays_hidden_even_when_sparse_is_requested() -> None:
-    service = UpdateService.__new__(UpdateService)
+    service = FeedService.__new__(FeedService)
     document = make_document(event_types=["security-issue"])
     document.ingestion_status = "quarantined"
 
@@ -84,7 +84,7 @@ def test_quarantined_document_stays_hidden_even_when_sparse_is_requested() -> No
 
 
 def test_approved_official_sparse_excerpt_can_appear_in_feed() -> None:
-    service = UpdateService.__new__(UpdateService)
+    service = FeedService.__new__(FeedService)
     document = make_document()
     document.evidence_level = "official_feed_excerpt"
 
@@ -96,7 +96,7 @@ def test_approved_official_sparse_excerpt_can_appear_in_feed() -> None:
 
 
 def test_low_lexical_grounding_does_not_control_visibility() -> None:
-    service = UpdateService.__new__(UpdateService)
+    service = FeedService.__new__(FeedService)
     document = make_document()
     document.doc_metadata["summary_quality_warnings"] = ["low_lexical_grounding"]
 
@@ -108,7 +108,7 @@ def test_low_lexical_grounding_does_not_control_visibility() -> None:
 
 
 def test_contextual_feed_entries_require_explicit_inclusion() -> None:
-    service = UpdateService.__new__(UpdateService)
+    service = FeedService.__new__(FeedService)
     document = make_document()
     document.relevance_tier = "contextual"
 
@@ -126,7 +126,7 @@ def test_contextual_feed_entries_require_explicit_inclusion() -> None:
 
 
 def test_excluded_feed_entries_stay_hidden_when_contextual_is_included() -> None:
-    service = UpdateService.__new__(UpdateService)
+    service = FeedService.__new__(FeedService)
     document = make_document()
     document.relevance_tier = "excluded"
 

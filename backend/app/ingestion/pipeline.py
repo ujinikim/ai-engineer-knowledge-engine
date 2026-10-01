@@ -76,7 +76,7 @@ class CollectionResult:
     estimated_model_cost_usd: float | None = None
 
 
-class UpdateCollectorService:
+class IngestionPipeline:
     run_id: str | None = None
 
     def __init__(self, db: Session) -> None:

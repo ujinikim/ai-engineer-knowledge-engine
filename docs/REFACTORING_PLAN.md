@@ -20,7 +20,7 @@ tests, lint, and a real collection run.
 
 ## Phase 2: Consistent names and dead code
 
-- Class names match their files: `IngestionPipeline`, `SearchService`, `FeedService`.
+- Class names match their files (`IngestionPipeline`, `SearchService`, `FeedService`) (done).
 - One word per concept: "article" internally; "update" only in API paths. Add a short
   glossary to `ARCHITECTURE.md`.
 - Remove legacy taxonomy lists (the database now rejects legacy values), defensive

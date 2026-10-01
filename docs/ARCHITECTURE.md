@@ -76,3 +76,14 @@ In a hosted deployment, the collector should run as a separate scheduled worker 
 - HTML-only publications use explicit listing-link patterns and article-content selectors. The collector does not perform broad crawling.
 - Ranking has no engagement signal.
 - The API response is not streamed yet.
+
+## Glossary
+
+One thing, three names; use the right one for the layer:
+
+| Word | Where | Meaning |
+|---|---|---|
+| article | code and docs | A collected piece of content: the unit ingestion decides on |
+| document | database | The `documents` table row that stores an article (`chunks` belong to it) |
+| update | API paths and `collection_source_runs` counters | Legacy name for an article in the feed; kept for URL and schema stability |
+

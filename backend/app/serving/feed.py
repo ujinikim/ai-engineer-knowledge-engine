@@ -14,7 +14,7 @@ from app.schemas.updates import (
     UpdateSourceItem,
 )
 from app.ingestion.policy import PUBLISHED, evidence_level
-from app.ingestion.relevance import visible_relevance_tiers
+from app.ingestion.relevance import RELEVANCE_TIERS, visible_relevance_tiers
 from app.ingestion.parsing import article_excerpt
 from app.sources import (
     configured_active_source_slugs,
@@ -24,7 +24,7 @@ from app.sources import (
 )
 
 
-class UpdateService:
+class FeedService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
@@ -206,10 +206,7 @@ class UpdateService:
                 ingestion_status=self._ingestion_status(document),
             ),
             relevance_tier=self._relevance_tier(document),
-            relevance_reason=str(
-                getattr(document, "relevance_reason", None)
-                or ""
-            ),
+            relevance_reason=document.relevance_reason or "",
             excerpt=excerpt,
             display_headline=document.display_headline or document.title,
             summary=document.summary or excerpt,
@@ -248,12 +245,10 @@ class UpdateService:
         return tier in visible_relevance_tiers(include_contextual=include_contextual)
 
     def _relevance_tier(self, document: Document) -> str | None:
-        canonical = getattr(document, "relevance_tier", None)
-        return str(canonical) if canonical in {"core", "contextual", "excluded"} else None
+        return document.relevance_tier if document.relevance_tier in RELEVANCE_TIERS else None
 
     def _ingestion_status(self, document: Document) -> str:
-        canonical = getattr(document, "ingestion_status", None)
-        return str(canonical) if canonical else PUBLISHED
+        return document.ingestion_status or PUBLISHED
 
     def _matches_taxonomy(
         self,
@@ -272,10 +267,7 @@ class UpdateService:
         return True
 
     def _topic(self, document: Document) -> str:
-        return str(
-            getattr(document, "primary_topic", None)
-            or "developer-tools"
-        )
+        return document.primary_topic or "developer-tools"
 
     def _source(self, document: Document, key: str) -> str:
         return str(source_attribute(document.source_name, key) or "unknown")

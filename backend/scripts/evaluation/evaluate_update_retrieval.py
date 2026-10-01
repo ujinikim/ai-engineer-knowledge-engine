@@ -13,7 +13,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from app.db.session import SessionLocal
 from app.schemas.search import RetrievedChunk, SearchRequest
-from app.serving.search import RetrieverService
+from app.serving.search import SearchService
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -195,7 +195,7 @@ def validate_question_set(payload: dict[str, Any], snapshot: dict[str, Any]) -> 
 
 
 def evaluate_question(
-    retriever: RetrieverService,
+    retriever: SearchService,
     item: dict[str, Any],
     *,
     search_mode: str | None,
@@ -349,7 +349,7 @@ def main() -> None:
         ]
 
     with SessionLocal() as db:
-        retriever = RetrieverService(db)
+        retriever = SearchService(db)
         rows = [
             evaluate_question(
                 retriever,

@@ -14,7 +14,7 @@ from app.core.settings import settings
 from app.core.structured_logging import get_logger, log_event
 from app.db.session import SessionLocal, engine
 from app.ingestion.lock import collector_run_lock
-from app.ingestion.pipeline import UpdateCollectorService
+from app.ingestion.pipeline import IngestionPipeline
 
 
 logger = get_logger("collector.runner")
@@ -61,7 +61,7 @@ async def collect_once(max_items: int, source_slugs: list[str] | None = None) ->
                 max_items_per_source=max_items,
             )
             with SessionLocal() as db:
-                result = await UpdateCollectorService(db).collect(
+                result = await IngestionPipeline(db).collect(
                     sources,
                     max_items_per_source=max_items,
                     run_id=run_id,

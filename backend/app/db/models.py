@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
@@ -74,7 +74,7 @@ class Document(Base):
     raw_text: Mapped[str] = mapped_column(Text)
     content_hash: Mapped[str] = mapped_column(String(128))
     fetched_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, server_default=func.now()
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), server_default=func.now()
     )
     published_at: Mapped[datetime | None] = mapped_column(DateTime)
     ingestion_status: Mapped[str] = mapped_column(

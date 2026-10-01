@@ -11,8 +11,8 @@ from app.schemas.search import SearchRequest, SearchResponse
 from app.schemas.updates import TimeWindow, UpdateListResponse, UpdateSourceItem
 from app.serving.answer import AnswerService
 from app.serving.health import DatabaseReadinessChecker, ReadinessCheckError
-from app.serving.search import RetrieverService
-from app.serving.feed import UpdateService
+from app.serving.search import SearchService
+from app.serving.feed import FeedService
 
 router = APIRouter()
 
@@ -50,7 +50,7 @@ def health_ready(
 
 @router.get("/update-sources", response_model=list[UpdateSourceItem])
 def update_sources(db: Session = Depends(get_db)) -> list[UpdateSourceItem]:
-    return UpdateService(db).list_sources()
+    return FeedService(db).list_sources()
 
 
 @router.get("/updates", response_model=UpdateListResponse)
@@ -69,7 +69,7 @@ def updates(
     end: datetime | None = None,
     db: Session = Depends(get_db),
 ) -> UpdateListResponse:
-    return UpdateService(db).list_updates(
+    return FeedService(db).list_updates(
         window=window,
         limit=limit,
         offset=offset,
@@ -87,7 +87,7 @@ def updates(
 
 @router.post("/search", response_model=SearchResponse)
 def search(request: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse:
-    return RetrieverService(db).search(request)
+    return SearchService(db).search(request)
 
 
 @router.post("/ask", response_model=AskResponse)

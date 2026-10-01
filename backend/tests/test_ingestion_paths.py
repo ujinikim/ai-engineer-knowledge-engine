@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from sqlalchemy.sql.dml import Delete
 
 from app.db.models import Chunk, Document
-from app.ingestion.pipeline import UpdateCollectorService
+from app.ingestion.pipeline import IngestionPipeline
 from app.ingestion.relevance import RELEVANCE_POLICY_VERSION, RelevanceDecision
 from app.ingestion.summary import ArticleSummary
 from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION
@@ -61,7 +61,7 @@ class MustNotRun:
 
 
 def make_collector(db: FakeDatabase, *, relevance=None, summarizer=None, chunker=None, embedder=None):
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector = IngestionPipeline.__new__(IngestionPipeline)
     collector.db = db
     collector.relevance = relevance or MustNotRun("relevance")
     collector.summarizer = summarizer or MustNotRun("summarizer")

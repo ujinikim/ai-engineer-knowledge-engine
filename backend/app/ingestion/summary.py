@@ -79,7 +79,7 @@ class ArticleSummaryService:
         if not self.client:
             return fallback
 
-        model = getattr(self, "model", settings.chat_model)
+        model = self.model
         try:
             response = self.client.chat.completions.create(
                 model=model,
@@ -141,7 +141,7 @@ class ArticleSummaryService:
             key_points=clean_text_list(payload.get("key_points"), fallback.key_points, 4, 180),
             primary_topic=primary_topic,
             event_types=event_types,
-            generated_by=f"{getattr(self, 'model', settings.chat_model)}:{source_type}",
+            generated_by=f"{self.model}:{source_type}",
         )
 
     @staticmethod

@@ -10,10 +10,7 @@ from app.ingestion.content_detail import classify_content_detail
 from app.sources import source_attribute
 from app.ingestion.taxonomy import (
     EVENT_TYPES,
-    LEGACY_EVENT_TYPES,
-    LEGACY_PRIMARY_TOPICS,
     PRIMARY_TOPICS,
-    TAXONOMY_POLICY_VERSION,
 )
 
 
@@ -118,7 +115,7 @@ class SummaryQualityService:
         summary = self._text(document.summary)
         why_it_matters = self._text(document.why_it_matters)
         key_points = self._text_list(document.key_points)
-        primary_topic = self._text(getattr(document, "primary_topic", None))
+        primary_topic = self._text(document.primary_topic)
         event_types = self._text_list(document.event_types)
         generated_by = self._text(document.summary_generated_by) or "unknown"
         source_type = self._text(source_attribute(str(document.source_name), "source_type")) or "unknown"
@@ -168,14 +165,11 @@ class SummaryQualityService:
         )
         if generated_text and grounding_overlap < grounding_threshold:
             warnings.append("low_lexical_grounding")
-        is_v2 = document.taxonomy_policy_version == TAXONOMY_POLICY_VERSION
-        allowed_topics = PRIMARY_TOPICS if is_v2 else PRIMARY_TOPICS + LEGACY_PRIMARY_TOPICS
-        allowed_events = EVENT_TYPES if is_v2 else EVENT_TYPES + LEGACY_EVENT_TYPES
-        if primary_topic and primary_topic not in allowed_topics:
+        if primary_topic and primary_topic not in PRIMARY_TOPICS:
             failures.append("invalid_primary_topic")
-        if event_types and any(event not in allowed_events for event in event_types):
+        if event_types and any(event not in EVENT_TYPES for event in event_types):
             failures.append("invalid_event_type")
-        if is_v2 and len(event_types) > 1:
+        if len(event_types) > 1:
             failures.append("multiple_event_types")
         if generated_by == "deterministic-fallback":
             warnings.append("deterministic_fallback_summary")

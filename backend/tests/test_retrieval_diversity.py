@@ -8,7 +8,7 @@ from sqlalchemy.dialects import postgresql
 from app.db.models import Chunk, Document
 from app.schemas.ask import AskRequest
 from app.schemas.search import SearchRequest
-from app.serving.search import Candidate, RetrieverService
+from app.serving.search import Candidate, SearchService
 
 
 def candidate(
@@ -24,7 +24,7 @@ def candidate(
 
 
 def test_retrieval_limits_chunks_per_document():
-    service = RetrieverService.__new__(RetrieverService)
+    service = SearchService.__new__(SearchService)
     candidates = [candidate("a"), candidate("a"), candidate("a"), candidate("b"), candidate("c")]
 
     selected = service._diversify_documents(candidates, limit=4, max_per_document=2)
@@ -33,7 +33,7 @@ def test_retrieval_limits_chunks_per_document():
 
 
 def test_retrieval_skips_title_only_chunks_when_document_has_substantive_candidates():
-    service = RetrieverService.__new__(RetrieverService)
+    service = SearchService.__new__(SearchService)
     candidates = [
         candidate("a", title="Release A", content="Release A"),
         candidate("a", title="Release A", content="Release A\n\nDetailed change."),
@@ -47,7 +47,7 @@ def test_retrieval_skips_title_only_chunks_when_document_has_substantive_candida
 
 
 def test_keyword_scoring_rewards_distinctive_title_matches() -> None:
-    service = RetrieverService.__new__(RetrieverService)
+    service = SearchService.__new__(SearchService)
     query = "Which vLLM release candidate fixed P/D with the DP Supervisor?"
     terms = service._keyword_terms(query)
 
@@ -68,7 +68,7 @@ def test_keyword_scoring_rewards_distinctive_title_matches() -> None:
 
 
 def test_keyword_terms_drop_generic_update_language() -> None:
-    service = RetrieverService.__new__(RetrieverService)
+    service = SearchService.__new__(SearchService)
 
     terms = service._keyword_terms("What did OpenAI announce in the GPT-Live update?")
 
@@ -76,7 +76,7 @@ def test_keyword_terms_drop_generic_update_language() -> None:
 
 
 def test_keyword_normalization_treats_common_separators_as_spaces() -> None:
-    service = RetrieverService.__new__(RetrieverService)
+    service = SearchService.__new__(SearchService)
 
     terms = service._keyword_terms(
         "Compare agent-security, agent_security, and agent/security."
@@ -86,7 +86,7 @@ def test_keyword_normalization_treats_common_separators_as_spaces() -> None:
 
 
 def test_keyword_scoring_matches_hyphenated_query_to_spaced_title() -> None:
-    service = RetrieverService.__new__(RetrieverService)
+    service = SearchService.__new__(SearchService)
     query = "DeepMind agent-security"
     terms = service._keyword_terms(query)
 
@@ -108,7 +108,7 @@ def test_keyword_scoring_matches_hyphenated_query_to_spaced_title() -> None:
 
 
 def test_update_retrieval_only_queries_published_documents() -> None:
-    service = RetrieverService.__new__(RetrieverService)
+    service = SearchService.__new__(SearchService)
     statement = service._apply_filters(
         select(Chunk, Document).join(Document, Chunk.document_id == Document.id),
         SearchRequest(query="agents", collection="updates", search_mode="keyword"),
@@ -142,7 +142,7 @@ def test_search_and_answers_accept_only_article_collection() -> None:
 
 
 def test_contextual_retrieval_requires_explicit_inclusion() -> None:
-    service = RetrieverService.__new__(RetrieverService)
+    service = SearchService.__new__(SearchService)
     base = select(Chunk, Document).join(Document, Chunk.document_id == Document.id)
     default_statement = service._apply_filters(
         base,

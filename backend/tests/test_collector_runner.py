@@ -30,7 +30,7 @@ def install_runner_fakes(monkeypatch, result: CollectionResult) -> None:
     monkeypatch.setattr(collect_updates, "collector_run_lock", acquired_lock)
     monkeypatch.setattr(collect_updates, "load_sources", lambda _slugs: [{"slug": "source"}])
     monkeypatch.setattr(collect_updates, "SessionLocal", lambda: nullcontext(object()))
-    monkeypatch.setattr(collect_updates, "UpdateCollectorService", FakeCollector)
+    monkeypatch.setattr(collect_updates, "IngestionPipeline", FakeCollector)
 
 
 def test_default_collection_contains_only_selected_agent_sources() -> None:

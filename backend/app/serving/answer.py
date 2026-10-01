@@ -10,7 +10,7 @@ from app.core.model_usage import estimate_chat_cost_usd
 from app.core.structured_logging import get_logger, log_event
 from app.schemas.ask import AnswerMetrics, AskRequest, AskResponse, Citation
 from app.schemas.search import SearchRequest
-from app.serving.search import RetrieverService
+from app.serving.search import SearchService
 
 
 logger = get_logger("answer")
@@ -25,7 +25,7 @@ class AnswerService:
 
     def answer(self, request: AskRequest) -> AskResponse:
         started = time.perf_counter()
-        retrieval = RetrieverService(self.db).search(
+        retrieval = SearchService(self.db).search(
             SearchRequest(
                 query=request.question,
                 top_k=request.top_k,

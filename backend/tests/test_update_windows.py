@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from sqlalchemy.dialects import postgresql
 
-from app.serving.feed import UpdateService
+from app.serving.feed import FeedService
 from app.ingestion.store import find_existing_article, normalize_url, url_candidates
 
 
@@ -12,7 +12,7 @@ def test_empty_updates_query_builds_enabled_source_filters():
     db = MagicMock()
     db.scalars.return_value.all.return_value = []
 
-    response = UpdateService(db).list_updates(window="week", limit=1, offset=0)
+    response = FeedService(db).list_updates(window="week", limit=1, offset=0)
 
     assert response.stats.total_updates == 0
     assert db.scalars.call_count == 2
@@ -21,10 +21,10 @@ def test_empty_updates_query_builds_enabled_source_filters():
 def test_update_windows_are_rolling_ranges():
     end = datetime(2026, 7, 21, 12, tzinfo=timezone.utc)
 
-    assert UpdateService.window_start("day", end) == end - timedelta(days=1)
-    assert UpdateService.window_start("week", end) == end - timedelta(days=7)
-    assert UpdateService.window_start("month", end) == end - timedelta(days=30)
-    assert UpdateService.window_start("all", end) is None
+    assert FeedService.window_start("day", end) == end - timedelta(days=1)
+    assert FeedService.window_start("week", end) == end - timedelta(days=7)
+    assert FeedService.window_start("month", end) == end - timedelta(days=30)
+    assert FeedService.window_start("all", end) is None
 
 
 def test_document_urls_normalize_trailing_slashes_without_losing_fragments():

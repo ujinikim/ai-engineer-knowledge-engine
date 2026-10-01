@@ -27,6 +27,7 @@ def test_unknown_model_does_not_receive_a_misleading_cost() -> None:
 def test_summary_service_records_api_usage_without_recording_prompt_text() -> None:
     usage = ModelUsage()
     service = ArticleSummaryService.__new__(ArticleSummaryService)
+    service.model = "gpt-test"
     service.usage = usage
     service.client = Mock()
     service.client.chat.completions.create.return_value = SimpleNamespace(

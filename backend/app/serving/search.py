@@ -30,7 +30,7 @@ class Candidate:
     combined_score: float = 0
 
 
-class RetrieverService:
+class SearchService:
     def __init__(self, db: Session) -> None:
         self.db = db
         self.embedding_service = EmbeddingService()
@@ -403,12 +403,8 @@ class RetrieverService:
         return selected
 
     def _is_title_only_candidate(self, candidate: Candidate) -> bool:
-        title = self._normalize_keyword_text(
-            str(getattr(candidate.document, "title", "") or "")
-        )
-        content = self._normalize_keyword_text(
-            str(getattr(candidate.chunk, "content", "") or "")
-        )
+        title = self._normalize_keyword_text(candidate.document.title or "")
+        content = self._normalize_keyword_text(candidate.chunk.content or "")
         return bool(title and content == title)
 
     def _elapsed_ms(self, started: float) -> int:

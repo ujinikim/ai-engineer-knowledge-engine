@@ -94,9 +94,9 @@ class ExtractionQualityService:
         words = re.findall(r"\b\w+[+#.-]*\b", raw_text)
         source_category = str(source_attribute(document.source_name, "source_type") or "unknown")
         extraction_method = source_kind
-        ingestion_status = str(getattr(document, "ingestion_status", None) or "published")
-        extraction_status = str(getattr(document, "extraction_status", None) or "source_entry")
-        relevance_tier = getattr(document, "relevance_tier", None)
+        ingestion_status = document.ingestion_status
+        extraction_status = document.extraction_status
+        relevance_tier = document.relevance_tier
         chunks_expected = (
             ingestion_status == "published"
             and extraction_status != "feed_excerpt_only"

@@ -20,36 +20,6 @@ EVENT_TYPES = (
     "alert",
 )
 
-# Existing rows remain readable while taxonomy v2 is rolled out by backfill.
-LEGACY_PRIMARY_TOPICS = (
-    "models-apis",
-    "agents-orchestration",
-    "inference-serving",
-    "retrieval-data",
-    "training-fine-tuning",
-    "evaluation-observability",
-    "developer-tools",
-    "infrastructure-hardware",
-    "safety-security",
-)
-
-LEGACY_EVENT_TYPES = (
-    "model-launch",
-    "product-release",
-    "library-release",
-    "api-change",
-    "integration",
-    "research-result",
-    "benchmark-result",
-    "pricing-change",
-    "breaking-change",
-    "deprecation",
-    "security-issue",
-    "incident",
-    "engineering-analysis",
-    "tutorial",
-)
-
 SOURCE_TYPES = (
     "official-release",
     "official-changelog",

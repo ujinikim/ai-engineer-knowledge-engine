@@ -24,10 +24,8 @@ def make_document(
             "Inference latency is improved.",
             "Cache handling is safer.",
         ],
-        "primary_topic": "inference-serving",
-        "topic_tags": ["models-apis"],
-        "event_types": ["product-release"],
-        "entity_tags": ["example-runtime"],
+        "primary_topic": "ai-products-engineering-infrastructure",
+        "event_types": ["release-update"],
         "summary_generated_by": "gpt-test:official-engineering-blog",
         "extraction_status": "full_article",
     }

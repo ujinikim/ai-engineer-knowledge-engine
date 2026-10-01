@@ -6,7 +6,7 @@ from app.ingestion.policy import (
     evaluate_ingestion_candidate,
     evidence_level,
 )
-from app.ingestion.pipeline import UpdateCollectorService
+from app.ingestion.pipeline import IngestionPipeline
 from app.ingestion.relevance import RelevanceDecision
 
 
@@ -86,7 +86,7 @@ def test_quarantined_candidate_skips_summary_and_embeddings() -> None:
         def __getattr__(self, name):
             raise AssertionError(f"{name} should not run for a quarantined candidate")
 
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector = IngestionPipeline.__new__(IngestionPipeline)
     collector.db = FakeDatabase()
     collector.summarizer = MustNotRun()
     collector.relevance = MustNotRun()
@@ -140,7 +140,7 @@ def test_approved_feed_excerpt_skips_summary_and_embeddings_but_publishes() -> N
         def __getattr__(self, name):
             raise AssertionError(f"{name} should not run for feed-only evidence")
 
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector = IngestionPipeline.__new__(IngestionPipeline)
     collector.db = FakeDatabase()
     collector.summarizer = MustNotRun()
     collector.relevance = SimpleNamespace(
@@ -205,7 +205,7 @@ def test_failed_refresh_does_not_replace_an_existing_published_document(caplog) 
         def __getattr__(self, name):
             raise AssertionError(f"{name} should not run for a failed refresh")
 
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector = IngestionPipeline.__new__(IngestionPipeline)
     collector.db = FakeDatabase()
     collector.summarizer = MustNotRun()
     collector.chunker = MustNotRun()
@@ -268,7 +268,7 @@ def test_relevance_excluded_article_skips_summary_chunks_and_embeddings() -> Non
         def __getattr__(self, name):
             raise AssertionError(f"{name} should not run for excluded content")
 
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector = IngestionPipeline.__new__(IngestionPipeline)
     collector.db = FakeDatabase()
     collector.relevance = SimpleNamespace(
         classify=lambda **_kwargs: RelevanceDecision(
@@ -347,7 +347,7 @@ def test_failed_relevance_stays_unclassified_and_retries_without_content_change(
         attempts.append(True)
         return RelevanceDecision(tier=None, reason="Model unavailable.", generated_by="classification-error", status="failed")
 
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector = IngestionPipeline.__new__(IngestionPipeline)
     collector.db = FakeDatabase()
     collector.relevance = SimpleNamespace(classify=classify)
     collector.summarizer = MustNotRun()
@@ -423,7 +423,7 @@ def test_failed_reclassification_keeps_existing_good_article(caplog) -> None:
         def __getattr__(self, name):
             raise AssertionError(f"{name} should not run for failed reclassification")
 
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector = IngestionPipeline.__new__(IngestionPipeline)
     collector.db = FakeDatabase()
     collector.relevance = SimpleNamespace(
         classify=lambda **_kwargs: RelevanceDecision(

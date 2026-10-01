@@ -38,7 +38,7 @@ def make_document(
         content_hash=content_hash or hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
         published_at=published_at,
         fetched_at=fetched_at,
-        **{"relevance_tier": "core", "extraction_status": "full_article", **(metadata or {})},
+        **{"ingestion_status": "published", "relevance_tier": "core", "extraction_status": "full_article", **(metadata or {})},
     )
 
 

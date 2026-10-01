@@ -7,8 +7,8 @@ import httpx
 from app.core.model_usage import ModelUsage
 from app.db.models import CollectionSourceRun
 from app.ingestion import fetch
-from app.ingestion.pipeline import UpdateCollectorService
-from app.serving.feed import UpdateService
+from app.ingestion.pipeline import IngestionPipeline
+from app.serving.feed import FeedService
 
 
 def test_collection_records_success_and_failure_for_one_run(monkeypatch) -> None:
@@ -29,7 +29,7 @@ def test_collection_records_success_and_failure_for_one_run(monkeypatch) -> None
         lambda **kwargs: original_client(transport=transport, **kwargs),
     )
     db = MagicMock()
-    collector = UpdateCollectorService.__new__(UpdateCollectorService)
+    collector = IngestionPipeline.__new__(IngestionPipeline)
     collector.db = db
     collector.usage = ModelUsage()
     collector._upsert_entry = lambda source_slug, config, entry: ("created", 2)
@@ -62,7 +62,7 @@ def test_source_list_comes_from_yaml_without_run_history() -> None:
     db = MagicMock()
     db.scalars.return_value.all.return_value = []
 
-    sources = UpdateService(db).list_sources()
+    sources = FeedService(db).list_sources()
 
     assert len(sources) == 10
     assert any(source.slug == "mcp-blog" and source.last_collected_at is None for source in sources)
@@ -80,7 +80,7 @@ def test_source_list_keeps_last_success_time_after_failure() -> None:
     )
     db.scalars.return_value.all.side_effect = [[failed], [succeeded]]
 
-    source = next(source for source in UpdateService(db).list_sources() if source.slug == "mcp-blog")
+    source = next(source for source in FeedService(db).list_sources() if source.slug == "mcp-blog")
 
     assert source.last_collected_at == datetime(2026, 9, 24, 12, 0, tzinfo=timezone.utc)
     assert source.last_error == "HTTP 500"

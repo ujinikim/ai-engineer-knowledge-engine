@@ -86,6 +86,7 @@ def test_event_normalization_keeps_at_most_one_v2_event() -> None:
 
 def test_deterministic_summary_keeps_source_facts() -> None:
     service = ArticleSummaryService.__new__(ArticleSummaryService)
+    service.model = "gpt-test"
     article = service._fallback(
         title="vLLM adds prefill controls",
         raw_text=(
@@ -104,6 +105,7 @@ def test_deterministic_summary_keeps_source_facts() -> None:
 
 def test_generated_and_fallback_headlines_are_capped_at_90_characters() -> None:
     service = ArticleSummaryService.__new__(ArticleSummaryService)
+    service.model = "gpt-test"
     long_title = (
         "PyTorch 2.13 adds FlexAttention on Apple Silicon and introduces a new "
         "distributed communications backend"
@@ -128,6 +130,7 @@ def test_generated_and_fallback_headlines_are_capped_at_90_characters() -> None:
 
 def test_validated_taxonomy_has_one_category_and_one_event() -> None:
     service = ArticleSummaryService.__new__(ArticleSummaryService)
+    service.model = "gpt-test"
     fallback = service._fallback(
         title="Agent tool-use research",
         raw_text="Agent tool-use research\n\nA research paper studies tool use by agents.",
