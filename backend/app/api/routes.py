@@ -8,11 +8,11 @@ from app.db.session import get_db
 from app.schemas.ask import AskRequest, AskResponse
 from app.schemas.health import LivenessResponse, ReadinessResponse
 from app.schemas.search import SearchRequest, SearchResponse
-from app.schemas.updates import TimeWindow, UpdateListResponse, UpdateSourceItem
-from app.services.answer import AnswerService
-from app.services.health import DatabaseReadinessChecker, ReadinessCheckError
-from app.services.retriever import RetrieverService
-from app.services.updates import UpdateService
+from app.schemas.updates import TimeWindow, UpdateListResponse
+from app.serving.answer import AnswerService
+from app.serving.health import DatabaseReadinessChecker, ReadinessCheckError
+from app.serving.search import SearchService
+from app.serving.feed import FeedService
 
 router = APIRouter()
 
@@ -48,11 +48,6 @@ def health_ready(
     return ReadinessResponse(status="ready", checks=checks)
 
 
-@router.get("/update-sources", response_model=list[UpdateSourceItem])
-def update_sources(db: Session = Depends(get_db)) -> list[UpdateSourceItem]:
-    return UpdateService(db).list_sources()
-
-
 @router.get("/updates", response_model=UpdateListResponse)
 def updates(
     window: TimeWindow = "week",
@@ -63,14 +58,12 @@ def updates(
     categories: list[str] | None = Query(default=None),
     event_types: list[str] | None = Query(default=None),
     source_types: list[str] | None = Query(default=None),
-    maturities: list[str] | None = Query(default=None),
-    include_sparse: bool = False,
     include_contextual: bool = False,
     start: datetime | None = None,
     end: datetime | None = None,
     db: Session = Depends(get_db),
 ) -> UpdateListResponse:
-    return UpdateService(db).list_updates(
+    return FeedService(db).list_updates(
         window=window,
         limit=limit,
         offset=offset,
@@ -79,8 +72,6 @@ def updates(
         categories=categories,
         event_types=event_types,
         source_types=source_types,
-        maturities=maturities,
-        include_sparse=include_sparse,
         include_contextual=include_contextual,
         start=start,
         end=end,
@@ -89,7 +80,7 @@ def updates(
 
 @router.post("/search", response_model=SearchResponse)
 def search(request: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse:
-    return RetrieverService(db).search(request)
+    return SearchService(db).search(request)
 
 
 @router.post("/ask", response_model=AskResponse)

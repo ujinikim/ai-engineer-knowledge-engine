@@ -26,9 +26,8 @@ class SearchRequest(BaseModel):
     categories: list[str] | None = None
     event_types: list[str] | None = None
     source_types: list[str] | None = None
-    maturities: list[str] | None = None
     include_contextual: bool = False
-    collection: Literal["all", "docs", "updates"] = "all"
+    collection: Literal["updates"] = "updates"
     published_after: datetime | None = None
     published_before: datetime | None = None
     search_mode: Literal["vector", "keyword", "hybrid"] = "hybrid"
@@ -39,7 +38,6 @@ class SearchRequest(BaseModel):
         "categories",
         "event_types",
         "source_types",
-        "maturities",
         mode="before",
     )
     @classmethod
@@ -65,14 +63,10 @@ class RetrievedChunk(BaseModel):
     keyword_score: float | None = None
     combined_score: float | None = None
     recency_score: float | None = None
-    source_type: str
     published_at: datetime | None = None
     tool: str | None = None
-    category: str | None = None
     event_types: list[str] = Field(default_factory=list)
-    source_category: str | None = None
-    maturity: str | None = None
-    relevance_tier: Literal["core", "contextual", "excluded"] = "core"
+    relevance_tier: Literal["core", "contextual", "excluded"] | None = None
 
 
 class RetrievalMetrics(BaseModel):

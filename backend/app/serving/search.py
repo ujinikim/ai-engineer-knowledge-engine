@@ -1,0 +1,405 @@
+import math
+import re
+import time
+from dataclasses import dataclass
+from datetime import datetime, timezone
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.db.models import Chunk, Document
+from app.schemas.search import RetrievedChunk, RetrievalMetrics, SearchRequest, SearchResponse
+from app.core.embedding import EmbeddingService
+from app.serving.visibility import visible_article_clause
+from app.sources import (
+    source_attribute,
+    source_slugs_with,
+)
+
+
+@dataclass
+class Candidate:
+    chunk: Chunk
+    document: Document
+    vector_similarity: float | None = None
+    keyword_score: float | None = None
+    keyword_normalized: float | None = None
+    recency_score: float = 0
+    combined_score: float = 0
+
+
+class SearchService:
+    def __init__(self, db: Session) -> None:
+        self.db = db
+        self.embedding_service = EmbeddingService()
+
+    def search(self, request: SearchRequest) -> SearchResponse:
+        started = time.perf_counter()
+        embedding_started = time.perf_counter()
+        query_embedding = None
+        if request.search_mode in {"vector", "hybrid"}:
+            query_embedding = self.embedding_service.embed_texts([request.query])[0]
+        embedding_ms = self._elapsed_ms(embedding_started)
+
+        retrieval_started = time.perf_counter()
+        if request.retrieval_strategy == "source_balanced":
+            candidates = self._source_balanced_candidates(request, query_embedding)
+        else:
+            candidates = self._standard_candidates(request, query_embedding)
+        retrieval_ms = self._elapsed_ms(retrieval_started)
+
+        ranked_candidates = self._rank_candidates(candidates, request.search_mode)
+        selected_candidates = self._diversify_documents(ranked_candidates, request.top_k)
+        results = [
+            self._to_retrieved_chunk(candidate)
+            for candidate in selected_candidates
+        ]
+
+        return SearchResponse(
+            query=request.query,
+            results=results,
+            metrics=RetrievalMetrics(
+                embedding_ms=embedding_ms,
+                retrieval_ms=retrieval_ms,
+                total_ms=self._elapsed_ms(started),
+            ),
+        )
+
+    def _standard_candidates(
+        self,
+        request: SearchRequest,
+        query_embedding: list[float] | None,
+    ) -> list[Candidate]:
+        candidates: dict[str, Candidate] = {}
+        candidate_limit = max(request.top_k * 5, 30)
+
+        if request.search_mode in {"vector", "hybrid"} and query_embedding is not None:
+            for candidate in self._vector_candidates(request, query_embedding, candidate_limit):
+                candidates[str(candidate.chunk.id)] = candidate
+
+        if request.search_mode in {"keyword", "hybrid"}:
+            for candidate in self._keyword_candidates(request, candidate_limit):
+                existing = candidates.get(str(candidate.chunk.id))
+                if existing:
+                    existing.keyword_score = candidate.keyword_score
+                else:
+                    candidates[str(candidate.chunk.id)] = candidate
+
+        return list(candidates.values())
+
+    def _source_balanced_candidates(
+        self,
+        request: SearchRequest,
+        query_embedding: list[float] | None,
+    ) -> list[Candidate]:
+        sources = request.source_names or self._available_sources(request.include_contextual)
+        if not sources:
+            return self._standard_candidates(request, query_embedding)
+
+        merged: dict[str, Candidate] = {}
+        per_source_k = max(2, min(6, request.top_k))
+        for source in sources:
+            source_request = request.model_copy(
+                update={
+                    "source_names": [source],
+                    "top_k": per_source_k,
+                    "retrieval_strategy": "standard",
+                }
+            )
+            for candidate in self._standard_candidates(source_request, query_embedding):
+                existing = merged.get(str(candidate.chunk.id))
+                if existing:
+                    existing.vector_similarity = max_optional(
+                        existing.vector_similarity,
+                        candidate.vector_similarity,
+                    )
+                    existing.keyword_score = max_optional(existing.keyword_score, candidate.keyword_score)
+                else:
+                    merged[str(candidate.chunk.id)] = candidate
+
+        return list(merged.values())
+
+    def _vector_candidates(
+        self,
+        request: SearchRequest,
+        query_embedding: list[float],
+        limit: int,
+    ) -> list[Candidate]:
+        distance = Chunk.embedding.cosine_distance(query_embedding)
+        stmt = self._apply_filters(
+            (
+            select(Chunk, Document, distance.label("distance"))
+            .join(Document, Chunk.document_id == Document.id)
+            .order_by(distance)
+            .limit(limit)
+            ),
+            request,
+        )
+
+        rows = self.db.execute(stmt).all()
+        return [
+            Candidate(
+                chunk=chunk,
+                document=document,
+                vector_similarity=round(1 - float(row_distance), 4),
+                recency_score=self._recency_score(document),
+            )
+            for chunk, document, row_distance in rows
+        ]
+
+    def _keyword_candidates(self, request: SearchRequest, limit: int) -> list[Candidate]:
+        terms = self._keyword_terms(request.query)
+        if not terms:
+            return []
+
+        stmt = self._apply_filters(
+            select(Chunk, Document).join(Document, Chunk.document_id == Document.id),
+            request,
+        )
+
+        candidates: list[Candidate] = []
+        for chunk, document in self.db.execute(stmt).all():
+            score = self._keyword_match_score(
+                request.query,
+                terms,
+                str(document.title or ""),
+                str(chunk.content or ""),
+            )
+            if score == 0:
+                continue
+
+            candidates.append(
+                Candidate(
+                    chunk=chunk,
+                    document=document,
+                    keyword_score=round(score, 4),
+                    recency_score=self._recency_score(document),
+                )
+            )
+
+        return sorted(candidates, key=lambda candidate: candidate.keyword_score or 0, reverse=True)[
+            :limit
+        ]
+
+    def _keyword_terms(self, query: str) -> list[str]:
+        stop_words = {
+            "about",
+            "across",
+            "all",
+            "and",
+            "are",
+            "best",
+            "compare",
+            "changed",
+            "change",
+            "candidate",
+            "docs",
+            "documents",
+            "did",
+            "does",
+            "for",
+            "from",
+            "how",
+            "mentioning",
+            "principal",
+            "published",
+            "release",
+            "releases",
+            "show",
+            "the",
+            "update",
+            "updates",
+            "what",
+            "when",
+            "where",
+            "which",
+            "with",
+            "work",
+            "would",
+        }
+        terms = [
+            {
+                "fixed": "fix",
+                "fixes": "fix",
+                "fixing": "fix",
+            }.get(term, term)
+            for term in re.findall(r"[a-z0-9+]+", self._normalize_keyword_text(query))
+            if len(term) > 2 and term not in stop_words
+        ]
+        return list(dict.fromkeys(terms))
+
+    def _normalize_keyword_text(self, value: str) -> str:
+        normalized = re.sub(r"[-_/]+", " ", value.lower())
+        return " ".join(normalized.split())
+
+    def _keyword_match_score(
+        self,
+        query: str,
+        terms: list[str],
+        title: str,
+        content: str,
+    ) -> float:
+        if not terms:
+            return 0
+        normalized_title = self._normalize_keyword_text(title)
+        normalized_content = self._normalize_keyword_text(content)
+        title_matches = sum(term in normalized_title for term in terms)
+        content_matches = sum(term in normalized_content for term in terms)
+        phrase = self._normalize_keyword_text(query)
+        phrase_bonus = 0.5 if phrase in f"{normalized_title}\n{normalized_content}" else 0
+        # Title matches are strong document-identity evidence. Counting them
+        # separately prevents long changelogs from outranking a sparse exact release
+        # merely because the changelog repeats more generic query terms.
+        return round(
+            (content_matches / len(terms))
+            + (title_matches / len(terms))
+            + phrase_bonus,
+            4,
+        )
+
+    def _rank_candidates(self, candidates: list[Candidate], search_mode: str) -> list[Candidate]:
+        max_keyword = max((candidate.keyword_score or 0 for candidate in candidates), default=0)
+
+        def score(candidate: Candidate) -> float:
+            vector_score = candidate.vector_similarity or 0
+            keyword_score = 0
+            if max_keyword > 0 and candidate.keyword_score is not None:
+                keyword_score = candidate.keyword_score / max_keyword
+            candidate.keyword_normalized = round(keyword_score, 4)
+
+            if search_mode == "vector":
+                candidate.combined_score = vector_score
+                return candidate.combined_score
+            if search_mode == "keyword":
+                candidate.combined_score = keyword_score
+                return candidate.combined_score
+            candidate.combined_score = (
+                (0.60 * vector_score)
+                + (0.25 * keyword_score)
+                + (0.15 * candidate.recency_score)
+            )
+            return candidate.combined_score
+
+        return sorted(candidates, key=score, reverse=True)
+
+    def _to_retrieved_chunk(self, candidate: Candidate) -> RetrievedChunk:
+        keyword_score = candidate.keyword_normalized or 0
+        display_score = candidate.vector_similarity if candidate.vector_similarity is not None else keyword_score
+        if candidate.vector_similarity is not None and candidate.keyword_score is not None:
+            display_score = candidate.combined_score
+
+        return RetrievedChunk(
+            chunk_id=str(candidate.chunk.id),
+            document_id=str(candidate.document.id),
+            document_title=candidate.document.title,
+            source_name=candidate.document.source_name,
+            url=candidate.document.url,
+            content=candidate.chunk.content,
+            similarity=round(display_score, 4),
+            chunk_index=candidate.chunk.chunk_index,
+            vector_similarity=candidate.vector_similarity,
+            keyword_score=candidate.keyword_score,
+            combined_score=round(candidate.combined_score, 4),
+            recency_score=round(candidate.recency_score, 4),
+            published_at=candidate.document.published_at,
+            tool=source_attribute(candidate.document.source_name, "tool"),
+            event_types=list(candidate.document.event_types or []),
+            relevance_tier=candidate.document.relevance_tier,
+        )
+
+    def _apply_filters(self, stmt, request: SearchRequest):
+        if request.source_names:
+            stmt = stmt.where(Document.source_name.in_(request.source_names))
+        stmt = stmt.where(
+            visible_article_clause(
+                include_contextual=request.include_contextual,
+            )
+        )
+        if request.tools:
+            stmt = stmt.where(Document.source_name.in_(source_slugs_with("tool", request.tools)))
+        if request.categories:
+            stmt = stmt.where(Document.primary_topic.in_(request.categories))
+        if request.event_types:
+            stmt = stmt.where(Document.event_types.overlap(request.event_types))
+        if request.source_types:
+            stmt = stmt.where(
+                Document.source_name.in_(
+                    source_slugs_with("source_type", request.source_types, "official-release")
+                )
+            )
+        if request.published_after:
+            stmt = stmt.where(Document.published_at >= self._naive_utc(request.published_after))
+        if request.published_before:
+            stmt = stmt.where(Document.published_at <= self._naive_utc(request.published_before))
+        return stmt
+
+    def _recency_score(self, document: Document) -> float:
+        if not document.published_at:
+            return 0
+        published = document.published_at
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=timezone.utc)
+        age_days = max(0.0, (datetime.now(timezone.utc) - published).total_seconds() / 86400)
+        return round(math.exp(-age_days / 21), 4)
+
+    def _naive_utc(self, value: datetime) -> datetime:
+        if value.tzinfo is not None:
+            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value
+
+    def _available_sources(self, include_contextual: bool = False) -> list[str]:
+        return list(
+            self.db.scalars(
+                select(Document.source_name)
+                .where(
+                    visible_article_clause(
+                        include_contextual=include_contextual,
+                    )
+                )
+                .distinct()
+            ).all()
+        )
+
+    def _diversify_documents(
+        self,
+        candidates: list[Candidate],
+        limit: int,
+        max_per_document: int = 2,
+    ) -> list[Candidate]:
+        selected: list[Candidate] = []
+        counts: dict[str, int] = {}
+        documents_with_substantive_chunks = {
+            str(candidate.document.id)
+            for candidate in candidates
+            if not self._is_title_only_candidate(candidate)
+        }
+        for candidate in candidates:
+            document_id = str(candidate.document.id)
+            if (
+                document_id in documents_with_substantive_chunks
+                and self._is_title_only_candidate(candidate)
+            ):
+                continue
+            if counts.get(document_id, 0) >= max_per_document:
+                continue
+            selected.append(candidate)
+            counts[document_id] = counts.get(document_id, 0) + 1
+            if len(selected) == limit:
+                break
+        return selected
+
+    def _is_title_only_candidate(self, candidate: Candidate) -> bool:
+        title = self._normalize_keyword_text(candidate.document.title or "")
+        content = self._normalize_keyword_text(candidate.chunk.content or "")
+        return bool(title and content == title)
+
+    def _elapsed_ms(self, started: float) -> int:
+        return int((time.perf_counter() - started) * 1000)
+
+
+def max_optional(left: float | None, right: float | None) -> float | None:
+    if left is None:
+        return right
+    if right is None:
+        return left
+    return max(left, right)

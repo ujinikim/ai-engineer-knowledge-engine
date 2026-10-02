@@ -1,0 +1,63 @@
+import argparse
+
+from sqlalchemy import text
+
+
+from app.db.session import engine
+
+
+SENTINEL_ID = "00000000-0000-0000-0000-000000000001"
+
+
+def seed() -> None:
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                INSERT INTO documents (
+                    id, source_name, source_type, title, url, raw_text, content_hash
+                )
+                VALUES (
+                    :id,
+                    'migration-test',
+                    'release',
+                    'Preserve me',
+                    'https://example.com/migration-test',
+                    'sentinel',
+                    'sentinel'
+                )
+                """
+            ),
+            {"id": SENTINEL_ID},
+        )
+
+
+def verify() -> None:
+    with engine.connect() as connection:
+        preserved = connection.scalar(
+            text("SELECT count(*) FROM documents WHERE id = :id"),
+            {"id": SENTINEL_ID},
+        )
+
+    if preserved != 1:
+        raise RuntimeError("The legacy-schema adoption test did not preserve its sentinel row.")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Seed a baseline-schema database with an article, or verify that it "
+            "survived adoption and upgrade to the current schema."
+        )
+    )
+    parser.add_argument("action", choices=("seed", "verify"))
+    args = parser.parse_args()
+
+    if args.action == "seed":
+        seed()
+    else:
+        verify()
+
+
+if __name__ == "__main__":
+    main()

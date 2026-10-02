@@ -1,13 +1,10 @@
 import uuid
-from datetime import datetime
-from typing import Any
+from datetime import datetime, timezone
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
-    Boolean,
     CheckConstraint,
     DateTime,
-    Float,
     ForeignKey,
     Index,
     Integer,
@@ -18,10 +15,15 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+from app.domain import EVENT_TYPES, PRIMARY_TOPICS
+
+
+def _sql_list(values) -> str:
+    return ", ".join(f"'{value}'" for value in values)
 
 
 class Document(Base):
@@ -29,12 +31,8 @@ class Document(Base):
     __table_args__ = (
         Index("documents_source_name_idx", "source_name"),
         Index("documents_content_hash_idx", "content_hash"),
-        Index("documents_source_type_idx", "source_type"),
         Index("documents_published_at_idx", literal_column("published_at DESC")),
-        Index("documents_ingestion_status_idx", "ingestion_status"),
-        Index("documents_relevance_tier_idx", "relevance_tier"),
         Index("documents_primary_topic_idx", "primary_topic"),
-        Index("documents_event_type_idx", "event_type"),
         Index(
             "documents_feed_scope_idx",
             "ingestion_status",
@@ -47,84 +45,77 @@ class Document(Base):
             name="ck_documents_ingestion_status",
         ),
         CheckConstraint(
-            "evidence_level IN ('full_article', 'source_entry', 'official_feed_excerpt')",
-            name="ck_documents_evidence_level",
+            "extraction_status IN ('full_article', 'source_entry', 'feed_excerpt_only', 'title_only')",
+            name="ck_documents_extraction_status",
+        ),
+        CheckConstraint(
+            f"event_types <@ ARRAY[{_sql_list(EVENT_TYPES)}]::varchar[]",
+            name="ck_documents_event_types",
         ),
         CheckConstraint(
             "relevance_tier IS NULL OR relevance_tier IN ('core', 'contextual', 'excluded')",
             name="ck_documents_relevance_tier",
         ),
         CheckConstraint(
-            "primary_topic IS NULL OR primary_topic IN "
-            "('agentic-generative-ai', 'machine-learning-classical-ai', "
-            "'vision-speech-robotics', 'data-search-retrieval', "
-            "'ai-products-engineering-infrastructure', 'safety-evaluation-governance')",
+            f"primary_topic IS NULL OR primary_topic IN ({_sql_list(PRIMARY_TOPICS)})",
             name="ck_documents_primary_topic",
-        ),
-        CheckConstraint(
-            "event_type IS NULL OR event_type IN "
-            "('release-update', 'research', 'guide', 'analysis', 'alert')",
-            name="ck_documents_event_type",
         ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     source_name: Mapped[str] = mapped_column(String(120))
-    source_type: Mapped[str] = mapped_column(String(80), default="docs", server_default="docs")
     title: Mapped[str] = mapped_column(String(500))
     url: Mapped[str] = mapped_column(Text, unique=True)
-    canonical_url: Mapped[str | None] = mapped_column(Text)
     raw_text: Mapped[str] = mapped_column(Text)
     content_hash: Mapped[str] = mapped_column(String(128))
     fetched_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, server_default=func.now()
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), server_default=func.now()
     )
     published_at: Mapped[datetime | None] = mapped_column(DateTime)
     ingestion_status: Mapped[str] = mapped_column(
         String(32), default="published", server_default="published"
     )
-    evidence_level: Mapped[str] = mapped_column(
+    extraction_status: Mapped[str] = mapped_column(
         String(32), default="source_entry", server_default="source_entry"
     )
     relevance_tier: Mapped[str | None] = mapped_column(String(32))
     relevance_reason: Mapped[str | None] = mapped_column(Text)
+    relevance_policy_version: Mapped[str | None] = mapped_column(String(64))
     primary_topic: Mapped[str | None] = mapped_column(String(80))
-    event_type: Mapped[str | None] = mapped_column(String(32))
+    event_types: Mapped[list[str]] = mapped_column(
+        ARRAY(String(32)), default=list, server_default=text("'{}'::varchar[]")
+    )
+    display_headline: Mapped[str | None] = mapped_column(Text)
     summary: Mapped[str | None] = mapped_column(Text)
-    processing_metadata: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, default=dict, server_default=text("'{}'::jsonb")
+    why_it_matters: Mapped[str | None] = mapped_column(Text)
+    key_points: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), default=list, server_default=text("'{}'::text[]")
     )
-    doc_metadata: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, default=dict, server_default=text("'{}'::jsonb")
-    )
+    summary_generated_by: Mapped[str | None] = mapped_column(String(120))
 
     chunks: Mapped[list["Chunk"]] = relationship(back_populates="document")
 
 
-class UpdateSource(Base):
-    __tablename__ = "update_sources"
+class CollectionSourceRun(Base):
+    __tablename__ = "collection_source_runs"
     __table_args__ = (
-        Index("update_sources_slug_idx", "slug"),
-        Index("update_sources_tool_idx", "tool"),
-        Index("update_sources_category_idx", "category"),
+        UniqueConstraint("run_id", "source_slug", name="uq_collection_source_runs_run_source"),
+        Index("collection_source_runs_source_finished_idx", "source_slug", "finished_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    slug: Mapped[str] = mapped_column(String(120), unique=True)
-    name: Mapped[str] = mapped_column(String(200))
-    organization: Mapped[str] = mapped_column(String(200))
-    tool: Mapped[str] = mapped_column(String(200))
-    category: Mapped[str] = mapped_column(String(120))
-    source_kind: Mapped[str] = mapped_column(String(80), default="atom", server_default="atom")
-    feed_url: Mapped[str] = mapped_column(Text, unique=True)
-    homepage_url: Mapped[str] = mapped_column(Text)
-    credibility_weight: Mapped[float] = mapped_column(Float, default=1.0, server_default="1.0")
-    enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
-    last_collected_at: Mapped[datetime | None] = mapped_column(DateTime)
-    last_error: Mapped[str | None] = mapped_column(Text)
-    source_metadata: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, default=dict, server_default=text("'{}'::jsonb")
-    )
+    run_id: Mapped[str] = mapped_column(String(64))
+    source_slug: Mapped[str] = mapped_column(String(120))
+    started_at: Mapped[datetime] = mapped_column(DateTime)
+    finished_at: Mapped[datetime] = mapped_column(DateTime)
+    status: Mapped[str] = mapped_column(String(32))
+    matched_items: Mapped[int] = mapped_column(Integer, default=0)
+    updates_created: Mapped[int] = mapped_column(Integer, default=0)
+    updates_changed: Mapped[int] = mapped_column(Integer, default=0)
+    updates_unchanged: Mapped[int] = mapped_column(Integer, default=0)
+    updates_quarantined: Mapped[int] = mapped_column(Integer, default=0)
+    chunks_written: Mapped[int] = mapped_column(Integer, default=0)
+    error: Mapped[str | None] = mapped_column(Text)
 
 
 class Chunk(Base):
@@ -153,13 +144,5 @@ class Chunk(Base):
     embedding: Mapped[list[float]] = mapped_column(Vector(1536))
     token_count: Mapped[int] = mapped_column(Integer)
     content_hash: Mapped[str] = mapped_column(String(128))
-    embedding_model: Mapped[str | None] = mapped_column(String(120))
-    chunking_version: Mapped[str | None] = mapped_column(String(80))
-    chunk_metadata: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, default=dict, server_default=text("'{}'::jsonb")
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, server_default=func.now()
-    )
 
     document: Mapped[Document] = relationship(back_populates="chunks")

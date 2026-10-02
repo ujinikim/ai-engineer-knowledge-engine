@@ -25,7 +25,6 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/knowledge_engine"
     embedding_model: str = "text-embedding-3-small"
-    embedding_dimensions: int = 1536
     chat_model: str = "gpt-4.1-mini"
     max_completion_tokens: int = 500
     max_context_tokens: int = 3500

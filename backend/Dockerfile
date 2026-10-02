@@ -25,6 +25,7 @@ LABEL org.opencontainers.image.source="https://github.com/ujinikim/ai-engineer-k
 
 ENV APP_ENVIRONMENT=production \
     PATH="/app/.venv/bin:${PATH}" \
+    PYTHONPATH=/app \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
@@ -35,11 +36,10 @@ COPY app ./app
 COPY alembic.ini ./alembic.ini
 COPY migrations ./migrations
 COPY scripts ./scripts
-COPY data/sources.yml data/update_sources.yml ./data/
+COPY data/update_sources.yml ./data/
 
 RUN addgroup -S -g 10001 app \
     && adduser -S -D -u 10001 -G app -h /app app \
-    && mkdir -p /app/data/raw \
     && chown -R app:app /app
 
 USER app

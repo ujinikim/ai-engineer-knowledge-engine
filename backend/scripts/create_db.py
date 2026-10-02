@@ -1,10 +1,8 @@
-import sys
 from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 ALEMBIC_CONFIG = BACKEND_DIR / "alembic.ini"

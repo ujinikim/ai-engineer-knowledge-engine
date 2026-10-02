@@ -5,6 +5,7 @@ import sys
 from contextvars import ContextVar, Token
 from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import urlparse
 
 
 _request_id: ContextVar[str | None] = ContextVar("request_id", default=None)
@@ -131,3 +132,11 @@ def log_event(
         event,
         extra={"event": event, "structured_fields": fields},
     )
+
+
+def safe_url(value) -> str | None:
+    """A URL without its query string or fragment, as the logging policy requires."""
+    if not value:
+        return None
+    parsed = urlparse(str(value))
+    return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
