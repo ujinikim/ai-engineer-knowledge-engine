@@ -35,21 +35,3 @@ def test_important_sparse_event_can_publish_when_fetch_did_not_fail() -> None:
     )
 
     assert decision.status == PUBLISHED
-
-
-def test_approved_official_feed_excerpt_is_dashboard_only_evidence() -> None:
-    decision = evaluate_ingestion_candidate(
-        content_detail="sparse",
-        extraction_status="feed_excerpt_only",
-        event_types=["product-release"],
-        publish_feed_excerpt=True,
-    )
-
-    assert decision.status == PUBLISHED
-    assert decision.failure_codes == ()
-    assert decision.warning_codes == (
-        "article_hydration_failed",
-        "insufficient_source_detail",
-    )
-    assert decision.evidence_level == "official_feed_excerpt"
-    assert decision.rag_eligible is False

@@ -24,7 +24,6 @@
   text-transform: uppercase;
 }
 .update-meta .tool-label { color: var(--red); font-weight: 800; }
-.evidence-label { font-weight: 700; }
 .context-label { color: var(--blue); font-weight: 800; }
 .featured-story h3 {
   max-width: 850px;

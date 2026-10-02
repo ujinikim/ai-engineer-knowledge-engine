@@ -42,7 +42,7 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
           <time datetime="June 2025">Archive date</time>
           <p>Technical article body with enough useful detail for extraction.</p>
           <p>Additional implementation guidance.</p>
-          <div class="related">Unrelated recommendation</div>
+          <footer>Unrelated recommendation</footer>
         </div>
       </body>
     </html>
@@ -50,7 +50,6 @@ def test_full_article_hydration_uses_configured_content_and_json_ld_date() -> No
     transport = httpx.MockTransport(lambda request: httpx.Response(200, text=html, request=request))
     config = {
         "content_selector": ".article-body",
-        "content_remove_selectors": [".related"],
         "minimum_full_article_characters": 50,
     }
     entry = {

@@ -34,7 +34,7 @@ def html_listing_entries(config: SourceConfig, html: str) -> list[dict]:
     seen_urls: set[str] = set()
     soup = BeautifulSoup(html, "html.parser")
 
-    for anchor in soup.select(config.get("link_selector", "a[href]")):
+    for anchor in soup.select("a[href]"):
         href = str(anchor.get("href") or "").strip()
         absolute_url = urljoin(base_url, href)
         path = urlparse(absolute_url).path
@@ -60,10 +60,7 @@ def parse_article_page(config: SourceConfig, entry: dict, html: str, final_url: 
     """Replace an entry's content with the full article page, or raise ValueError."""
     soup = BeautifulSoup(html, "html.parser")
     content = soup.select_one(config.get("content_selector", "main")) or soup.body or soup
-    remove_selectors = ", ".join(
-        [*ALWAYS_REMOVED_SELECTORS, *config.get("content_remove_selectors", [])]
-    )
-    for element in content.select(remove_selectors):
+    for element in content.select(", ".join(ALWAYS_REMOVED_SELECTORS)):
         element.decompose()
 
     content_text = " ".join(content.get_text(" ", strip=True).split())
@@ -107,14 +104,11 @@ def _article_title(config: SourceConfig, entry: dict, soup: BeautifulSoup, conte
     )
     if not title and heading:
         title = " ".join(heading.get_text(" ", strip=True).split())
-    title_prefix = str(config.get("title_prefix") or "").strip()
-    if title_prefix and not title.lower().startswith(title_prefix.lower()):
-        title = f"{title_prefix} {title}"
     return title
 
 
 def matches_config(config: SourceConfig, entry) -> bool:
-    """Apply a source's title-prefix, tag, and include/exclude term filters."""
+    """Apply a source's title-prefix, tag, and include-term filters."""
     title = str(entry.get("title") or "").strip().lower()
     if any(
         title.startswith(str(prefix).strip().lower())
@@ -128,13 +122,10 @@ def matches_config(config: SourceConfig, entry) -> bool:
     ):
         return False
     include_terms = [str(term).lower() for term in config.get("include_terms", [])]
-    exclude_terms = [str(term).lower() for term in config.get("exclude_terms", [])]
-    if not include_terms and not exclude_terms:
+    if not include_terms:
         return True
     value = " ".join([title, clean_html(entry_html(entry))]).lower()
-    if exclude_terms and any(contains_term(value, term) for term in exclude_terms):
-        return False
-    return not include_terms or any(contains_term(value, term) for term in include_terms)
+    return any(contains_term(value, term) for term in include_terms)
 
 
 def contains_term(value: str, term: str) -> bool:

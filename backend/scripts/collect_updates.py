@@ -24,7 +24,7 @@ class CollectionRunFailed(RuntimeError):
 def load_sources(source_slugs: list[str] | None = None) -> list[dict]:
     sources = list(configured_sources())
     if not source_slugs:
-        return [source for source in sources if source.get("enabled", True)]
+        return sources
 
     requested = set(source_slugs)
     selected = [source for source in sources if source["slug"] in requested]

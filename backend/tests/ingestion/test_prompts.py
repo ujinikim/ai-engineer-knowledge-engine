@@ -1,35 +1,7 @@
 from app.ingestion.content_detail import classify_content_detail
 from app.ingestion.prompts import (
-    MAIN_THEME_RESPONSE_FORMAT,
-    category_prompt,
-    event_prompt,
-    main_theme_prompt,
     summary_user_prompt,
 )
-
-
-def test_taxonomy_prompt_prioritizes_main_theme_over_product_mentions() -> None:
-    prompt = category_prompt()
-    events_prompt = event_prompt()
-
-    assert "main theme" in prompt
-    assert "merely the setting" in prompt
-    assert "A product mention does not make an article a release" in events_prompt
-    assert "detecting failures" in prompt
-    assert "TPU or GPU kernel authoring" in prompt
-    assert "recommendation, prediction, classification" in prompt
-    assert "'get started' steps" in events_prompt
-
-
-def test_main_theme_prompt_does_not_repeat_relevance_classification() -> None:
-    prompt = main_theme_prompt()
-
-    assert "main_theme" in prompt
-    assert "decision was made upstream" in prompt
-    assert "Do not classify whether the article belongs in the feed" in prompt
-    assert "Core requires" not in prompt
-    schema = MAIN_THEME_RESPONSE_FORMAT["json_schema"]["schema"]
-    assert list(schema["properties"]) == ["main_theme"]
 
 
 def test_sparse_source_prompt_prohibits_speculative_benefits() -> None:

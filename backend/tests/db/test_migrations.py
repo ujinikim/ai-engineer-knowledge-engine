@@ -5,7 +5,7 @@ from app.serving.health import (
     expected_alembic_heads,
 )
 
-EXPECTED_HEAD = "20260925_0014"
+EXPECTED_HEAD = "20260926_0015"
 
 
 def test_canonical_field_migration_is_non_destructive_and_backfills_compatibility_data(

@@ -28,7 +28,6 @@ export type UpdateItem = {
   primary_topic: string;
   event_types: string[];
   source_type: string;
-  evidence_level: "full_article" | "source_entry" | "official_feed_excerpt";
   relevance_tier: RelevanceTier;
   relevance_reason: string;
   excerpt: string;

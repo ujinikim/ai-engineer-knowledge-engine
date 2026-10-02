@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from sqlalchemy import and_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import Chunk, Document
@@ -313,7 +313,7 @@ class SearchService:
         if request.source_names:
             stmt = stmt.where(Document.source_name.in_(request.source_names))
         stmt = stmt.where(
-            self._retrievable_document_clause(
+            visible_article_clause(
                 include_contextual=request.include_contextual,
             )
         )
@@ -354,19 +354,12 @@ class SearchService:
             self.db.scalars(
                 select(Document.source_name)
                 .where(
-                    self._retrievable_document_clause(
+                    visible_article_clause(
                         include_contextual=include_contextual,
                     )
                 )
                 .distinct()
             ).all()
-        )
-
-    def _retrievable_document_clause(self, *, include_contextual: bool = False):
-        # Feed excerpts have no chunks and are never used as evidence.
-        return and_(
-            visible_article_clause(include_contextual=include_contextual),
-            Document.extraction_status != "feed_excerpt_only",
         )
 
     def _diversify_documents(

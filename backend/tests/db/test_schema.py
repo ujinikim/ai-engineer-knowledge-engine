@@ -38,8 +38,8 @@ def test_document_model_stores_every_article_field_as_a_typed_column() -> None:
         "id", "source_name", "title", "url", "raw_text", "content_hash",
         "fetched_at", "published_at",
         "ingestion_status", "extraction_status",
-        "relevance_tier", "relevance_reason", "relevance_status", "relevance_policy_version",
-        "primary_topic", "event_types", "taxonomy_policy_version",
+        "relevance_tier", "relevance_reason", "relevance_policy_version",
+        "primary_topic", "event_types",
         "display_headline", "summary", "why_it_matters", "key_points", "summary_generated_by",
     }
     assert columns.ingestion_status.nullable is False
@@ -52,7 +52,6 @@ def test_document_model_stores_every_article_field_as_a_typed_column() -> None:
         "ck_documents_ingestion_status",
         "ck_documents_extraction_status",
         "ck_documents_relevance_tier",
-        "ck_documents_relevance_status",
         "ck_documents_primary_topic",
         "ck_documents_event_types",
     }

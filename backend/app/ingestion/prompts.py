@@ -92,59 +92,6 @@ ARTICLE_SUMMARY_RESPONSE_FORMAT = {
     },
 }
 
-MAIN_THEME_RESPONSE_FORMAT = {
-    "type": "json_schema",
-    "json_schema": {
-        "name": "article_main_theme",
-        "strict": True,
-        "schema": {
-            "type": "object",
-            "properties": {
-                "main_theme": {"type": "string"},
-            },
-            "required": ["main_theme"],
-            "additionalProperties": False,
-        },
-    },
-}
-
-CATEGORY_RESPONSE_FORMAT = {
-    "type": "json_schema",
-    "json_schema": {
-        "name": "article_category",
-        "strict": True,
-        "schema": {
-            "type": "object",
-            "properties": {
-                "primary_topic": {"type": "string", "enum": list(PRIMARY_TOPICS)},
-                "classification_reason": {"type": "string"},
-            },
-            "required": [
-                "primary_topic",
-                "classification_reason",
-            ],
-            "additionalProperties": False,
-        },
-    },
-}
-
-EVENT_RESPONSE_FORMAT = {
-    "type": "json_schema",
-    "json_schema": {
-        "name": "article_event",
-        "strict": True,
-        "schema": {
-            "type": "object",
-            "properties": {
-                "event_type": {"type": "string", "enum": list(EVENT_TYPES)},
-                "event_reason": {"type": "string"},
-            },
-            "required": ["event_type", "event_reason"],
-            "additionalProperties": False,
-        },
-    },
-}
-
 
 def summary_system_prompt() -> str:
     return (
@@ -216,35 +163,4 @@ def summary_user_prompt(
         f"Title: {title}\n"
         f"{sparse_instructions}\n"
         f"Source text:\n{raw_text[:12000]}"
-    )
-
-
-def main_theme_prompt() -> str:
-    return (
-        "Identify what the article primarily "
-        "teaches, investigates, measures, announces, or warns about as one concrete "
-        "main_theme sentence based only on the source. Describe the subject and activity, "
-        "not the publisher, product setting, or relevance tier. Do not classify whether the "
-        "article belongs in the feed; that decision was made upstream. Do not select or "
-        "mention a taxonomy category. Do not add benefits, improvements, "
-        "severity, or outcomes unless the source explicitly states them."
-    )
-
-
-def category_prompt() -> str:
-    return (
-        "Classify the supplied title and main theme into exactly one broad category. You do "
-        "not have the full article, publisher, source default, or product "
-        "metadata. State a short classification_reason grounded in the supplied theme. "
-        f"{CATEGORY_SELECTION_GUIDANCE} "
-        f"{TAXONOMY_BOUNDARY_EXAMPLES} "
-        f"Category definitions: {CATEGORY_DESCRIPTIONS}."
-    )
-
-
-def event_prompt() -> str:
-    return (
-        "Classify the supplied title and main theme into exactly one event type. State a "
-        "short event_reason grounded in the supplied text. "
-        f"{EVENT_SELECTION_GUIDANCE} Event definitions: {EVENT_DESCRIPTIONS}."
     )

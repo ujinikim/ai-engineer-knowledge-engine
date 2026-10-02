@@ -2,8 +2,6 @@ import re
 
 from app.domain import EVENT_TYPES, PRIMARY_TOPICS
 
-TAXONOMY_POLICY_VERSION = "2026-09-12-v2"
-
 TOPIC_KEYWORDS = {
     "agentic-generative-ai": (
         "agent",

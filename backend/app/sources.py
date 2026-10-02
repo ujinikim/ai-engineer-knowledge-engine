@@ -17,7 +17,6 @@ class SourceConfig(TypedDict):
     tool: str
     homepage_url: str
     feed_url: str
-    enabled: NotRequired[bool]
     # What the source is and how much to trust it
     source_kind: str  # rss, atom, or html_listing
     source_type: NotRequired[str]  # official-engineering-blog, official-changelog, ...
@@ -28,22 +27,16 @@ class SourceConfig(TypedDict):
     default_event_types: NotRequired[list[str]]
     # Which entries to keep
     include_terms: NotRequired[list[str]]
-    exclude_terms: NotRequired[list[str]]
     exclude_title_prefixes: NotRequired[list[str]]
     exclude_tags: NotRequired[list[str]]
     require_published_date: NotRequired[bool]
     # html_listing sources: which links on the listing page are articles
     link_pattern: NotRequired[str]
-    link_selector: NotRequired[str]
     # Full-article fetching and extraction
     fetch_full_article: NotRequired[bool]
     content_selector: NotRequired[str]
-    content_remove_selectors: NotRequired[list[str]]
     date_selector: NotRequired[str]
-    title_prefix: NotRequired[str]
     minimum_full_article_characters: NotRequired[int]
-    # Publish the feed's own text when the article page cannot be fetched
-    publish_feed_excerpt: NotRequired[bool]
 
 
 @lru_cache(maxsize=1)
@@ -60,7 +53,7 @@ def configured_sources() -> tuple[SourceConfig, ...]:
         values = [source[field] for source in sources]
         if len(values) != len(set(values)):
             raise ValueError(f"Duplicate {field} in update_sources.yml")
-    return tuple(source for source in sources if source.get("enabled", True))
+    return tuple(sources)
 
 
 def configured_active_source_slugs() -> tuple[str, ...]:

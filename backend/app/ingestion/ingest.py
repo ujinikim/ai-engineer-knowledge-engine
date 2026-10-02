@@ -4,7 +4,7 @@
 
 - keep the stored article when a refresh is worse than what is already stored
 - publishable, awaiting relevance: store provisional labels and retry next run
-- publishable, excluded or feed-excerpt evidence: store a card from the source excerpt
+- publishable but judged irrelevant: store a card from the source excerpt
 - unchanged content that is already classified: refresh dates and status only
 - not publishable: quarantine without a card, chunks, or embeddings
 - otherwise: summarize, chunk, and embed
@@ -30,7 +30,7 @@ from app.ingestion.store import (
     find_existing_article,
     save_article,
 )
-from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION, normalize_event_types
+from app.ingestion.taxonomy import normalize_event_types
 from app.sources import SourceConfig
 
 
@@ -53,11 +53,10 @@ class ArticleIngestor:
             content_detail=candidate.content_detail,
             extraction_status=candidate.extraction_status,
             event_types=candidate.provisional_events,
-            publish_feed_excerpt=bool(config.get("publish_feed_excerpt", False)),
         )
         existing = find_existing_article(self.db, candidate)
 
-        if existing and not decision.rag_eligible and _has_full_evidence(existing):
+        if existing and not decision.publishable and _has_full_evidence(existing):
             return self._keep_stored_article(existing, candidate, decision)
 
         fields = {
@@ -71,9 +70,7 @@ class ArticleIngestor:
             if tier is None:
                 return self._save_awaiting_relevance(existing, candidate, fields)
             if tier == "excluded":
-                return self._save_excerpt_card(existing, candidate, fields, "relevance-excluded")
-            if not decision.rag_eligible:
-                return self._save_excerpt_card(existing, candidate, fields, "source-excerpt")
+                return self._save_excluded_card(existing, candidate, fields)
 
         if (
             existing
@@ -97,7 +94,6 @@ class ArticleIngestor:
                 "relevance_tier": existing.relevance_tier,
                 "relevance_reason": existing.relevance_reason,
                 "relevance_policy_version": existing.relevance_policy_version,
-                "relevance_status": existing.relevance_status,
             }
         return self.relevance.classify(title=candidate.title, raw_text=candidate.raw_text).fields()
 
@@ -116,8 +112,6 @@ class ArticleIngestor:
             url=safe_url(candidate.url),
             attempt_status=decision.status,
             failure_codes=list(decision.failure_codes),
-            warning_codes=list(decision.warning_codes),
-            evidence_level=decision.evidence_level,
         )
         return "unchanged", 0
 
@@ -151,12 +145,8 @@ class ArticleIngestor:
         )
         return status, 0
 
-    def _save_excerpt_card(
-        self,
-        existing: Document | None,
-        candidate: ArticleCandidate,
-        fields: dict,
-        generated_by: str,
+    def _save_excluded_card(
+        self, existing: Document | None, candidate: ArticleCandidate, fields: dict
     ) -> tuple[str, int]:
         """Build the card from the source excerpt; nothing is summarized or embedded."""
         status = _write_status(existing, candidate)
@@ -172,8 +162,7 @@ class ArticleIngestor:
                 "why_it_matters": "",
                 "key_points": [],
                 "event_types": candidate.provisional_events,
-                "summary_generated_by": generated_by,
-                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
+                "summary_generated_by": "relevance-excluded",
             },
         )
         return status, 0
@@ -195,7 +184,6 @@ class ArticleIngestor:
             **fields,
             "primary_topic": existing.primary_topic,
             "event_types": existing.event_types,
-            "taxonomy_policy_version": existing.taxonomy_policy_version,
         }
         apply_fields(existing, save_fields)
         if not decision.publishable:
@@ -217,7 +205,6 @@ class ArticleIngestor:
             {
                 **fields,
                 "event_types": candidate.provisional_events,
-                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
             },
             update_url=True,
         )
@@ -253,7 +240,6 @@ class ArticleIngestor:
                     candidate.source_slug,
                     list(article_fields.get("event_types") or candidate.default_event_types),
                 ),
-                "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
             },
         )
         chunks = self.chunker.chunk_text(candidate.raw_text, max_tokens=650, overlap_tokens=80)

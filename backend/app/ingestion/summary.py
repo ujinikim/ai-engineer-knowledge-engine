@@ -17,7 +17,7 @@ from app.ingestion.prompts import (
     summary_system_prompt,
     summary_user_prompt,
 )
-from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION, clean_labels, classify_topic_with_method, infer_event_types
+from app.ingestion.taxonomy import clean_labels, classify_topic_with_method, infer_event_types
 from app.ingestion.text import clean_text, clean_text_list, shorten_at_word_boundary
 
 
@@ -43,7 +43,6 @@ class ArticleSummary:
             "primary_topic": self.primary_topic,
             "event_types": self.event_types,
             "summary_generated_by": self.generated_by,
-            "taxonomy_policy_version": TAXONOMY_POLICY_VERSION,
         }
 
 

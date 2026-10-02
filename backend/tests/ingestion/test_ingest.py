@@ -5,11 +5,10 @@ import uuid
 from types import SimpleNamespace
 
 from app.db.models import Chunk, Document
-from app.domain import PUBLISHED, QUARANTINED, evidence_level
+from app.domain import PUBLISHED, QUARANTINED
 from app.ingestion.ingest import ArticleIngestor
 from app.ingestion.relevance import RELEVANCE_POLICY_VERSION, RelevanceDecision
 from app.ingestion.summary import ArticleSummary
-from app.ingestion.taxonomy import TAXONOMY_POLICY_VERSION
 from tests.fakes import FakeDatabase, MustNotRun, make_ingestor
 
 AGENT_SOURCE = {
@@ -88,11 +87,9 @@ def stored_article(*, raw_text: str, extraction_status: str = "source_entry") ->
         extraction_status=extraction_status,
         relevance_tier="core",
         relevance_reason="Previously classified.",
-        relevance_status="classified",
         relevance_policy_version=RELEVANCE_POLICY_VERSION,
         primary_topic="agentic-generative-ai",
         event_types=["guide"],
-        taxonomy_policy_version=TAXONOMY_POLICY_VERSION,
         display_headline="Existing headline",
         summary="Existing summary.",
         why_it_matters="Existing reason.",
@@ -127,7 +124,6 @@ def test_new_detailed_article_is_summarized_chunked_and_embedded() -> None:
     assert document.relevance_tier == "core"
     assert document.summary == "How to build reliable agents."
     assert document.event_types == ["guide"]
-    assert document.taxonomy_policy_version == TAXONOMY_POLICY_VERSION
     assert [chunk.chunk_index for chunk in chunk_rows] == [0, 1]
     assert all(isinstance(chunk, Chunk) and chunk.document_id == document.id for chunk in chunk_rows)
     assert chunk_rows[0].content_hash == hashlib.sha256(chunk_rows[0].content.encode()).hexdigest()
@@ -213,35 +209,7 @@ def test_changed_sparse_article_is_quarantined_with_normalized_url_and_no_card()
     assert existing.raw_text == f"{TITLE}\n\nShort note."
 
 
-# Excerpt cards ---------------------------------------------------------------
-
-
-def test_approved_feed_excerpt_publishes_without_summary_or_embeddings() -> None:
-    db = FakeDatabase()
-    entry = {
-        "title": "Agents API announcement",
-        "link": "https://example.com/agents-api",
-        "summary": "OpenAI announced an API for building and operating agents.",
-        "_extraction_status": "feed_excerpt_only",
-        "_full_article_fetch_error_code": "http_forbidden",
-    }
-    ingestor = make_ingestor(db, relevance=classifies("core", "Direct agent engineering article."))
-
-    status, chunks = ingestor.ingest(
-        "openai-news", {**OPENAI_SOURCE, "publish_feed_excerpt": True}, entry
-    )
-
-    assert (status, chunks) == ("created", 0)
-    assert len(db.added) == 1
-    document = db.document
-    assert document.ingestion_status == PUBLISHED
-    assert document.extraction_status == "feed_excerpt_only"
-    assert evidence_level(
-        extraction_status=document.extraction_status,
-        ingestion_status=document.ingestion_status,
-    ) == "official_feed_excerpt"
-    assert document.summary_generated_by == "source-excerpt"
-    assert document.summary == "OpenAI announced an API for building and operating agents."
+# Excluded cards --------------------------------------------------------------
 
 
 def test_relevance_excluded_article_gets_an_excerpt_card_without_summary_or_embeddings() -> None:
@@ -270,7 +238,6 @@ def test_relevance_excluded_article_gets_an_excerpt_card_without_summary_or_embe
     assert document.extraction_status == "source_entry"
     assert document.relevance_tier == "excluded"
     assert document.relevance_reason == "The article is a general cloud dashboard tutorial."
-    assert document.relevance_status == "classified"
     assert document.summary_generated_by == "relevance-excluded"
 
 
@@ -292,9 +259,7 @@ def test_failed_refresh_does_not_replace_an_existing_published_article(caplog) -
         "_extraction_status": "feed_excerpt_only",
     }
 
-    status, chunks = make_ingestor(FakeDatabase(existing)).ingest(
-        "openai-news", {**OPENAI_SOURCE, "publish_feed_excerpt": True}, entry
-    )
+    status, chunks = make_ingestor(FakeDatabase(existing)).ingest("openai-news", OPENAI_SOURCE, entry)
 
     assert (status, chunks) == ("unchanged", 0)
     assert existing.raw_text == "Release\n\nA complete article that was previously published."
@@ -305,10 +270,8 @@ def test_failed_refresh_does_not_replace_an_existing_published_article(caplog) -
         for record in caplog.records
         if getattr(record, "event", None) == "stored_article_retained"
     )
-    assert retained["attempt_status"] == PUBLISHED
-    assert retained["failure_codes"] == []
-    assert retained["warning_codes"] == ["article_hydration_failed", "insufficient_source_detail"]
-    assert retained["evidence_level"] == "official_feed_excerpt"
+    assert retained["attempt_status"] == QUARANTINED
+    assert retained["failure_codes"] == ["article_hydration_failed", "insufficient_source_detail"]
 
 
 def test_failed_reclassification_keeps_the_existing_good_article(caplog) -> None:
@@ -319,7 +282,6 @@ def test_failed_reclassification_keeps_the_existing_good_article(caplog) -> None
         fetched_at=None,
         ingestion_status=PUBLISHED,
         extraction_status="source_entry",
-        relevance_status="classified",
     )
     ingestor = make_ingestor(
         FakeDatabase(existing),
@@ -354,7 +316,6 @@ def test_failed_relevance_stays_unclassified_and_retries_without_content_change(
     status, chunks = ingestor.ingest("example", AGENT_SOURCE, AGENT_ENTRY)
     assert (status, chunks) == ("created", 0)
     assert db.document.relevance_tier is None
-    assert db.document.relevance_status == "failed"
 
     status, chunks = ingestor.ingest("example", AGENT_SOURCE, AGENT_ENTRY)
     assert (status, chunks) == ("unchanged", 0)

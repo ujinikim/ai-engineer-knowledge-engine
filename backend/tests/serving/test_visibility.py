@@ -5,7 +5,6 @@ from unittest.mock import MagicMock
 from sqlalchemy.dialects import postgresql
 
 from app.serving.feed import FeedService
-from app.serving.search import SearchService
 from app.serving.visibility import visible_article_clause
 from app.sources import configured_active_source_slugs
 
@@ -43,13 +42,6 @@ def test_visibility_ignores_extraction_and_length_so_sparse_and_excerpt_articles
 
     assert "extraction_status" not in text
     assert "raw_text" not in text
-
-
-def test_search_adds_only_the_feed_excerpt_exclusion() -> None:
-    text = sql(SearchService.__new__(SearchService)._retrievable_document_clause())
-
-    assert sql(visible_article_clause()) in text
-    assert "documents.extraction_status != 'feed_excerpt_only'" in text
 
 
 def test_feed_query_starts_from_the_shared_rule_and_adds_each_filter() -> None:

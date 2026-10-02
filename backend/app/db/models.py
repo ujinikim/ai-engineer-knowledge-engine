@@ -49,11 +49,6 @@ class Document(Base):
             name="ck_documents_extraction_status",
         ),
         CheckConstraint(
-            "relevance_status IS NULL OR relevance_status IN "
-            "('classified', 'corrected_unsupported_core', 'failed')",
-            name="ck_documents_relevance_status",
-        ),
-        CheckConstraint(
             f"event_types <@ ARRAY[{_sql_list(EVENT_TYPES)}]::varchar[]",
             name="ck_documents_event_types",
         ),
@@ -85,13 +80,11 @@ class Document(Base):
     )
     relevance_tier: Mapped[str | None] = mapped_column(String(32))
     relevance_reason: Mapped[str | None] = mapped_column(Text)
-    relevance_status: Mapped[str | None] = mapped_column(String(32))
     relevance_policy_version: Mapped[str | None] = mapped_column(String(64))
     primary_topic: Mapped[str | None] = mapped_column(String(80))
     event_types: Mapped[list[str]] = mapped_column(
         ARRAY(String(32)), default=list, server_default=text("'{}'::varchar[]")
     )
-    taxonomy_policy_version: Mapped[str | None] = mapped_column(String(64))
     display_headline: Mapped[str | None] = mapped_column(Text)
     summary: Mapped[str | None] = mapped_column(Text)
     why_it_matters: Mapped[str | None] = mapped_column(Text)

@@ -50,9 +50,6 @@ export function FeedSection({
               <div className="featured-content">
                 <div className="update-meta">
                   <span className="tool-label">{featuredItem.tool}</span>
-                  {featuredItem.evidence_level === "official_feed_excerpt" ? (
-                    <span className="evidence-label">Official RSS excerpt</span>
-                  ) : null}
                   {featuredItem.relevance_tier === "contextual" ? (
                     <span className="context-label">Related AI</span>
                   ) : null}
@@ -93,9 +90,6 @@ export function FeedSection({
                 <div className="compact-story-content">
                   <div className="compact-meta">
                     <span className="compact-tool">{item.tool}</span>
-                    {item.evidence_level === "official_feed_excerpt" ? (
-                      <span className="evidence-label">Official RSS excerpt</span>
-                    ) : null}
                     {item.relevance_tier === "contextual" ? (
                       <span className="context-label">Related AI</span>
                     ) : null}

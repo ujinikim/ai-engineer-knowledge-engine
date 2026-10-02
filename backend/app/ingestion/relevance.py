@@ -59,7 +59,6 @@ class RelevanceDecision:
             "relevance_tier": self.tier,
             "relevance_reason": self.reason,
             "relevance_policy_version": RELEVANCE_POLICY_VERSION,
-            "relevance_status": self.status,
         }
 
 

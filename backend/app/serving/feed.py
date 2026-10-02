@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import CollectionSourceRun, Document
-from app.domain import article_excerpt, evidence_level
+from app.domain import article_excerpt
 from app.schemas.updates import (
     DashboardStats,
     TimeWindow,
@@ -186,10 +186,6 @@ class FeedService:
             primary_topic=self._topic(document),
             event_types=list(document.event_types or []),
             source_type=self._source_type(document),
-            evidence_level=evidence_level(
-                extraction_status=document.extraction_status,
-                ingestion_status=document.ingestion_status,
-            ),
             relevance_tier=document.relevance_tier,
             relevance_reason=document.relevance_reason or "",
             excerpt=excerpt,

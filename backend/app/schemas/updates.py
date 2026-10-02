@@ -31,7 +31,6 @@ class UpdateItem(BaseModel):
     primary_topic: str
     event_types: list[str] = Field(default_factory=list)
     source_type: str
-    evidence_level: Literal["full_article", "source_entry", "official_feed_excerpt"]
     relevance_tier: Literal["core", "contextual", "excluded"] | None = None
     relevance_reason: str = ""
     excerpt: str
