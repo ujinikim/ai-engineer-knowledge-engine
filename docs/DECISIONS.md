@@ -49,7 +49,7 @@ New and changed items receive a structured headline, summary, why-it-matters sen
 
 ## 010: Use A Controlled Multi-Axis Taxonomy
 
-Each story has one primary engineering topic plus bounded event types, source type, maturity, and flexible entity tags. This avoids forcing research, releases, and tutorials into one overloaded category field while keeping filters predictable.
+Each story has one primary engineering topic plus bounded event types, and source type. This avoids forcing research, releases, and tutorials into one overloaded category field while keeping filters predictable.
 
 ## 011: Prefer Source Quality Over Feed Volume
 
@@ -68,5 +68,6 @@ free-form metadata object. Source attributes such as organization, tool, source 
 and credibility live only in `update_sources.yml` and are joined by `source_name`.
 Values derivable from stored text, such as the card excerpt, are computed when served.
 Per-attempt diagnostics and classifier audit details are structured log events, not
-row data. A single `extraction_status` describes the stored text; the API's
-`evidence_level` is derived from it and `ingestion_status`.
+row data. A single `extraction_status` describes the stored text. Sources cannot opt in to
+publishing a feed excerpt: an article whose page cannot be fetched is quarantined.
+Write-only columns (`relevance_status`, `taxonomy_policy_version`) were dropped.

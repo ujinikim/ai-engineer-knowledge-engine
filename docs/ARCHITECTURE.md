@@ -1,105 +1,114 @@
 # Architecture
 
-## System
+What the project does, how it is layered, and where each piece lives.
+
+## What happens to an article
 
 ```text
-Official RSS and Atom feeds
-  -> collector worker
-  -> normalization and URL/hash deduplication
-  -> structured article summary and controlled taxonomy
-  -> original-text chunking and embeddings
-  -> PostgreSQL + pgvector
+update_sources.yml  ->  collector (scheduled job)
+  fetch feed or listing -> fetch the article page -> publication gate
+  -> relevance tier (core / contextual / excluded)
+  -> summary card + topic and event labels
+  -> chunk original text -> embed -> PostgreSQL + pgvector
 
-React dashboard
-  -> GET /updates with time and facet filters
-  -> ranked article records
-
-Analysis panel
-  -> POST /ask with the same filters
-  -> vector + keyword + recency retrieval
-  -> context budget
-  -> OpenAI answer
-  -> used citations + retrieved evidence + metrics
+React feed   -> GET /updates  (visible, ranked articles)
+Q&A panel    -> POST /ask     (vector + keyword + recency search -> cited answer)
 ```
 
-## Article corpus
+The collector is a scheduled job, not part of the API process. In production it runs
+`python scripts/collect_updates.py --max-items 12` from the backend Docker image.
 
-The active corpus contains dated articles collected from configured update sources.
-The earlier documentation corpus and ingestion path have been removed.
+## Decisions made about each article
 
-## Update Storage
+Every stored article is one `documents` row. Four fields decide what happens to it:
 
-`backend/data/update_sources.yml` defines the sources used by collection, dashboard queries, and article retrieval. `collection_source_runs` records the outcome of each source attempt, grouped by `run_id`; it does not store source settings. Articles are stored in `documents` with `source_type = release` for schema compatibility. Original text remains in `raw_text` and pgvector-backed chunks. Generated feed fields and taxonomy values live in JSON metadata.
-
-Generated metadata includes `display_headline`, `summary`, `why_it_matters`,
-`key_points`, `primary_topic`, `event_types`, `entity_tags`, `source_type`, `maturity`,
-and `taxonomy_policy_version`. Taxonomy v2 assigns exactly one of six broad primary
-topics and at most one of five events in the existing summary-model call. Strict schema
-validation prevents invented categories. The legacy `topic_tags` field remains present
-but empty for API compatibility. These values drive the feed but do not replace original
-evidence during RAG.
-
-Retrieval only considers the article corpus.
-
-## Ranking
-
-The dashboard ranking is deterministic:
-
-```text
-importance = 40% source credibility + 40% freshness + 10% content detail + 10% maturity
-```
-
-First-party sources receive high credibility weights. Stable and generally available items receive a preference over release candidates, development builds, and previews. The score is transparent and is not an editorial truth claim.
-
-Hybrid retrieval for release records uses:
-
-```text
-60% vector relevance + 25% normalized keyword relevance + 15% recency
-```
-
-Final retrieval is capped at two chunks per document so one long release note cannot
-consume the entire context window for a multi-update question. Release retrieval derives
-eligibility from the typed `ingestion_status`, `extraction_status`, and `relevance_tier`
-columns.
-Core records are retrieved by default; contextual records require explicit inclusion;
-excluded, quarantined, and official-feed-excerpt records cannot enter LLM context.
-
-## Freshness
-
-`collect_updates.py` can run once or remain active with `--interval-minutes 60`. Collection normalizes URLs and uses canonical URLs plus content hashes to prevent equivalent links from becoming new records. Unchanged entries retain generated metadata and skip both summarization and embedding. A deterministic publication gate runs before model work, and a failed refresh cannot overwrite an existing published article.
-
-In a hosted deployment, the collector should run as a separate scheduled worker rather than inside web request handling.
-
-## Current Limitations
-
-- Release entries are not clustered into cross-source stories.
-- HTML-only publications use explicit listing-link patterns and article-content selectors. The collector does not perform broad crawling.
-- Ranking has no engagement signal.
-- The API response is not streamed yet.
-
-## Glossary
-
-One thing, three names; use the right one for the layer:
-
-| Word | Where | Meaning |
+| Field | Meaning | Values |
 |---|---|---|
-| article | code and docs | A collected piece of content: the unit ingestion decides on |
-| document | database | The `documents` table row that stores an article (`chunks` belong to it) |
-| update | API paths and `collection_source_runs` counters | Legacy name for an article in the feed; kept for URL and schema stability |
+| `extraction_status` | How much article text was obtained | `full_article`, `source_entry` (the feed's own text, by design), `feed_excerpt_only`, `title_only` |
+| `ingestion_status` | The publication gate | `published`, or `quarantined` (fetch failed or too little detail; kept only for diagnosis) |
+| `relevance_tier` | Relevance to agent engineering | `core`, `contextual`, `excluded`; empty means classification failed and is retried next run |
+| `relevance_policy_version` | Rules version behind the tier | date string; a changed version re-classifies |
+
+An article is visible in the feed when its source is configured, it is `published`, and its
+tier is `core` (or also `contextual` when the request asks). Search uses the same rule.
+Excluded articles get a card built from the source excerpt, with no model summary,
+chunks, or embeddings. Core and contextual articles are summarized, chunked and embedded.
+
+When a refresh is worse than what is stored (the page can no longer be fetched), the
+stored article is kept.
+
+## Ranking and retrieval
+
+```text
+importance = 45% source credibility + 45% freshness + 10% content detail
+freshness  = exp(-age_days / 21)
+
+retrieval  = 60% vector relevance + 25% keyword relevance + 15% recency
+```
+
+Final retrieval is capped at two chunks per article so one long post cannot fill the
+context. Summaries are display content; original chunks are the evidence for answers.
 
 ## Layers and the dependency rule
 
-```
+```text
 api/  ->  serving/  ->  db/, domain, sources, core/
                          ^
-ingestion/  ------------'      (evaluation/ reads both; nothing imports api/)
+ingestion/  ------------'
 ```
 
-- `domain.py` holds the shared vocabulary and rules (publish status, relevance tiers,
-  taxonomy labels, the API evidence label, the card excerpt) as pure definitions.
-- `serving/visibility.py` is the single rule for which articles users may see; the
-  feed and search both start from it.
-- `serving/`, `db/`, and `api/` never import `ingestion/`, so the API process does not
-  load the feed parser, HTML parser, or classifier. `tests/api/test_import_boundary.py`
-  fails if that changes.
+`serving/`, `db/` and `api/` never import `ingestion/`, so the API process does not load
+the feed parser or the classifiers. `tests/api/test_import_boundary.py` fails if that changes.
 
+### backend/app
+
+| Path | Job |
+|---|---|
+| `main.py`, `api/routes.py` | FastAPI app and thin endpoints |
+| `schemas/` | Request and response models |
+| `serving/feed.py` | Feed listing, filters, facets, ordering |
+| `serving/search.py`, `serving/answer.py` | Retrieval and cited answers |
+| `serving/visibility.py` | The single rule for which articles are visible |
+| `serving/health.py` | Health checks |
+| `domain.py` | Shared vocabulary: statuses, tiers, topics, event types, card excerpt |
+| `sources.py` | Reads `data/update_sources.yml` |
+| `db/` | Tables and constraints (`models.py`), session |
+| `core/` | Settings, logging, embeddings, model-usage counting |
+
+### backend/app/ingestion, in the order an article passes through
+
+| Step | File |
+|---|---|
+| Run all sources, one collector at a time | `pipeline.py`, `lock.py` |
+| Fetch feed or page, with retries | `fetch.py` |
+| Parse feeds, HTML and dates | `parsing.py` |
+| Build a candidate article | `candidate.py`, `urls.py` |
+| Publish or quarantine | `policy.py` |
+| Decide what one article becomes (five routes) | `ingest.py` |
+| Relevance tier | `relevance.py`, `prompts.py` |
+| Summary card, topic and event labels (one model call; keyword rules are the fallback) | `summary.py`, `taxonomy.py`, `content_detail.py`, `text.py` |
+| Chunk | `chunking.py` |
+| Save | `store.py` |
+
+### Elsewhere
+
+- `backend/data/update_sources.yml`: the sources and their options (see `docs/DATA_SOURCES.md`)
+- `backend/migrations/versions/`: schema history
+- `backend/tests/`: mirrors `app/`; shared helpers `factories.py` and `fakes.py`
+- `backend/scripts/`: `collect_updates.py` (the production job), `create_db.py`, and `verification/` (CI checks)
+- `frontend/src/`: `App.tsx`, `FeedSection.tsx`, `BriefingPanel.tsx`, `AboutView.tsx`, `api.ts`, `display.ts`, `styles/`
+- `infra/terraform/`: AWS (see its README); `.github/workflows/`: CI and image build
+
+## Words
+
+| Word | Where | Meaning |
+|---|---|---|
+| article | code and docs | A collected piece of content |
+| document | database | The `documents` row that stores an article (`chunks` belong to it) |
+| update | API paths and `collection_source_runs` counters | Legacy name for an article in the feed |
+
+## Limitations
+
+- Articles are not clustered into cross-source stories.
+- HTML-only publications use explicit link patterns and content selectors; there is no broad crawling.
+- Ranking has no engagement signal, and the API response is not streamed.

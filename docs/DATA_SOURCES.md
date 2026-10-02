@@ -57,26 +57,14 @@ safety-evaluation-governance
 
 Each taxonomy-v2 article has exactly one broad primary topic and at most one event:
 `release-update`, `research`, `guide`, `analysis`, or `alert`. `topic_tags` remains
-an empty compatibility field. Entity tags, source type, and maturity remain metadata,
-not additional reader-facing topic categories. Allowed values are defined in
+an empty compatibility field. Source type is a source attribute, not a reader-facing topic category. Allowed values are defined in
 `backend/app/ingestion/taxonomy.py`.
 
 ## Stored Layers
 
-Original evidence:
+Original evidence: `title`, `url`, `raw_text`, `content_hash`, `published_at`, `fetched_at`, original chunks and embeddings.
 
-```text
-title, canonical_url, raw_text, content_hash
-published_at, fetched_at, original chunks, embeddings
-```
-
-Derived feed content:
-
-```text
-display_headline, summary, why_it_matters, key_points
-primary_topic, event_types, entity_tags, taxonomy_policy_version
-source_type, maturity, summary_generated_by
-```
+Derived content: `display_headline`, `summary`, `why_it_matters`, `key_points`, `primary_topic`, `event_types`, `relevance_tier`, `summary_generated_by`.
 
 Derived fields can be regenerated. Original evidence remains the source for RAG answers and citations.
 

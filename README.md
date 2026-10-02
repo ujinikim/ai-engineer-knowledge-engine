@@ -18,7 +18,7 @@ Question -> filtered hybrid retrieval -> original evidence -> cited answer
 
 - Ten selected sources spanning engineering publications, protocol updates, and curated agent analysis
 - Structured headlines, summaries, why-it-matters text, key points, and entity tags
-- Six-topic controlled taxonomy with event type, source type, and maturity facets
+- Six-topic controlled taxonomy with event type and source type facets
 - Idempotent collection with publication and fetch timestamps
 - PostgreSQL + pgvector storage
 - `24 hours`, `7 days`, `30 days`, and `All` dashboard windows
@@ -68,7 +68,9 @@ Use the local database URL from `.env.example` when working locally.
 
 ## Documentation
 
-- [Documentation guide](docs/README.md): current references, runbooks, and historical records
-- [Roadmap](docs/ROADMAP.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Data sources](docs/DATA_SOURCES.md)
+- [Architecture](docs/ARCHITECTURE.md): how an article flows, the layers, and where each file lives
+- [Data sources](docs/DATA_SOURCES.md): which sources count and how they are configured
+- [Decisions](docs/DECISIONS.md): why things are the way they are
+- [Evaluation](docs/EVALUATION.md): checks to build the next evaluation from
+- Runbooks in `docs/runbooks/`: [collection](docs/runbooks/COLLECTION_RUNBOOK.md), [EC2 runtime](docs/runbooks/EC2_RUNTIME_RUNBOOK.md), [observability](docs/runbooks/OBSERVABILITY_RUNBOOK.md), [AWS observability](docs/runbooks/AWS_OBSERVABILITY_RUNBOOK.md)
+- [Terraform](infra/terraform/README.md)

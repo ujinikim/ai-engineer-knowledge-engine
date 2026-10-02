@@ -17,7 +17,7 @@ Update sources live in:
 backend/data/update_sources.yml
 ```
 
-Each entry requires a unique slug, tool, organization, default primary topic, source type, feed URL, homepage URL, and credibility weight. Broad feeds can define `include_terms` and `exclude_terms`. HTML sources whose article
+Each entry requires a unique slug, tool, organization, default primary topic, source type, feed URL, homepage URL, and credibility weight. Broad feeds can define `include_terms`. HTML sources whose article
 pages keep the publication date outside the content selector can set `date_selector`. Remove retired sources from the registry after their stored data is cleaned up.
 
 ## Collect Once
@@ -92,12 +92,9 @@ Every stored article field is a typed `documents` column:
 | `ingestion_status` | `published` when eligible for a user-facing surface or `quarantined` when retained only for diagnosis |
 | `extraction_status` | `full_article`, `source_entry`, `feed_excerpt_only`, or `title_only` |
 | `relevance_tier`, `relevance_reason` | `core`, `contextual`, or `excluded`, with an evidence-based explanation |
-| `relevance_status`, `relevance_policy_version` | Whether the decision was classified, corrected, or failed, and under which policy |
-| `primary_topic`, `event_types`, `taxonomy_policy_version` | Taxonomy labels and the policy that produced them |
+| `relevance_policy_version` | The relevance policy that produced the tier; an empty tier means classification failed and is retried next run |
+| `primary_topic`, `event_types` | Taxonomy labels |
 | `display_headline`, `summary`, `why_it_matters`, `key_points`, `summary_generated_by` | The generated article card and its generator |
-
-The API's `evidence_level` is derived: `full_article`, `official_feed_excerpt` for a
-published `feed_excerpt_only` article, or `source_entry`.
 
 Source attributes (`organization`, `tool`, `source_type`, `credibility_weight`) are
 read from `update_sources.yml` by `source_name` and are not copied into rows. The card
@@ -110,12 +107,6 @@ and a controlled `error_code` such as `http_forbidden`, `http_not_found`, `http_
 `article_quarantined` with its failure codes, such as `article_hydration_failed`,
 `title_only_source`, or `insufficient_source_detail`. Each relevance decision logs
 `relevance_classified` with the model, tier, and agent focus.
-
-For example, a source may explicitly permit its official feed description as a
-dashboard announcement when the configured full-page fetch is blocked. That article is
-stored with `ingestion_status = published`, `extraction_status = feed_excerpt_only`,
-and `summary_generated_by = source-excerpt`; it appears in the feed but is not chunked,
-embedded, or retrieved.
 
 ## Run Continuously
 
