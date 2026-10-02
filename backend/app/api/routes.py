@@ -63,7 +63,6 @@ def updates(
     categories: list[str] | None = Query(default=None),
     event_types: list[str] | None = Query(default=None),
     source_types: list[str] | None = Query(default=None),
-    include_sparse: bool = False,  # legacy: still accepted, no longer changes results
     include_contextual: bool = False,
     start: datetime | None = None,
     end: datetime | None = None,

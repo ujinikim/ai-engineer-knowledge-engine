@@ -14,7 +14,6 @@ class IngestionDecision:
     warning_codes: tuple[str, ...]
     evidence_level: str
     rag_eligible: bool
-    default_feed_eligible: bool
 
     @property
     def publishable(self) -> bool:
@@ -67,5 +66,4 @@ def evaluate_ingestion_candidate(
             else "source_entry"
         ),
         rag_eligible=not approved_feed_excerpt and not unique_failures,
-        default_feed_eligible=approved_feed_excerpt or not unique_failures,
     )

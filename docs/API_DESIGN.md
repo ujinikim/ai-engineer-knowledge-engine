@@ -46,8 +46,7 @@ Supported windows are `day`, `week`, `month`, and `all`. Optional repeated query
 Quarantined records remain stored for diagnosis but are never returned by the
 dashboard or RAG retrieval. Successful sparse security issues, breaking changes,
 deprecations, and incidents can be published and remain visible when their relevance
-tier is `core`. The legacy `include_sparse` option never bypasses ingestion quarantine
-or relevance routing.
+tier is `core`.
 
 A source may explicitly publish a trusted official-feed description; the API reports it
 as `evidence_level = official_feed_excerpt`. Core items use the source wording directly

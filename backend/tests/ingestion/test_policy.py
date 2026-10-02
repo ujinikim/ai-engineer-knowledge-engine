@@ -52,5 +52,4 @@ def test_approved_official_feed_excerpt_is_dashboard_only_evidence() -> None:
         "insufficient_source_detail",
     )
     assert decision.evidence_level == "official_feed_excerpt"
-    assert decision.default_feed_eligible is True
     assert decision.rag_eligible is False

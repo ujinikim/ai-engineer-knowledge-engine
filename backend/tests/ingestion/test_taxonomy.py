@@ -1,19 +1,8 @@
 from app.ingestion.taxonomy import (
-    classify_topic,
     classify_topic_with_method,
     infer_event_types,
     normalize_event_types,
 )
-
-
-def test_topic_classification_prefers_inference_signals() -> None:
-    topic, tags = classify_topic(
-        "Continuous batching improves inference throughput and KV cache efficiency.",
-        "developer-tools",
-    )
-
-    assert topic == "ai-products-engineering-infrastructure"
-    assert tags == []
 
 
 def test_topic_classification_exposes_when_source_default_was_used() -> None:

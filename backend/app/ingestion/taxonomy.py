@@ -4,16 +4,6 @@ from app.domain import EVENT_TYPES, PRIMARY_TOPICS
 
 TAXONOMY_POLICY_VERSION = "2026-09-12-v2"
 
-SOURCE_TYPES = (
-    "official-release",
-    "official-changelog",
-    "official-engineering-blog",
-    "official-product-news",
-    "research-paper",
-    "editorial-analysis",
-    "community-signal",
-)
-
 TOPIC_KEYWORDS = {
     "agentic-generative-ai": (
         "agent",
@@ -99,15 +89,6 @@ TOPIC_KEYWORDS = {
         "incident",
     ),
 }
-
-
-def classify_topic(
-    text: str,
-    default: str = "ai-products-engineering-infrastructure",
-) -> tuple[str, list[str]]:
-    """Choose one broad category; the empty tag list is retained for API compatibility."""
-    primary, _ = classify_topic_with_method(text, default)
-    return primary, []
 
 
 def classify_topic_with_method(
