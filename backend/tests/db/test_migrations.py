@@ -55,3 +55,19 @@ def test_canonical_field_migration_follows_current_revision_chain() -> None:
 
 def test_packaged_alembic_head_is_the_expected_revision() -> None:
     assert expected_alembic_heads() == frozenset({EXPECTED_HEAD})
+
+
+def test_typed_columns_migration_maps_legacy_metadata_values_instead_of_failing(monkeypatch) -> None:
+    migration = import_module("migrations.versions.20260925_0014_typed_document_columns")
+    operation = Mock()
+    monkeypatch.setattr(migration, "op", operation)
+
+    migration.upgrade()
+
+    executed_sql = "\n".join(
+        call.args[0] for call in operation.execute.call_args_list if isinstance(call.args[0], str)
+    )
+    # Older collectors wrote values the new CHECK constraints reject (production failed on
+    # `parent_section_fallback`), so every copied status must be validated first.
+    assert "IN ('full_article', 'source_entry', 'feed_excerpt_only', 'title_only')" in executed_sql
+    assert "IN ('classified', 'corrected_unsupported_core', 'failed')" in executed_sql

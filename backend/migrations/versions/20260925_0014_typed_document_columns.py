@@ -4,6 +4,10 @@ Replaces doc_metadata with columns, merges evidence_level into extraction_status
 (the published feed-excerpt case is derived from ingestion_status), and removes
 redundant indexes and the unread chunks.created_at column.
 
+Values older collectors wrote that the new constraints do not allow (for example an
+extraction status of `parent_section_fallback`) fall back to a value derived from
+evidence_level, or to NULL for the relevance status.
+
 Revision ID: 20260925_0014
 Revises: 20260925_0013
 Create Date: 2026-09-25
@@ -57,17 +61,22 @@ def upgrade() -> None:
     op.execute(
         f"""
         UPDATE documents SET
-          extraction_status = COALESCE(
-            doc_metadata->>'extraction_status',
-            CASE evidence_level
+          extraction_status = CASE
+            WHEN doc_metadata->>'extraction_status'
+              IN ('full_article', 'source_entry', 'feed_excerpt_only', 'title_only')
+              THEN doc_metadata->>'extraction_status'
+            ELSE CASE evidence_level
               WHEN 'full_article' THEN 'full_article'
               WHEN 'official_feed_excerpt' THEN 'feed_excerpt_only'
               ELSE 'source_entry'
             END
-          ),
-          relevance_status = CASE doc_metadata->>'relevance_classification_status'
-            WHEN 'fail_open' THEN 'failed'
-            ELSE doc_metadata->>'relevance_classification_status'
+          END,
+          relevance_status = CASE
+            WHEN doc_metadata->>'relevance_classification_status' = 'fail_open' THEN 'failed'
+            WHEN doc_metadata->>'relevance_classification_status'
+              IN ('classified', 'corrected_unsupported_core', 'failed')
+              THEN doc_metadata->>'relevance_classification_status'
+            ELSE NULL
           END,
           relevance_policy_version = doc_metadata->>'relevance_policy_version',
           event_types = ARRAY(
