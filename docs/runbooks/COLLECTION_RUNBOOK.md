@@ -83,25 +83,6 @@ Collector output is newline-delimited structured JSON. Each run has a `run_id` j
 start, per-source, token/cost, completion, overlap, and failure events. See
 `OBSERVABILITY_RUNBOOK.md` for the event catalog and sensitive-data rules.
 
-## Backfill Existing Updates
-
-```bash
-uv run python -m scripts.maintenance.backfill_article_summaries
-uv run python -m scripts.maintenance.backfill_taxonomy_v2 --dry-run --limit 25
-```
-
-The summary backfill generates missing article cards. Use `--force` to regenerate
-them after changing the prompt or taxonomy, and `--limit N` for a quality sample
-before a full run.
-
-The taxonomy-v2 command is dry-run by default and reports every before/after value.
-It scopes itself to enabled, published update sources, skips records already on v2,
-and leaves disabled, quarantined, and legacy documentation records alone. Full-text
-articles use the configured summary model for constrained classification; approved
-feed excerpts use deterministic classification. After review, add `--apply` to update
-the taxonomy columns only. `--source`, `--model`, and `--force` support controlled
-trials. The command never rewrites summaries, chunks, or embeddings.
-
 ## Where Article Data Lives
 
 Every stored article field is a typed `documents` column:
