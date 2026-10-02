@@ -1,5 +1,8 @@
 import subprocess
 import sys
+from pathlib import Path
+
+BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 
 def test_the_api_process_does_not_load_ingestion_code() -> None:
@@ -11,6 +14,8 @@ def test_the_api_process_does_not_load_ingestion_code() -> None:
         "print(loaded, heavy)\n"
         "raise SystemExit(1 if loaded or heavy else 0)\n"
     )
-    result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)
+    result = subprocess.run(
+        [sys.executable, "-c", script], capture_output=True, text=True, cwd=BACKEND_DIR
+    )
 
-    assert result.returncode == 0, f"API imported ingestion code: {result.stdout.strip()}"
+    assert result.returncode == 0, f"API imported ingestion code: {result.stdout.strip()} {result.stderr[-300:]}"
