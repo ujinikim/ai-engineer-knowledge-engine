@@ -22,8 +22,7 @@ class SourceConfig(TypedDict):
     source_type: NotRequired[str]  # official-engineering-blog, official-changelog, ...
     credibility_weight: NotRequired[float]  # feed ranking weight, default 1.0
     # Taxonomy defaults, used only when classification has no better evidence
-    category: str
-    default_primary_topic: NotRequired[str]
+    default_primary_topic: str
     default_event_types: NotRequired[list[str]]
     # Which entries to keep
     include_terms: NotRequired[list[str]]
@@ -44,7 +43,7 @@ def configured_sources() -> tuple[SourceConfig, ...]:
     source_file = Path(__file__).resolve().parents[1] / "data" / "update_sources.yml"
     with source_file.open("r", encoding="utf-8") as file:
         sources = yaml.safe_load(file)["sources"]
-    required = {"slug", "name", "organization", "tool", "category", "source_kind", "feed_url", "homepage_url"}
+    required = {"slug", "name", "organization", "tool", "default_primary_topic", "source_kind", "feed_url", "homepage_url"}
     for source in sources:
         missing = required - source.keys()
         if missing:
@@ -72,7 +71,3 @@ def source_slugs_with(key: str, values: list[str], default=None) -> list[str]:
         for source in configured_sources()
         if source.get(key, default) in values
     ]
-
-
-def sources_by_slug() -> dict[str, SourceConfig]:
-    return {source["slug"]: source for source in configured_sources()}

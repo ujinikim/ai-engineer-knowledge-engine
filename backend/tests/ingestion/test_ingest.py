@@ -14,7 +14,6 @@ from tests.fakes import FakeDatabase, MustNotRun, make_ingestor
 AGENT_SOURCE = {
     "organization": "Example",
     "tool": "Agent SDK",
-    "category": "agentic-generative-ai",
     "default_primary_topic": "agentic-generative-ai",
     "source_type": "official-engineering-blog",
     "default_event_types": ["guide"],
@@ -22,7 +21,6 @@ AGENT_SOURCE = {
 OPENAI_SOURCE = {
     "organization": "OpenAI",
     "tool": "OpenAI",
-    "category": "models-apis",
     "default_primary_topic": "models-apis",
     "source_type": "official-product-news",
     "default_event_types": ["product-release"],

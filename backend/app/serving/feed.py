@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.db.models import CollectionSourceRun, Document
+from app.db.models import Document
 from app.domain import article_excerpt
 from app.schemas.updates import (
     DashboardStats,
@@ -12,11 +12,9 @@ from app.schemas.updates import (
     UpdateFacets,
     UpdateItem,
     UpdateListResponse,
-    UpdateSourceItem,
 )
 from app.serving.visibility import visible_article_clause
 from app.sources import (
-    configured_active_source_slugs,
     configured_sources,
     source_attribute,
     source_slugs_with,
@@ -30,42 +28,6 @@ DEFAULT_SOURCE_TYPE = "official-release"
 class FeedService:
     def __init__(self, db: Session) -> None:
         self.db = db
-
-    def list_sources(self) -> list[UpdateSourceItem]:
-        def latest_runs_for(status: str | None = None) -> dict[str, CollectionSourceRun]:
-            stmt = select(CollectionSourceRun).where(
-                CollectionSourceRun.source_slug.in_(configured_active_source_slugs())
-            )
-            if status is not None:
-                stmt = stmt.where(CollectionSourceRun.status == status)
-            runs = self.db.scalars(
-                stmt.distinct(CollectionSourceRun.source_slug).order_by(
-                    CollectionSourceRun.source_slug,
-                    CollectionSourceRun.finished_at.desc(),
-                    CollectionSourceRun.id.desc(),
-                )
-            ).all()
-            return {run.source_slug: run for run in runs}
-
-        latest_by_slug = latest_runs_for()
-        latest_success_by_slug = latest_runs_for("completed")
-        return [
-            UpdateSourceItem(
-                slug=source["slug"],
-                name=source["name"],
-                organization=source["organization"],
-                tool=source["tool"],
-                category=source.get("default_primary_topic", source["category"]),
-                source_type=source.get("source_type", "official-release"),
-                primary_topic=source.get("default_primary_topic", source["category"]),
-                homepage_url=source["homepage_url"],
-                last_collected_at=self._utc(latest_success_by_slug[source["slug"]].finished_at)
-                if source["slug"] in latest_success_by_slug else None,
-                last_error=latest_by_slug[source["slug"]].error
-                if source["slug"] in latest_by_slug else None,
-            )
-            for source in sorted(configured_sources(), key=lambda source: source["name"])
-        ]
 
     def list_updates(
         self,
@@ -182,7 +144,6 @@ class FeedService:
             source_name=document.source_name,
             organization=self._source(document, "organization"),
             tool=self._source(document, "tool"),
-            category=self._topic(document),
             primary_topic=self._topic(document),
             event_types=list(document.event_types or []),
             source_type=self._source_type(document),

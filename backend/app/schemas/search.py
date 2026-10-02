@@ -65,9 +65,7 @@ class RetrievedChunk(BaseModel):
     recency_score: float | None = None
     published_at: datetime | None = None
     tool: str | None = None
-    category: str | None = None
     event_types: list[str] = Field(default_factory=list)
-    source_category: str | None = None
     relevance_tier: Literal["core", "contextual", "excluded"] | None = None
 
 

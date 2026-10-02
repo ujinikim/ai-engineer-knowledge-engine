@@ -303,9 +303,7 @@ class SearchService:
             recency_score=round(candidate.recency_score, 4),
             published_at=candidate.document.published_at,
             tool=source_attribute(candidate.document.source_name, "tool"),
-            category=candidate.document.primary_topic,
             event_types=list(candidate.document.event_types or []),
-            source_category=source_attribute(candidate.document.source_name, "source_type"),
             relevance_tier=candidate.document.relevance_tier,
         )
 

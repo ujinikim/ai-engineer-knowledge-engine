@@ -46,7 +46,7 @@ def prepare_candidate(source_slug: str, config: SourceConfig, entry, *, now: dat
     body_text = clean_html(entry_html(entry))
     raw_text = f"{title}\n\n{body_text}".strip()
     extraction_status = str(entry.get("_extraction_status") or "source_entry")
-    default_topic = config.get("default_primary_topic", config["category"])
+    default_topic = config["default_primary_topic"]
     default_event_types = config.get("default_event_types", ["analysis"])
     provisional_topic, _ = classify_topic_with_method(f"{title}\n{title}\n{raw_text}", default_topic)
 

@@ -7,19 +7,6 @@ from pydantic import BaseModel, Field
 TimeWindow = Literal["day", "week", "month", "all"]
 
 
-class UpdateSourceItem(BaseModel):
-    slug: str
-    name: str
-    organization: str
-    tool: str
-    category: str
-    source_type: str
-    primary_topic: str
-    homepage_url: str
-    last_collected_at: datetime | None = None
-    last_error: str | None = None
-
-
 class UpdateItem(BaseModel):
     id: str
     title: str
@@ -27,7 +14,6 @@ class UpdateItem(BaseModel):
     source_name: str
     organization: str
     tool: str
-    category: str
     primary_topic: str
     event_types: list[str] = Field(default_factory=list)
     source_type: str

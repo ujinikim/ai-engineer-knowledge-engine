@@ -1,7 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 export type TimeWindow = "day" | "week" | "month" | "all";
-export type RelevanceTier = "core" | "contextual" | "excluded";
+type RelevanceTier = "core" | "contextual" | "excluded";
 export type RequestSurface = "updates" | "brief";
 
 export type RequestFailure = {
@@ -9,7 +9,7 @@ export type RequestFailure = {
   detail: string;
 };
 
-export class ApiResponseError extends Error {
+class ApiResponseError extends Error {
   constructor(
     readonly status: number,
     readonly surface: RequestSurface,
@@ -62,7 +62,7 @@ export type UpdateListResponse = {
   };
 };
 
-export type RetrievedChunk = {
+type RetrievedChunk = {
   chunk_id: string;
   document_title: string;
   source_name: string;
@@ -71,9 +71,7 @@ export type RetrievedChunk = {
   similarity: number;
   published_at: string | null;
   tool: string | null;
-  category: string | null;
   event_types: string[];
-  source_category: string | null;
   relevance_tier: RelevanceTier;
   vector_similarity: number | null;
   keyword_score: number | null;

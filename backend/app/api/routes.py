@@ -8,7 +8,7 @@ from app.db.session import get_db
 from app.schemas.ask import AskRequest, AskResponse
 from app.schemas.health import LivenessResponse, ReadinessResponse
 from app.schemas.search import SearchRequest, SearchResponse
-from app.schemas.updates import TimeWindow, UpdateListResponse, UpdateSourceItem
+from app.schemas.updates import TimeWindow, UpdateListResponse
 from app.serving.answer import AnswerService
 from app.serving.health import DatabaseReadinessChecker, ReadinessCheckError
 from app.serving.search import SearchService
@@ -46,11 +46,6 @@ def health_ready(
         return JSONResponse(status_code=503, content=response.model_dump())
 
     return ReadinessResponse(status="ready", checks=checks)
-
-
-@router.get("/update-sources", response_model=list[UpdateSourceItem])
-def update_sources(db: Session = Depends(get_db)) -> list[UpdateSourceItem]:
-    return FeedService(db).list_sources()
 
 
 @router.get("/updates", response_model=UpdateListResponse)
