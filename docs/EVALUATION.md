@@ -26,8 +26,6 @@
 
 ## Next Evaluation Work
 
-Phase 3 creates a dated update-corpus snapshot and a 30-question set with exact
-relevant-document judgments, filters, expected facts, and insufficient-evidence
-cases. Run deterministic retrieval checks first, then manually grade groundedness,
-completeness, and citations before considering an LLM judge. See
-`archive/PHASE3_RETRIEVAL_BENCHMARK_PLAN.md`.
+The earlier benchmark, scripts and reports were removed to start over. Rebuild with a dated
+corpus snapshot and a question set with exact relevant-document judgments, then run
+deterministic retrieval checks before grading answers by hand.

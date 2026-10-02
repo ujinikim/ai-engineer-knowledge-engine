@@ -116,7 +116,7 @@ cd backend
 uv run pytest
 ```
 
-`tests/` mirrors `app/` (`ingestion/`, `serving/`, `evaluation/`, `core/`, `db/`, `api/`),
+`tests/` mirrors `app/` (`ingestion/`, `serving/`, `core/`, `db/`, `api/`),
 with `scripts/` for the command-line tools and `test_sources.py` for the source
 registry. Shared helpers: `tests/factories.py` builds articles with the real column
 names (`make_article`), and `tests/fakes.py` holds the database and collaborator

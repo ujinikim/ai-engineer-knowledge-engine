@@ -18,7 +18,6 @@ Where things live. Layers and the dependency rule are in [ARCHITECTURE.md](ARCHI
 | `sources.py` | Reads `data/update_sources.yml` (the source list and per-source options) |
 | `db/models.py`, `db/session.py` | Tables, constraints, DB session |
 | `core/` | Settings, logging, embeddings, model-usage counting |
-| `evaluation/` | Quality checks for extraction and summaries (used by `scripts/evaluation`) |
 
 ## backend/app/ingestion — the collector (one article's journey, in order)
 
@@ -41,7 +40,7 @@ Where things live. Layers and the dependency rule are in [ARCHITECTURE.md](ARCHI
 - `backend/data/update_sources.yml` — the sources and their options
 - `backend/migrations/versions/` — schema history (head: `20260925_0014`)
 - `backend/tests/` — mirrors `app/`; shared helpers `factories.py`, `fakes.py`
-- `backend/scripts/` — `collect_updates.py` (production job), `create_db.py`; subfolders `evaluation/`, `verification/`
+- `backend/scripts/` — `collect_updates.py` (production job), `create_db.py`; subfolder `verification/` (CI checks)
 - `frontend/src/` — `App.tsx`, `FeedSection.tsx`, `BriefingPanel.tsx`, `AboutView.tsx`, `api.ts`, `display.ts`, `styles/`
 - `infra/` — Terraform for AWS
 - `.github/workflows/` — CI and image build
